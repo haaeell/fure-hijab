@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <section class="relative pt-12 pb-16 lg:pt-24 lg:pb-24 overflow-hidden px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <section class="relative pt-5 pb-5 lg:pt-5 lg:pb-5 overflow-hidden px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
             <div
                 class="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] bg-soft-mint rounded-full blur-[120px] opacity-70">

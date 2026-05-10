@@ -178,7 +178,9 @@ class CheckoutController extends Controller
 
     public function searchDestination(Request $request)
     {
-        $request->validate(['search' => 'required|string|min:3']);
+        $request->validate([
+            'search' => 'required|string|min:3'
+        ]);
 
         try {
             $response = Http::withHeaders([
@@ -189,13 +191,16 @@ class CheckoutController extends Controller
                 'offset' => 0,
             ]);
 
-            if ($response->failed()) {
-                return response()->json([]);
-            }
-
-            return response()->json($response->json()['data'] ?? []);
+            return response()->json([
+                'status' => $response->status(),
+                'body' => $response->json(),
+                'api_key' => config('services.rajaongkir.api_key'),
+            ]);
         } catch (\Throwable $e) {
-            return response()->json([]);
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage(),
+            ]);
         }
     }
 
