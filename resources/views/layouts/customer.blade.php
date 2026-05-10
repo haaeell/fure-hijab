@@ -209,7 +209,7 @@
                     class="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/20 group-hover:rotate-12 transition-transform">
                     <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
                 </div>
-                <span class="text-brand-dark font-extrabold text-xl tracking-tight uppercase">Al-Hayya</span>
+                <span class="text-brand-dark font-extrabold text-xl tracking-tight uppercase">Al-Hayya ok</span>
             </a>
 
             <div class="hidden md:flex items-center gap-8 text-sm font-semibold text-brand-dark/80">
