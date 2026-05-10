@@ -150,7 +150,7 @@
     </section>
 @endsection
 
-@section('scripts')
+@push('scripts')
     <script>
         $(document).ready(function () {
             $('.update-qty').click(function () {
@@ -177,4 +177,4 @@
             });
         });
     </script>
-@endsection
+@endpush
