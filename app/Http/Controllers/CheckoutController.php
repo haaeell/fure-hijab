@@ -191,19 +191,17 @@ class CheckoutController extends Controller
                 'offset' => 0,
             ]);
 
-            return response()->json([
-                'status' => $response->status(),
-                'body' => $response->json(),
-                'api_key' => config('services.rajaongkir.api_key'),
-            ]);
+            if ($response->failed()) {
+                return response()->json([]);
+            }
+
+            return response()->json(
+                $response->json()['data'] ?? []
+            );
         } catch (\Throwable $e) {
-            return response()->json([
-                'error' => true,
-                'message' => $e->getMessage(),
-            ]);
+            return response()->json([]);
         }
     }
-
     protected function initMidtrans()
     {
         Config::$serverKey = config('services.midtrans.server_key');
