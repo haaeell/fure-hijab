@@ -136,9 +136,14 @@
 
                         <div class="flex flex-col sm:flex-row gap-4">
                             <button type="submit" id="btnAddToCart"
-                                class="flex-grow py-4 bg-brand-primary text-white font-bold rounded-[20px] shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm">
+                                class="flex-1 py-4 bg-white text-brand-dark border-2 border-brand-primary/30 font-bold rounded-[20px] hover:bg-soft-mint transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm">
                                 <i class="fa-solid fa-cart-plus"></i>
                                 <span id="btnText">Tambah ke Keranjang</span>
+                            </button>
+                            <button type="button" id="btnBuyNow"
+                                class="flex-1 py-4 bg-brand-primary text-white font-bold rounded-[20px] shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>Beli Sekarang</span>
                             </button>
                             <button type="button"
                                 class="px-6 py-4 bg-white text-brand-dark border-2 border-brand-dark/10 font-bold rounded-[20px] hover:bg-brand-dark hover:text-white transition-all active:scale-95">
@@ -305,6 +310,14 @@
             $('#addToCartForm').on('submit', function (e) {
                 e.preventDefault();
 
+                submitCartAction('cart');
+            });
+
+            $('#btnBuyNow').on('click', function () {
+                submitCartAction('buy-now');
+            });
+
+            function submitCartAction(action) {
                 @if($product->has_variant)
                     if (!$('#selectedVariantId').val()) {
                         Swal.fire({ icon: 'warning', title: 'Pilih Varian', text: 'Silakan pilih warna/ukuran terlebih dahulu.' });
@@ -317,28 +330,44 @@
                     return;
                 @endif
 
-                let btn = $('#btnAddToCart');
+                let btn = action === 'buy-now' ? $('#btnBuyNow') : $('#btnAddToCart');
                 btn.prop('disabled', true).addClass('opacity-70');
 
                 $.ajax({
-                    url: "{{ route('cart.store') }}",
+                    url: action === 'buy-now' ? "{{ route('cart.buy-now') }}" : "{{ route('cart.store') }}",
                     method: "POST",
-                    data: $(this).serialize(),
+                    data: $('#addToCartForm').serialize(),
                     success: function (response) {
                         if (response.status === 'success') {
+                            if (response.redirect) {
+                                window.location.href = response.redirect;
+                                return;
+                            }
+
                             Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message, showConfirmButton: false, timer: 1500 });
-                            updateCartCount();
                             window.location.reload();
                         }
                     },
                     error: function (xhr) {
-                        Swal.fire({ icon: 'error', title: 'Oops...', text: 'Gagal menambah ke keranjang.' });
+                        const response = xhr.responseJSON;
+
+                        if (response?.status === 'blocked' && response.redirect) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Pesanan Belum Dibayar',
+                                text: response.message,
+                                confirmButtonText: 'Lihat Pesanan',
+                            }).then(() => window.location.href = response.redirect);
+                            return;
+                        }
+
+                        Swal.fire({ icon: 'error', title: 'Oops...', text: response?.message || 'Gagal menambah ke keranjang.' });
                     },
                     complete: function () {
                         btn.prop('disabled', false).removeClass('opacity-70');
                     }
                 });
-            });
+            }
 
             function updateCartCount() {
                 $.ajax({

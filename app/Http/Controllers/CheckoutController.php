@@ -19,6 +19,8 @@ use Midtrans\Snap;
 
 class CheckoutController extends Controller
 {
+    private const PAYMENT_WINDOW_MINUTES = 1440;
+
     const SUPPORTED_COURIERS = [
         'jne'      => 'JNE',
         'tiki'     => 'TIKI',
@@ -33,6 +35,16 @@ class CheckoutController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $blockedOrder = $this->activeUnpaidOrder($user->id);
+
+        if ($blockedOrder) {
+            $expiresAt = $this->paymentExpiresAt($blockedOrder);
+
+            return redirect()
+                ->route('order.history.show', $blockedOrder->id)
+                ->with('error', 'Kamu masih punya pesanan yang belum dibayar. Selesaikan atau batalkan dulu sebelum membuat pesanan baru. Batas bayar sampai ' . $expiresAt->format('d M Y H:i') . '.');
+        }
+
         $cart = Cart::with(['items.product.images', 'items.variant.attributes'])
             ->where('user_id', $user->id)
             ->first();
@@ -212,6 +224,14 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
+        $blockedOrder = $this->activeUnpaidOrder(Auth::id());
+
+        if ($blockedOrder) {
+            return redirect()
+                ->route('order.history.show', $blockedOrder->id)
+                ->with('error', 'Kamu masih punya pesanan yang belum dibayar. Selesaikan atau batalkan dulu sebelum membuat pesanan baru.');
+        }
+
         $request->validate([
             'address_id'      => 'required|exists:user_addresses,id',
             'courier_code'    => 'required|string',
@@ -336,14 +356,13 @@ class CheckoutController extends Controller
 
             $snapToken = Snap::getSnapToken($params);
 
-            $order->update(['snap_token' => $snapToken]);
-
             Payment::create([
                 'order_id' => $order->id,
                 'midtrans_order_id' => $orderNumber,
                 'amount' => $grandTotal,
                 'status' => 'pending',
-                'snap_token' => $snapToken
+                'snap_token' => $snapToken,
+                'expired_at' => now()->addMinutes(self::PAYMENT_WINDOW_MINUTES),
             ]);
 
             $cart->items()->delete();
@@ -406,10 +425,46 @@ class CheckoutController extends Controller
 
     public function checkPaymentStatus(Order $order)
     {
+        abort_if($order->user_id !== Auth::id(), 403);
+
         $payment = Payment::where('order_id', $order->id)->first();
         return response()->json([
-            'status' => $payment->status,
-            'order_status' => $order->status
+            'status' => $payment?->status,
+            'order_status' => $order->status,
+            'expired_at' => $payment?->expired_at?->toIso8601String(),
         ]);
+    }
+
+    private function activeUnpaidOrder(int $userId): ?Order
+    {
+        $orders = Order::with('payment')
+            ->where('user_id', $userId)
+            ->where('status', 'pending')
+            ->latest()
+            ->get();
+
+        foreach ($orders as $order) {
+            $expiresAt = $this->paymentExpiresAt($order);
+
+            if ($expiresAt->isPast()) {
+                $order->update([
+                    'status' => 'cancelled',
+                    'cancellation_reason' => 'Batas waktu pembayaran habis.',
+                    'cancelled_at' => now(),
+                    'cancelled_by' => 'system',
+                ]);
+                $order->payment?->update(['status' => 'expired']);
+                continue;
+            }
+
+            return $order;
+        }
+
+        return null;
+    }
+
+    private function paymentExpiresAt(Order $order)
+    {
+        return $order->payment?->expired_at ?: $order->created_at->copy()->addMinutes(self::PAYMENT_WINDOW_MINUTES);
     }
 }

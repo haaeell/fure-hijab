@@ -475,6 +475,27 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     @stack('scripts')
 
+    @if (session('success') || session('error'))
+        <script>
+            Swal.fire({
+                icon: @json(session('success') ? 'success' : 'error'),
+                title: @json(session('success') ? 'Berhasil' : 'Perhatian'),
+                text: @json(session('success') ?: session('error')),
+                confirmButtonColor: '#81C784',
+            });
+        </script>
+    @endif
+
+    @if ($errors->any())
+        <script>
+            Swal.fire({
+                icon: 'warning',
+                title: 'Lengkapi Data',
+                html: @json(implode('<br>', $errors->all())),
+                confirmButtonColor: '#81C784',
+            });
+        </script>
+    @endif
 
     <script>
         let map, marker;

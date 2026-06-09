@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -76,6 +77,56 @@ class CartController extends Controller
             'status' => 'success',
             'message' => 'Produk berhasil ditambahkan ke keranjang'
         ]);
+    }
+
+    public function buyNow(Request $request)
+    {
+        $blockedOrder = $this->activeUnpaidOrder();
+
+        if ($blockedOrder) {
+            return response()->json([
+                'status' => 'blocked',
+                'message' => 'Kamu masih punya pesanan yang belum dibayar. Selesaikan atau batalkan pesanan tersebut sebelum membuat pesanan baru.',
+                'redirect' => route('order.history.show', $blockedOrder->id),
+            ], 422);
+        }
+
+        $this->store($request);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Produk siap checkout.',
+            'redirect' => route('checkout.index'),
+        ]);
+    }
+
+    private function activeUnpaidOrder(): ?Order
+    {
+        $orders = Order::with('payment')
+            ->where('user_id', Auth::id())
+            ->where('status', 'pending')
+            ->latest()
+            ->get();
+
+        foreach ($orders as $order) {
+            $payment = $order->payment;
+            $expiresAt = $payment?->expired_at ?: $order->created_at->copy()->addDay();
+
+            if ($expiresAt->isPast()) {
+                $order->update([
+                    'status' => 'cancelled',
+                    'cancellation_reason' => 'Batas waktu pembayaran habis.',
+                    'cancelled_at' => now(),
+                    'cancelled_by' => 'system',
+                ]);
+                $payment->update(['status' => 'expired']);
+                continue;
+            }
+
+            return $order;
+        }
+
+        return null;
     }
 
     public function update(Request $request, $id)

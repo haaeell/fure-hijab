@@ -1,47 +1,154 @@
-@extends('layouts.app')
+<!doctype html>
+<html lang="id">
 
-@section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Reset Password') }}</div>
+<head>
+    <meta charset="utf-8">
+    <title>Lupa Password - AL-HAYYA HIJAB</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-                <div class="card-body">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'soft-mint': '#F1F8E9',
+                        'brand-primary': '#81C784',
+                        'brand-secondary': '#A5D6A7',
+                        'brand-dark': '#2D5A27',
+                    },
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .auth-bg {
+            background:
+                linear-gradient(135deg, rgba(248,251,248,.96), rgba(255,255,255,.92)),
+                radial-gradient(circle at 20% 18%, rgba(129,199,132,.24), transparent 28%),
+                radial-gradient(circle at 86% 78%, rgba(45,90,39,.13), transparent 24%);
+        }
+        .field:focus-within {
+            border-color: #81C784;
+            box-shadow: 0 0 0 4px rgba(129,199,132,.12);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen auth-bg text-gray-900">
+    <main class="min-h-screen flex items-center justify-center px-4 py-8">
+        <div class="w-full max-w-md">
+            <a href="/" class="mb-8 flex items-center justify-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-brand-primary flex items-center justify-center text-white shadow-lg shadow-brand-primary/30">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <span class="text-brand-dark font-extrabold text-xl tracking-tight uppercase">Al-Hayya</span>
+            </a>
+
+            <div class="bg-white rounded-[32px] border border-white shadow-2xl shadow-brand-dark/10 p-6 sm:p-8">
+                <div class="text-center mb-7">
+                    <div class="w-14 h-14 bg-soft-mint rounded-2xl flex items-center justify-center text-brand-primary mx-auto mb-4">
+                        <i class="fa-solid fa-key text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl font-extrabold text-brand-dark">Lupa Password?</h1>
+                    <p class="text-sm text-gray-400 mt-2">Masukkan email akun Anda. Kami akan mengirim link reset password.</p>
+                </div>
+
+                <div id="alertContainer">
                     @if (session('status'))
-                        <div class="alert alert-success" role="alert">
+                        <div class="mb-5 rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
                             {{ session('status') }}
                         </div>
                     @endif
-
-                    <form method="POST" action="{{ route('password.email') }}">
-                        @csrf
-
-                        <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
-
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
+                    @error('email')
+                        <div class="mb-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                            {{ $message }}
                         </div>
-
-                        <div class="row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Send Password Reset Link') }}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+                    @enderror
                 </div>
+
+                <form id="forgotPasswordForm" method="POST" action="{{ route('password.email') }}" class="space-y-5">
+                    @csrf
+                    <div>
+                        <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Email</label>
+                        <div class="field mt-2 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 transition-all">
+                            <i class="fa-regular fa-envelope text-gray-300"></i>
+                            <input type="email" name="email" required autocomplete="email" autofocus value="{{ old('email') }}"
+                                class="w-full bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
+                                placeholder="nama@email.com">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="forgotBtn"
+                        class="w-full py-4 rounded-2xl bg-brand-primary text-white font-black shadow-lg shadow-brand-primary/30 hover:bg-brand-dark hover:-translate-y-0.5 transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+                        <span id="forgotText">Kirim Link Reset</span>
+                        <i id="forgotIcon" class="fa-solid fa-paper-plane"></i>
+                        <i id="forgotLoader" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                    </button>
+
+                    <p class="text-center text-sm text-gray-500">
+                        Ingat password?
+                        <a href="{{ route('login') }}" class="font-bold text-brand-primary hover:text-brand-dark transition-colors">Masuk</a>
+                    </p>
+                </form>
             </div>
         </div>
-    </div>
-</div>
-@endsection
+    </main>
+
+    <script>
+        $(function () {
+            $('#forgotPasswordForm').on('submit', function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: "{{ route('password.email') }}",
+                    method: "POST",
+                    data: $(this).serialize(),
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json',
+                    },
+                    beforeSend: function () {
+                        $('#forgotBtn').prop('disabled', true).addClass('opacity-80');
+                        $('#forgotLoader').removeClass('hidden');
+                        $('#forgotIcon').addClass('hidden');
+                        $('#forgotText').text('Mengirim...');
+                        $('#alertContainer').empty();
+                    },
+                    success: function (response) {
+                        $('#alertContainer').html(`
+                            <div class="mb-5 rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
+                                ${response.message || 'Link reset password sudah dikirim. Silakan cek email Anda.'}
+                            </div>
+                        `);
+                    },
+                    error: function (xhr) {
+                        const message = xhr.responseJSON?.errors?.email?.[0] || xhr.responseJSON?.message || 'Gagal mengirim link reset password.';
+                        $('#alertContainer').html(`
+                            <div class="mb-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                                ${message}
+                            </div>
+                        `);
+                    },
+                    complete: function () {
+                        $('#forgotBtn').prop('disabled', false).removeClass('opacity-80');
+                        $('#forgotLoader').addClass('hidden');
+                        $('#forgotIcon').removeClass('hidden');
+                        $('#forgotText').text('Kirim Link Reset');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

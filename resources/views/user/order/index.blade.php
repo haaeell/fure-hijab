@@ -52,13 +52,15 @@
                         @forelse($orders as $order)
                             @php
                                 $statusMap = [
-                                    'pending' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-600', 'label' => 'Pending'],
+                                    'pending' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-600', 'label' => 'Belum Dibayar'],
+                                    'confirmed' => ['bg' => 'bg-blue-50', 'text' => 'text-blue-600', 'label' => 'Dikonfirmasi'],
                                     'processing' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600', 'label' => 'Diproses'],
                                     'shipped' => ['bg' => 'bg-cyan-50', 'text' => 'text-cyan-600', 'label' => 'Dikirim'],
                                     'delivered' => ['bg' => 'bg-green-50', 'text' => 'text-green-600', 'label' => 'Selesai'],
                                     'cancelled' => ['bg' => 'bg-red-50', 'text' => 'text-red-600', 'label' => 'Batal'],
                                 ];
                                 $currentStatus = $statusMap[$order->status] ?? ['bg' => 'bg-gray-50', 'text' => 'text-gray-600', 'label' => $order->status];
+                                $paymentExpiresAt = $order->payment?->expired_at ?: $order->created_at->copy()->addDay();
                             @endphp
                             <tr class="hover:bg-gray-50/50 transition-colors">
                                 <td class="py-6 px-2">
@@ -91,6 +93,11 @@
                                         class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider {{ $currentStatus['bg'] }} {{ $currentStatus['text'] }}">
                                         {{ $currentStatus['label'] }}
                                     </span>
+                                    @if($order->status === 'pending')
+                                        <p class="text-[10px] text-amber-600 font-semibold mt-2">
+                                            Bayar sebelum {{ $paymentExpiresAt->format('d M Y H:i') }}
+                                        </p>
+                                    @endif
                                 </td>
                                 <td class="py-6">
                                     <div class="flex gap-2">
@@ -106,6 +113,18 @@
                                                     class="p-2 bg-brand-primary text-white rounded-lg hover:shadow-lg hover:shadow-brand-primary/30 transition-all">
                                                     <i class="fa-solid fa-check text-xs"></i>
                                                 </button>
+                                            </form>
+                                        @endif
+                                        @if(in_array($order->status, ['pending', 'confirmed']))
+                                            <button type="button"
+                                                onclick="cancelCustomerOrder({{ $order->id }})"
+                                                class="p-2 text-xs font-bold bg-red-50 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                                                <i class="fa-solid fa-ban text-xs"></i> Batal
+                                            </button>
+                                            <form id="cancel-form-{{ $order->id }}" action="{{ route('order.history.cancel', $order->id) }}" method="POST" class="hidden">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="cancellation_reason" id="cancel-reason-{{ $order->id }}">
                                             </form>
                                         @endif
                                     </div>
@@ -151,5 +170,30 @@
             // Set default tab "All" aktif
             $('.tab-btn[data-status="all"]').click();
         });
+
+        window.cancelCustomerOrder = function (orderId) {
+            Swal.fire({
+                title: 'Batalkan Pesanan?',
+                input: 'textarea',
+                inputLabel: 'Alasan pembatalan',
+                inputPlaceholder: 'Tulis alasan pembatalan...',
+                inputAttributes: { maxlength: 500 },
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Batalkan',
+                cancelButtonText: 'Kembali',
+                confirmButtonColor: '#ef4444',
+                inputValidator: (value) => {
+                    if (!value || value.trim().length < 5) {
+                        return 'Alasan minimal 5 karakter.';
+                    }
+                }
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $(`#cancel-reason-${orderId}`).val(result.value.trim());
+                $(`#cancel-form-${orderId}`).submit();
+            });
+        }
     </script>
 @endpush

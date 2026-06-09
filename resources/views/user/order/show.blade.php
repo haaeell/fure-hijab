@@ -17,6 +17,8 @@
                 $currentStatus = $statusMap[$order->status] ?? $statusMap['pending'];
 
                 $payment = $order->payment;
+                $paymentExpiresAt = $payment?->expired_at ?: $order->created_at->copy()->addDay();
+                $remainingPaymentSeconds = $order->status === 'pending' ? max(0, now()->diffInSeconds($paymentExpiresAt, false)) : 0;
             @endphp
 
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
@@ -56,8 +58,15 @@
                                 <i class="fa-solid fa-circle-xmark text-red-500 text-2xl"></i>
                                 <div>
                                     <h4 class="font-bold text-red-700">Pesanan Dibatalkan</h4>
-                                    <p class="text-xs text-red-600 opacity-80">Mohon hubungi admin jika ada kendala terkait
-                                        pengembalian dana.</p>
+                                    <p class="text-xs text-red-600 opacity-80">
+                                        {{ $order->cancellation_reason ?: 'Mohon hubungi admin jika ada kendala terkait pengembalian dana.' }}
+                                    </p>
+                                    @if($order->cancelled_at)
+                                        <p class="text-[10px] text-red-400 mt-1">
+                                            Dibatalkan {{ $order->cancelled_at->format('d M Y, H:i') }}
+                                            @if($order->cancelled_by) oleh {{ $order->cancelled_by === 'customer' ? 'customer' : 'sistem' }} @endif
+                                        </p>
+                                    @endif
                                 </div>
                             </div>
                         @else
@@ -285,9 +294,32 @@
                         {{-- STATUS PEMBAYARAN & TOMBOL BAYAR --}}
                         <div class="relative z-10">
                             @if($order->status == 'pending')
-                                <button id="pay-button"
-                                    class="w-full py-4 bg-brand-primary text-white font-bold rounded-2xl shadow-lg hover:shadow-brand-primary/30 transition-all mt-4 flex items-center justify-center gap-2">
-                                    BAYAR SEKARANG </button>
+                                <div class="bg-amber-500/10 rounded-2xl p-4 border border-amber-500/20 mb-4">
+                                    <p class="text-[10px] text-amber-200 uppercase tracking-widest font-bold mb-1">Batas Pembayaran</p>
+                                    <p class="text-sm text-white font-bold">{{ $paymentExpiresAt->format('d M Y, H:i') }}</p>
+                                    <p class="text-xs text-white/60 mt-2">
+                                        Sisa waktu:
+                                        <span id="payment-countdown" class="font-black text-amber-300" data-seconds="{{ $remainingPaymentSeconds }}">
+                                            Menghitung...
+                                        </span>
+                                    </p>
+                                </div>
+
+                                @if($remainingPaymentSeconds > 0)
+                                    <button id="pay-button"
+                                        class="w-full py-4 bg-brand-primary text-white font-bold rounded-2xl shadow-lg hover:shadow-brand-primary/30 transition-all mt-4 flex items-center justify-center gap-2">
+                                        BAYAR SEKARANG
+                                    </button>
+                                @else
+                                    <div class="w-full py-4 bg-gray-600 text-white/70 font-bold rounded-2xl text-center mt-4">
+                                        Waktu pembayaran habis
+                                    </div>
+                                @endif
+
+                                <button type="button" onclick="openCancelOrderModal()"
+                                    class="w-full py-3 mt-3 bg-white/10 text-white font-bold rounded-2xl border border-white/10 hover:bg-white/15 transition-all">
+                                    Batalkan Pesanan
+                                </button>
 
                             @elseif($order->status == 'processing')
                                 <div class="bg-indigo-500/10 rounded-2xl p-6 border border-indigo-500/20 text-center">
@@ -346,14 +378,87 @@
                             </button>
                         </form>
                     @endif
+
+                    @if (in_array($order->status, ['pending', 'confirmed']))
+                        <button type="button" onclick="openCancelOrderModal()"
+                            class="w-full py-4 bg-red-50 text-red-600 font-black rounded-2xl border border-red-100 hover:bg-red-100 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-ban"></i> Batalkan Pesanan
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
     </section>
+
+    @if (in_array($order->status, ['pending', 'confirmed']))
+        <div id="cancelOrderModal" class="fixed inset-0 z-[120] hidden items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeCancelOrderModal()"></div>
+            <div class="relative w-full max-w-md bg-white rounded-[28px] shadow-2xl border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-extrabold text-brand-dark">Batalkan Pesanan</h3>
+                        <p class="text-xs text-gray-400 mt-1">Alasan pembatalan wajib diisi.</p>
+                    </div>
+                    <button type="button" onclick="closeCancelOrderModal()" class="w-9 h-9 rounded-full hover:bg-gray-100 text-gray-400">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <form action="{{ route('order.history.cancel', $order->id) }}" method="POST" class="p-6 space-y-4">
+                    @csrf
+                    @method('PATCH')
+                    <textarea name="cancellation_reason" rows="4" required minlength="5" maxlength="500"
+                        placeholder="Contoh: ingin mengubah alamat / salah pilih produk / belum jadi checkout."
+                        class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm focus:outline-none focus:border-brand-primary transition-colors resize-none"></textarea>
+                    <button type="submit"
+                        class="w-full py-3.5 bg-red-500 text-white font-black rounded-2xl hover:bg-red-600 transition-all">
+                        Ya, Batalkan Pesanan
+                    </button>
+                </form>
+            </div>
+        </div>
+    @endif
 @endsection
 
 @push('scripts')
-    @if($order->status == 'pending' && $payment && $payment->snap_token)
+    @if($order->status == 'pending')
+        <script>
+            const countdownEl = document.getElementById('payment-countdown');
+            if (countdownEl) {
+                let seconds = parseInt(countdownEl.dataset.seconds || '0', 10);
+                const renderCountdown = () => {
+                    if (seconds <= 0) {
+                        countdownEl.textContent = '00:00:00';
+                        return;
+                    }
+
+                    const hours = Math.floor(seconds / 3600);
+                    const minutes = Math.floor((seconds % 3600) / 60);
+                    const secs = seconds % 60;
+                    countdownEl.textContent = [hours, minutes, secs].map(v => String(v).padStart(2, '0')).join(':');
+                    seconds -= 1;
+                };
+
+                renderCountdown();
+                setInterval(renderCountdown, 1000);
+            }
+        </script>
+    @endif
+
+    @if(in_array($order->status, ['pending', 'confirmed']))
+        <script>
+            window.openCancelOrderModal = function () {
+                $('#cancelOrderModal').removeClass('hidden').addClass('flex');
+                $('body').addClass('overflow-hidden');
+            }
+
+            window.closeCancelOrderModal = function () {
+                $('#cancelOrderModal').addClass('hidden').removeClass('flex');
+                $('body').removeClass('overflow-hidden');
+            }
+        </script>
+    @endif
+
+    @if($order->status == 'pending' && $payment && $payment->snap_token && $remainingPaymentSeconds > 0)
         <script src="https://app.sandbox.midtrans.com/snap/snap.js"
             data-client-key="{{ config('services.midtrans.client_key') }}"></script>
         <script type="text/javascript">

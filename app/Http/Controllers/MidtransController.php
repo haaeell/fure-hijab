@@ -51,8 +51,17 @@ class MidtransController extends Controller
                 'payment_method' => $request->payment_type
             ]);
         } elseif (in_array($transactionStatus, ['cancel', 'expire', 'deny'])) {
-            $order->update(['status' => 'cancelled']);
-            $payment->update(['status' => 'failed']);
+            $order->update([
+                'status' => 'cancelled',
+                'cancellation_reason' => $transactionStatus === 'expire'
+                    ? 'Batas waktu pembayaran habis.'
+                    : 'Pembayaran dibatalkan atau ditolak.',
+                'cancelled_at' => now(),
+                'cancelled_by' => 'system',
+            ]);
+            $payment->update([
+                'status' => $transactionStatus === 'expire' ? 'expired' : 'failed',
+            ]);
         }
 
         return response()->json(['message' => 'Success']);

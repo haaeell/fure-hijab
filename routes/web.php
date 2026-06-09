@@ -29,6 +29,7 @@ Route::get('/collections/{slug}', [LandingPageController::class, 'show'])->name(
 Route::get('/about-us', [LandingPageController::class, 'about'])->name('about.index');
 Route::get('/promo', [LandingPageController::class, 'promo'])->name('promo.index');
 Route::get('/user/profile', [LandingPageController::class, 'profile'])->name('profile.index');
+Route::view('/terms-and-conditions', 'user.terms.index')->name('terms.index');
 
 Route::post('/midtrans/callback', [App\Http\Controllers\MidtransController::class, 'callback']);
 Route::get('/order/{order}/payment-status', [CheckoutController::class, 'checkPaymentStatus'])->middleware('auth');
@@ -117,6 +118,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('settings')->controller(AdminSettingController::class)->group(function () {
             Route::get('/', 'index')->name('settings.index');
             Route::put('/', 'update')->name('settings.update');
+            Route::post('/test-email', 'testEmail')->name('settings.test-email');
             Route::get('/rajaongkir/origins', 'searchOrigins')->name('settings.rajaongkir.origins');
         });
     });
@@ -128,6 +130,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('cart')->controller(CartController::class)->group(function () {
             Route::get('/', 'index')->name('cart.index');
             Route::post('/add', 'store')->name('cart.store');
+            Route::post('/buy-now', 'buyNow')->name('cart.buy-now');
             Route::patch('/update/{id}', 'update')->name('cart.update');
             Route::delete('/delete/{id}', 'destroy')->name('cart.destroy');
         });
@@ -153,6 +156,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', 'index')->name('order.history');
             Route::get('/{id}', 'show')->name('order.history.show');
             Route::patch('/{id}/complete', 'markAsCompleted')->name('order.history.complete');
+            Route::patch('/{id}/cancel', 'cancel')->name('order.history.cancel');
         });
     });
 });

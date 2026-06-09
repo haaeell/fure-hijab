@@ -16,7 +16,9 @@ class OrderHistoryController extends Controller
 
     public function index(Request $request)
     {
-        $orders = Order::with(['items.product.images', 'items.variant'])
+        $this->expireUnpaidOrders();
+
+        $orders = Order::with(['items.product.images', 'items.variant', 'payment'])
             ->where('user_id', Auth::id())
             ->latest()
             ->paginate(10);
@@ -30,6 +32,8 @@ class OrderHistoryController extends Controller
 
     public function show($id)
     {
+        $this->expireUnpaidOrders();
+
         $order = Order::with([
             'items.product.category',
             'items.product.images',
@@ -106,10 +110,35 @@ class OrderHistoryController extends Controller
             ->findOrFail($id);
 
         $order->update([
-            'status' => 'completed'
+            'status' => 'delivered'
         ]);
 
         return redirect()->back()->with('success', 'Pesanan selesai');
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        $request->validate([
+            'cancellation_reason' => ['required', 'string', 'min:5', 'max:500'],
+        ]);
+
+        $order = Order::with('payment')
+            ->where('user_id', Auth::id())
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->findOrFail($id);
+
+        $order->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $request->cancellation_reason,
+            'cancelled_at' => now(),
+            'cancelled_by' => 'customer',
+        ]);
+
+        if ($order->payment && $order->payment->status === 'pending') {
+            $order->payment->update(['status' => 'failed']);
+        }
+
+        return redirect()->route('order.history.show', $order->id)->with('success', 'Pesanan berhasil dibatalkan.');
     }
 
     public function submitReview(Request $request, Order $order)
@@ -139,5 +168,29 @@ class OrderHistoryController extends Controller
         ]);
 
         return response()->json(['message' => 'Review berhasil dikirim']);
+    }
+
+    private function expireUnpaidOrders(): void
+    {
+        Order::with('payment')
+            ->where('user_id', Auth::id())
+            ->where('status', 'pending')
+            ->get()
+            ->each(function (Order $order) {
+                $expiresAt = $order->payment?->expired_at ?: $order->created_at->copy()->addDay();
+
+                if ($expiresAt->isFuture()) {
+                    return;
+                }
+
+                $order->update([
+                    'status' => 'cancelled',
+                    'cancellation_reason' => 'Batas waktu pembayaran habis.',
+                    'cancelled_at' => now(),
+                    'cancelled_by' => 'system',
+                ]);
+
+                $order->payment?->update(['status' => 'expired']);
+            });
     }
 }

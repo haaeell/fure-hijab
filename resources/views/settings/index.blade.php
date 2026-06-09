@@ -6,7 +6,7 @@
     <div class="mx-auto max-w-5xl">
         <div class="mb-8">
             <h1 class="text-xl md:text-2xl font-extrabold text-brand-dark tracking-tight">Pengaturan Integrasi</h1>
-            <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">Atur kredensial RajaOngkir dan Midtrans langsung dari panel admin.</p>
+            <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">Atur kredensial RajaOngkir, Midtrans, dan email SMTP langsung dari panel admin.</p>
         </div>
 
         <form action="{{ route('settings.update') }}" method="POST" class="space-y-8">
@@ -101,10 +101,114 @@
                 </div>
             </div>
 
+            <div class="bg-white rounded-[32px] shadow-sm border border-gray-50 p-8">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-brand-dark">Email SMTP</h3>
+                        <p class="text-xs text-gray-400 font-medium">Dipakai untuk lupa password dan email otomatis toko.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Mailer</label>
+                        <select name="mail_mailer"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                            @foreach(['smtp' => 'SMTP', 'log' => 'Log saja', 'array' => 'Array / testing'] as $value => $label)
+                                <option value="{{ $value }}" {{ old('mail_mailer', $settings['mail_mailer']) === $value ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Scheme</label>
+                        <select name="mail_scheme"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                            @foreach(['smtp' => 'smtp - Gmail 587', 'smtps' => 'smtps - SSL 465'] as $value => $label)
+                                <option value="{{ $value }}" {{ old('mail_scheme', $settings['mail_scheme']) === $value ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-gray-400 ml-1">Untuk Gmail port 587 gunakan scheme smtp.</p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">SMTP Host</label>
+                        <input type="text" name="mail_host" value="{{ old('mail_host', $settings['mail_host']) }}"
+                            placeholder="smtp.gmail.com"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Port</label>
+                        <input type="number" name="mail_port" value="{{ old('mail_port', $settings['mail_port']) }}"
+                            placeholder="587"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Username Email</label>
+                        <input type="email" name="mail_username" value="{{ old('mail_username', $settings['mail_username']) }}"
+                            placeholder="nama@gmail.com"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Password / App Password</label>
+                        <div class="relative">
+                            <input type="password" name="mail_password" id="mail_password" value="{{ old('mail_password', $settings['mail_password']) }}"
+                                placeholder="Google app password"
+                                class="w-full px-4 py-3 pr-12 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                            <button type="button" id="toggleMailPassword"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-brand-primary transition-colors">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-gray-400 ml-1">Gmail membutuhkan App Password, bukan password login biasa.</p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">From Address</label>
+                        <input type="email" name="mail_from_address" value="{{ old('mail_from_address', $settings['mail_from_address']) }}"
+                            placeholder="noreply@domain.com"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">From Name</label>
+                        <input type="text" name="mail_from_name" value="{{ old('mail_from_name', $settings['mail_from_name']) }}"
+                            placeholder="AL-HAYYA HIJAB"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+                </div>
+            </div>
+
             <div class="text-right">
                 <button type="submit"
                     class="px-8 py-3 bg-brand-primary text-white rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-brand-primary/20 hover:bg-brand-dark transition-all">
                     Simpan Pengaturan
+                </button>
+            </div>
+        </form>
+
+        <form action="{{ route('settings.test-email') }}" method="POST" class="mt-8 bg-white rounded-[32px] shadow-sm border border-gray-50 p-8">
+            @csrf
+            <div class="flex flex-col md:flex-row md:items-end gap-5">
+                <div class="flex-1 space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kirim Test Email</label>
+                    <input type="email" name="test_email" value="{{ old('test_email', auth()->user()->email) }}"
+                        class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    <p class="text-[11px] text-gray-400 ml-1">Simpan pengaturan terlebih dahulu, lalu kirim test email ke alamat tujuan.</p>
+                </div>
+                <button type="submit"
+                    class="px-6 py-3 bg-brand-dark text-white rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-brand-dark/10 hover:bg-brand-primary transition-all">
+                    <i class="fa-solid fa-paper-plane mr-2"></i> Test Kirim
                 </button>
             </div>
         </form>
@@ -175,6 +279,12 @@
                     .removeClass('text-red-500')
                     .addClass('text-gray-400');
             }
+
+            $('#toggleMailPassword').on('click', function () {
+                const $input = $('#mail_password');
+                $input.attr('type', $input.attr('type') === 'password' ? 'text' : 'password');
+                $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+            });
         });
     </script>
 @endpush

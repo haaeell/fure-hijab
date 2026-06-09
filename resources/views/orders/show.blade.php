@@ -3,7 +3,259 @@
 @section('title', 'Detail Pesanan ' . $order->order_number)
 
 @section('content')
-    <div class="mx-auto">
+    @php
+        $shippingAddr = $order->address->firstWhere('type', 'shipping');
+        $statusLabels = [
+            'pending' => 'Menunggu Pembayaran',
+            'confirmed' => 'Dikonfirmasi',
+            'processing' => 'Diproses',
+            'shipped' => 'Dikirim',
+            'delivered' => 'Terkirim',
+            'cancelled' => 'Dibatalkan',
+            'refunded' => 'Refund',
+        ];
+        $paymentLabels = [
+            'success' => 'Lunas',
+            'pending' => 'Menunggu Pembayaran',
+            'failed' => 'Gagal',
+            'expired' => 'Kedaluwarsa',
+        ];
+    @endphp
+
+    <style>
+        .print-order-document {
+            display: none;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 12mm;
+            }
+
+            html,
+            body {
+                background: #ffffff !important;
+                color: #111827 !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            #sidebar,
+            #sidebarOverlay,
+            #mainContent > .flex.justify-between,
+            .screen-order-detail,
+            .swal2-container {
+                display: none !important;
+            }
+
+            #mainContent {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .print-order-document {
+                display: block !important;
+                width: 100%;
+                font-size: 11px;
+                line-height: 1.45;
+            }
+
+            .print-card {
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                overflow: hidden;
+                break-inside: avoid;
+            }
+
+            .print-muted {
+                color: #6b7280;
+            }
+
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .print-table th {
+                background: #f3f4f6;
+                color: #374151;
+                font-size: 9px;
+                letter-spacing: .08em;
+                text-transform: uppercase;
+                text-align: left;
+                padding: 9px 10px;
+                border-bottom: 1px solid #e5e7eb;
+            }
+
+            .print-table td {
+                padding: 10px;
+                border-bottom: 1px solid #eef2f7;
+                vertical-align: top;
+            }
+
+            .print-table tr:last-child td {
+                border-bottom: 0;
+            }
+
+            .print-badge {
+                display: inline-block;
+                padding: 5px 9px;
+                border-radius: 999px;
+                background: #F1F8E9;
+                color: #2D5A27;
+                font-weight: 700;
+                font-size: 9px;
+                letter-spacing: .06em;
+                text-transform: uppercase;
+            }
+        }
+    </style>
+
+    <section class="print-order-document">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #2D5A27; padding-bottom:16px; margin-bottom:18px;">
+            <div>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <div style="width:38px; height:38px; border-radius:10px; background:#81C784; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800;">
+                        AH
+                    </div>
+                    <div>
+                        <h1 style="font-size:20px; margin:0; color:#2D5A27; letter-spacing:.02em;">AL-HAYYA HIJAB</h1>
+                        <p class="print-muted" style="margin:2px 0 0;">Invoice / Detail Pesanan</p>
+                    </div>
+                </div>
+                <p class="print-muted" style="margin:0; max-width:360px;">
+                    Dokumen ini dicetak otomatis dari panel admin sebagai bukti transaksi dan panduan pemrosesan pesanan.
+                </p>
+            </div>
+            <div style="text-align:right;">
+                <p style="margin:0 0 6px; font-size:10px; text-transform:uppercase; letter-spacing:.12em;" class="print-muted">Nomor Pesanan</p>
+                <h2 style="font-size:18px; margin:0 0 8px; color:#2D5A27; font-family:monospace;">{{ $order->order_number }}</h2>
+                <span class="print-badge">{{ $statusLabels[$order->status] ?? ucfirst($order->status) }}</span>
+                <p class="print-muted" style="margin:10px 0 0;">Dicetak: {{ now()->format('d M Y, H:i') }}</p>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px;">
+            <div class="print-card" style="padding:12px;">
+                <p class="print-muted" style="margin:0 0 6px; font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;">Pelanggan</p>
+                <p style="margin:0; font-weight:800; color:#111827;">{{ $order->user->name ?? '-' }}</p>
+                <p class="print-muted" style="margin:3px 0 0;">{{ $order->user->email ?? '-' }}</p>
+                <p class="print-muted" style="margin:3px 0 0;">{{ $order->user->phone ?? '-' }}</p>
+            </div>
+            <div class="print-card" style="padding:12px;">
+                <p class="print-muted" style="margin:0 0 6px; font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;">Pesanan</p>
+                <p style="margin:0;"><strong>Tanggal:</strong> {{ $order->created_at->format('d M Y, H:i') }}</p>
+                <p style="margin:3px 0 0;"><strong>Item:</strong> {{ $order->items->sum('qty') }} pcs</p>
+                <p style="margin:3px 0 0;"><strong>Kupon:</strong> {{ $order->coupon?->code ?? '-' }}</p>
+            </div>
+            <div class="print-card" style="padding:12px;">
+                <p class="print-muted" style="margin:0 0 6px; font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;">Pembayaran</p>
+                <p style="margin:0;"><strong>Status:</strong> {{ $paymentLabels[$order->payment?->status] ?? ucfirst($order->payment?->status ?? 'Belum Bayar') }}</p>
+                <p style="margin:3px 0 0;"><strong>Metode:</strong> {{ strtoupper($order->payment?->payment_method ?? '-') }}</p>
+                <p style="margin:3px 0 0;"><strong>Dibayar:</strong> {{ $order->payment?->paid_at ? $order->payment->paid_at->format('d M Y, H:i') : '-' }}</p>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1.35fr .9fr; gap:10px; margin-bottom:14px;">
+            <div class="print-card" style="padding:12px;">
+                <p class="print-muted" style="margin:0 0 6px; font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;">Alamat Pengiriman</p>
+                @if($shippingAddr)
+                    <p style="margin:0; font-weight:800;">{{ $shippingAddr->receiver_name }}</p>
+                    <p style="margin:3px 0 0;">{{ $shippingAddr->phone }}</p>
+                    <p style="margin:6px 0 0;">{{ $shippingAddr->address }}</p>
+                    <p class="print-muted" style="margin:3px 0 0;">
+                        {{ $shippingAddr->subdistrict ? $shippingAddr->subdistrict . ', ' : '' }}
+                        {{ $shippingAddr->district ? $shippingAddr->district . ', ' : '' }}
+                        {{ $shippingAddr->city }}, {{ $shippingAddr->province }} {{ $shippingAddr->postal_code }}
+                    </p>
+                @else
+                    <p class="print-muted" style="margin:0;">Alamat pengiriman belum tersedia.</p>
+                @endif
+            </div>
+            <div class="print-card" style="padding:12px;">
+                <p class="print-muted" style="margin:0 0 6px; font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;">Pengiriman</p>
+                <p style="margin:0;"><strong>Kurir:</strong> {{ strtoupper($order->shipment?->courier ?? '-') }}</p>
+                <p style="margin:3px 0 0;"><strong>Layanan:</strong> {{ $order->shipment?->service ?? '-' }}</p>
+                <p style="margin:3px 0 0;"><strong>Estimasi:</strong> {{ $order->shipment?->estimated_days ? $order->shipment->estimated_days . ' hari' : '-' }}</p>
+                <p style="margin:3px 0 0;"><strong>Resi:</strong> {{ $order->shipment?->resi ?? '-' }}</p>
+            </div>
+        </div>
+
+        <div class="print-card" style="margin-bottom:14px;">
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width:38px;">No</th>
+                        <th>Produk</th>
+                        <th style="width:70px; text-align:center;">Qty</th>
+                        <th style="width:120px; text-align:right;">Harga</th>
+                        <th style="width:130px; text-align:right;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($order->items as $item)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>
+                                <strong>{{ $item->product_name }}</strong>
+                                @if($item->variant_name)
+                                    <div class="print-muted" style="font-size:10px; margin-top:2px;">Varian: {{ $item->variant_name }}</div>
+                                @endif
+                            </td>
+                            <td style="text-align:center;">{{ $item->qty }}</td>
+                            <td style="text-align:right;">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                            <td style="text-align:right; font-weight:700;">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 300px; gap:14px; align-items:start;">
+            <div class="print-card" style="padding:12px; min-height:98px;">
+                <p class="print-muted" style="margin:0 0 6px; font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;">Catatan Pesanan</p>
+                <p style="margin:0;">{{ $order->notes ?: '-' }}</p>
+                @if($order->status === 'cancelled' && $order->cancellation_reason)
+                    <p style="margin:10px 0 0;"><strong>Alasan batal:</strong> {{ $order->cancellation_reason }}</p>
+                @endif
+            </div>
+
+            <div class="print-card" style="padding:12px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
+                    <span class="print-muted">Subtotal</span>
+                    <strong>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
+                    <span class="print-muted">Ongkos Kirim</span>
+                    <strong>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</strong>
+                </div>
+                @if($order->discount > 0)
+                    <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
+                        <span class="print-muted">Diskon</span>
+                        <strong>- Rp {{ number_format($order->discount, 0, ',', '.') }}</strong>
+                    </div>
+                @endif
+                <div style="display:flex; justify-content:space-between; border-top:1px solid #e5e7eb; padding-top:10px; margin-top:10px;">
+                    <span style="font-size:13px; font-weight:800; color:#2D5A27;">TOTAL</span>
+                    <strong style="font-size:15px; color:#2D5A27;">Rp {{ number_format($order->total, 0, ',', '.') }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:28px; padding-top:12px; border-top:1px solid #e5e7eb;">
+            <p class="print-muted" style="margin:0; max-width:430px;">
+                Periksa kesesuaian produk, alamat, kurir, dan nomor resi sebelum paket diserahkan ke ekspedisi.
+            </p>
+            <div style="text-align:center; width:190px;">
+                <p class="print-muted" style="margin:0 0 46px;">Admin</p>
+                <div style="border-top:1px solid #111827; padding-top:6px;">AL-HAYYA HIJAB</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="mx-auto screen-order-detail">
 
         {{-- ── Page Header ── --}}
         <div class="flex justify-between items-center mb-8">
@@ -430,7 +682,6 @@
                 </div>
 
                 {{-- ── Shipping Address ── --}}
-                @php $shippingAddr = $order->address->firstWhere('type', 'shipping'); @endphp
                 @if($shippingAddr)
                     <div class="bg-white rounded-3xl border border-gray-50 shadow-sm overflow-hidden">
                         <div class="px-5 py-4 border-b border-gray-50 flex items-center gap-3">

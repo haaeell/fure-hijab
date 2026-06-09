@@ -20,7 +20,14 @@ class Order extends Model
         'discount',
         'total',
         'notes',
+        'cancellation_reason',
+        'cancelled_at',
+        'cancelled_by',
         'coupon_id'
+    ];
+
+    protected $casts = [
+        'cancelled_at' => 'datetime',
     ];
 
     public function items()
