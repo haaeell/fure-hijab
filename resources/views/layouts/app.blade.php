@@ -192,6 +192,14 @@
                 {{ request()->is('reviews*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-message w-5"></i> Ulasan
             </a>
+
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] px-4 mb-3 mt-6">Sistem</p>
+
+            <a href="{{ route('settings.index') }}"
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                {{ request()->is('settings*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
+                <i class="fa-solid fa-gear w-5"></i> Pengaturan Integrasi
+            </a>
         </nav>
 
         <div class="p-4 border-t border-gray-50 mt-auto">
@@ -316,7 +324,7 @@
                             class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:bg-soft-mint transition-all">
                             <i class="fa-regular fa-user"></i> Profil
                         </a>
-                        <a href="#"
+                        <a href="{{ route('settings.index') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:bg-soft-mint transition-all">
                             <i class="fa-solid fa-gear"></i> Pengaturan
                         </a>

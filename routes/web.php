@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\AdminSettingController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
@@ -104,6 +105,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', 'index');
             Route::put('/update', 'updateProfile')->name('profile.update');
             Route::put('/password', 'updatePassword')->name('profile.password');
+        });
+
+        Route::prefix('settings')->controller(AdminSettingController::class)->group(function () {
+            Route::get('/', 'index')->name('settings.index');
+            Route::put('/', 'update')->name('settings.update');
+            Route::get('/rajaongkir/origins', 'searchOrigins')->name('settings.rajaongkir.origins');
         });
     });
 
