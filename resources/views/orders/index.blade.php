@@ -3,10 +3,27 @@
 @section('title', 'Pesanan')
 
 @section('content')
-    <div class="mx-auto">
+    @php
+        $statusMap = [
+            '' => ['label' => 'Semua', 'icon' => 'fa-list'],
+            'pending' => ['label' => 'Pending', 'icon' => 'fa-hourglass-half'],
+            'confirmed' => ['label' => 'Dikonfirmasi', 'icon' => 'fa-circle-check'],
+            'processing' => ['label' => 'Diproses', 'icon' => 'fa-gear'],
+            'shipped' => ['label' => 'Dikirim', 'icon' => 'fa-truck'],
+            'delivered' => ['label' => 'Terkirim', 'icon' => 'fa-house-circle-check'],
+            'cancelled' => ['label' => 'Dibatalkan', 'icon' => 'fa-circle-xmark'],
+            'refunded' => ['label' => 'Refund', 'icon' => 'fa-rotate-left'],
+        ];
 
-        {{-- ── Page Header ── --}}
-        <div class="flex justify-between items-center mb-8">
+        $activeFilter = $filters['status'] ?? '';
+        $dateParams = array_filter([
+            'start_date' => $filters['start_date'] ?? null,
+            'end_date' => $filters['end_date'] ?? null,
+        ]);
+    @endphp
+
+    <div class="mx-auto">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
             <div>
                 <h1 class="text-xl md:text-2xl font-extrabold text-brand-dark tracking-tight">Pesanan</h1>
                 <nav class="text-xs md:text-sm text-gray-400 font-medium mt-1">
@@ -17,31 +34,22 @@
                     </ol>
                 </nav>
             </div>
-            {{-- Export button --}}
+
             <button onclick="exportOrders()"
-                class="px-5 py-3 bg-white border border-gray-200 text-gray-600 rounded-2xl font-bold shadow-sm hover:bg-gray-50 transition-all flex items-center gap-2">
+                class="px-5 py-3 bg-white border border-gray-200 text-gray-600 rounded-2xl font-bold shadow-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
                 <i class="fa-solid fa-file-export text-sm text-brand-primary"></i>
-                <span class="hidden sm:inline text-sm">Export</span>
+                <span class="text-sm">Export</span>
             </button>
         </div>
 
-        {{-- ── Summary Cards ── --}}
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            @php
-                $totalOrders = $orders->count();
-                $pending = $orders->whereIn('status', ['pending', 'confirmed'])->count();
-                $processing = $orders->whereIn('status', ['processing', 'shipped'])->count();
-                $done = $orders->where('status', 'delivered')->count();
-                $totalRevenue = $orders->where('status', 'delivered')->sum('total');
-            @endphp
-
             <div class="bg-white rounded-3xl px-5 py-4 border border-gray-50 shadow-sm flex items-center gap-4">
                 <div class="w-11 h-11 rounded-2xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
                     <i class="fa-solid fa-bag-shopping text-lg"></i>
                 </div>
                 <div>
                     <p class="text-[10px] font-black text-gray-400 tracking-widest">TOTAL PESANAN</p>
-                    <p class="text-2xl font-extrabold text-brand-dark leading-tight">{{ $totalOrders }}</p>
+                    <p class="text-2xl font-extrabold text-brand-dark leading-tight">{{ number_format($summary['total']) }}</p>
                 </div>
             </div>
 
@@ -51,7 +59,7 @@
                 </div>
                 <div>
                     <p class="text-[10px] font-black text-gray-400 tracking-widest">MENUNGGU</p>
-                    <p class="text-2xl font-extrabold text-brand-dark leading-tight">{{ $pending }}</p>
+                    <p class="text-2xl font-extrabold text-brand-dark leading-tight">{{ number_format($summary['pending']) }}</p>
                 </div>
             </div>
 
@@ -61,7 +69,7 @@
                 </div>
                 <div>
                     <p class="text-[10px] font-black text-gray-400 tracking-widest">DIPROSES</p>
-                    <p class="text-2xl font-extrabold text-brand-dark leading-tight">{{ $processing }}</p>
+                    <p class="text-2xl font-extrabold text-brand-dark leading-tight">{{ number_format($summary['processing']) }}</p>
                 </div>
             </div>
 
@@ -71,60 +79,70 @@
                 </div>
                 <div>
                     <p class="text-[10px] font-black text-gray-400 tracking-widest">SELESAI</p>
-                    <p class="text-2xl font-extrabold text-brand-dark leading-tight">{{ $done }}</p>
+                    <p class="text-2xl font-extrabold text-brand-dark leading-tight">{{ number_format($summary['done']) }}</p>
                 </div>
             </div>
         </div>
 
-        {{-- ── Revenue Banner ── --}}
         <div
             class="bg-gradient-to-r from-brand-primary to-brand-dark rounded-3xl px-6 py-5 mb-6 flex items-center justify-between shadow-lg shadow-brand-primary/20">
             <div>
                 <p class="text-[10px] font-black text-white/60 tracking-widest">TOTAL PENDAPATAN (TERKIRIM)</p>
-                <p class="text-3xl font-extrabold text-white mt-1">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</p>
+                <p class="text-3xl font-extrabold text-white mt-1">Rp {{ number_format($summary['revenue'], 0, ',', '.') }}</p>
             </div>
             <div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-white">
                 <i class="fa-solid fa-wallet text-2xl"></i>
             </div>
         </div>
 
-        {{-- ── Filter Tabs ── --}}
+        <form method="GET" action="{{ route('orders.index') }}"
+            class="bg-white rounded-3xl border border-gray-50 shadow-sm mb-4 p-4 grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end">
+            <input type="hidden" name="status" value="{{ $activeFilter }}">
+
+            <div>
+                <label class="text-[10px] font-black text-gray-400 tracking-widest uppercase">Tanggal Mulai</label>
+                <input type="date" name="start_date" value="{{ $filters['start_date'] }}"
+                    class="mt-2 w-full rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-600 outline-none focus:border-brand-primary focus:bg-white">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-black text-gray-400 tracking-widest uppercase">Tanggal Akhir</label>
+                <input type="date" name="end_date" value="{{ $filters['end_date'] }}"
+                    class="mt-2 w-full rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-600 outline-none focus:border-brand-primary focus:bg-white">
+            </div>
+
+            <button type="submit"
+                class="px-5 py-3 bg-brand-dark text-white rounded-2xl font-bold text-sm shadow-sm hover:bg-brand-primary transition-all">
+                <i class="fa-solid fa-calendar-days mr-2"></i> Terapkan
+            </button>
+
+            <a href="{{ route('orders.index', array_filter(['status' => $activeFilter])) }}"
+                class="px-5 py-3 bg-gray-50 text-gray-500 rounded-2xl font-bold text-sm text-center hover:bg-gray-100 transition-all">
+                Reset Tanggal
+            </a>
+        </form>
+
         <div class="bg-white rounded-3xl border border-gray-50 shadow-sm mb-4 px-4 py-2 flex gap-1 flex-wrap">
-            @php
-                $statusMap = [
-                    '' => ['label' => 'Semua', 'icon' => 'fa-list', 'color' => 'text-gray-500'],
-                    'pending' => ['label' => 'Pending', 'icon' => 'fa-hourglass-half', 'color' => 'text-amber-500'],
-                    'confirmed' => ['label' => 'Dikonfirmasi', 'icon' => 'fa-circle-check', 'color' => 'text-blue-500'],
-                    'processing' => ['label' => 'Diproses', 'icon' => 'fa-gear', 'color' => 'text-indigo-500'],
-                    'shipped' => ['label' => 'Dikirim', 'icon' => 'fa-truck', 'color' => 'text-cyan-500'],
-                    'delivered' => [
-                        'label' => 'Terkirim',
-                        'icon' => 'fa-house-circle-check',
-                        'color' => 'text-green-500',
-                    ],
-                    'cancelled' => ['label' => 'Dibatalkan', 'icon' => 'fa-circle-xmark', 'color' => 'text-red-500'],
-                    'refunded' => ['label' => 'Refund', 'icon' => 'fa-rotate-left', 'color' => 'text-purple-500'],
-                ];
-                $activeFilter = request('status', '');
-            @endphp
             @foreach ($statusMap as $key => $cfg)
-                <a href="{{ route('orders.index', $key ? ['status' => $key] : []) }}"
+                @php
+                    $params = $key ? array_merge($dateParams, ['status' => $key]) : $dateParams;
+                    $count = $key ? ($statusCounts[$key] ?? 0) : $summary['total'];
+                @endphp
+                <a href="{{ route('orders.index', $params) }}"
                     class="px-4 py-2.5 rounded-2xl text-[11px] font-black tracking-widest transition-all flex items-center gap-1.5 whitespace-nowrap
                         {{ $activeFilter === $key ? 'bg-brand-primary text-white shadow-sm' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700' }}">
                     <i class="fa-solid {{ $cfg['icon'] }} text-[10px]"></i>
                     {{ $cfg['label'] }}
-                    @php $cnt = $key ? $orders->where('status', $key)->count() : $orders->count(); @endphp
-                    @if ($cnt > 0)
+                    @if ($count > 0)
                         <span
-                            class="px-1.5 py-0.5 rounded-md text-[9px] font-black {{ $activeFilter === $key ? 'bg-white/20' : 'bg-gray-100' }}">{{ $cnt }}</span>
+                            class="px-1.5 py-0.5 rounded-md text-[9px] font-black {{ $activeFilter === $key ? 'bg-white/20' : 'bg-gray-100' }}">{{ number_format($count) }}</span>
                     @endif
                 </a>
             @endforeach
         </div>
 
-        {{-- ── Table ── --}}
         <div class="bg-white rounded-[32px] shadow-sm border border-gray-50 overflow-hidden px-6 py-8">
-            <table id="datatable" class="w-full text-sm">
+            <table id="ordersTable" class="w-full text-sm">
                 <thead>
                     <tr class="text-gray-400 text-[11px] tracking-widest border-b border-gray-50">
                         <th class="px-4 py-4 text-left">No. Order</th>
@@ -137,181 +155,14 @@
                         <th class="px-4 py-4 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
-                    @foreach ($filteredOrders as $i => $order)
-                        <tr class="hover:bg-soft-bg/50 transition-colors">
-
-                            {{-- Order Number --}}
-                            <td class="px-4 py-5">
-                                <div class="font-black text-brand-primary text-sm font-mono">{{ $order->order_number }}
-                                </div>
-                                <div class="text-[10px] text-gray-400 mt-0.5">ID #{{ $order->id }}</div>
-                            </td>
-
-                            {{-- Customer --}}
-                            <td class="px-4 py-5">
-                                <div class="flex items-center gap-3">
-                                    <div
-                                        class="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs flex-shrink-0">
-                                        {{ strtoupper(substr($order->user->name ?? 'U', 0, 1)) }}
-                                    </div>
-                                    <div>
-                                        <div class="font-semibold text-brand-dark text-sm">{{ $order->user->name ?? '-' }}
-                                        </div>
-                                        <div class="text-[10px] text-gray-400">{{ $order->user->email ?? '' }}</div>
-                                    </div>
-                                </div>
-                            </td>
-
-                            {{-- Items count --}}
-                            <td class="px-4 py-5">
-                                <div class="font-bold text-gray-700">{{ $order->items->count() }} item</div>
-                                <div class="text-[10px] text-gray-400 mt-0.5 max-w-[140px] truncate">
-                                    {{ $order->items->pluck('product_name')->implode(', ') }}
-                                </div>
-                            </td>
-
-                            {{-- Total --}}
-                            <td class="px-4 py-5">
-                                <div class="font-extrabold text-brand-dark text-sm">Rp
-                                    {{ number_format($order->total, 0, ',', '.') }}</div>
-                                @if ($order->discount > 0)
-                                    <div class="text-[10px] text-green-500 font-semibold mt-0.5">
-                                        <i class="fa-solid fa-tag text-[8px]"></i> Diskon Rp
-                                        {{ number_format($order->discount, 0, ',', '.') }}
-                                    </div>
-                                @endif
-                                @if ($order->shipping_cost > 0)
-                                    <div class="text-[10px] text-gray-400 mt-0.5">
-                                        Ongkir: Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}
-                                    </div>
-                                @endif
-                            </td>
-
-                            {{-- Payment --}}
-                            <td class="px-4 py-5">
-                                @php $payment = $order->payment; @endphp
-                                @if ($payment)
-                                    <span
-                                        class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider
-                                                            {{ $payment->status === 'success'
-                                                                ? 'bg-green-50 text-green-600'
-                                                                : ($payment->status === 'pending'
-                                                                    ? 'bg-amber-50 text-amber-600'
-                                                                    : ($payment->status === 'failed'
-                                                                        ? 'bg-red-50 text-red-600'
-                                                                        : ($payment->status === 'expired'
-                                                                            ? 'bg-gray-100 text-gray-500'
-                                                                            : 'bg-purple-50 text-purple-600'))) }}">
-                                        {{ ucfirst($payment->status) }}
-                                    </span>
-                                    @if ($payment->payment_method)
-                                        <div class="text-[10px] text-gray-400 mt-1">
-                                            {{ strtoupper($payment->payment_method) }}</div>
-                                    @endif
-                                @else
-                                    <span
-                                        class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider bg-gray-50 text-gray-400">
-                                        Belum Bayar
-                                    </span>
-                                @endif
-                            </td>
-
-                            {{-- Status --}}
-                            <td class="px-4 py-5">
-                                @php
-                                    $statusCfg = [
-                                        'pending' => [
-                                            'bg' => 'bg-amber-50',
-                                            'text' => 'text-amber-600',
-                                            'label' => 'Pending',
-                                        ],
-                                        'confirmed' => [
-                                            'bg' => 'bg-blue-50',
-                                            'text' => 'text-blue-600',
-                                            'label' => 'Dikonfirmasi',
-                                        ],
-                                        'processing' => [
-                                            'bg' => 'bg-indigo-50',
-                                            'text' => 'text-indigo-600',
-                                            'label' => 'Diproses',
-                                        ],
-                                        'shipped' => [
-                                            'bg' => 'bg-cyan-50',
-                                            'text' => 'text-cyan-600',
-                                            'label' => 'Dikirim',
-                                        ],
-                                        'delivered' => [
-                                            'bg' => 'bg-green-50',
-                                            'text' => 'text-green-600',
-                                            'label' => 'Terkirim',
-                                        ],
-                                        'cancelled' => [
-                                            'bg' => 'bg-red-50',
-                                            'text' => 'text-red-600',
-                                            'label' => 'Dibatalkan',
-                                        ],
-                                        'refunded' => [
-                                            'bg' => 'bg-purple-50',
-                                            'text' => 'text-purple-600',
-                                            'label' => 'Refund',
-                                        ],
-                                    ];
-                                    $sc = $statusCfg[$order->status] ?? [
-                                        'bg' => 'bg-gray-50',
-                                        'text' => 'text-gray-500',
-                                        'label' => $order->status,
-                                    ];
-                                @endphp
-                                <span
-                                    class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider {{ $sc['bg'] }} {{ $sc['text'] }}">
-                                    {{ $sc['label'] }}
-                                </span>
-                            </td>
-
-                            {{-- Date --}}
-                            <td class="px-4 py-5">
-                                <div class="font-semibold text-gray-700 text-sm">{{ $order->created_at->format('d M Y') }}
-                                </div>
-                                <div class="text-[10px] text-gray-400">{{ $order->created_at->format('H:i') }}</div>
-                            </td>
-
-                            {{-- Actions --}}
-                            <td class="px-4 py-5 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('orders.show', $order->id) }}"
-                                        class="w-9 h-9 flex items-center justify-center bg-brand-primary/10 text-brand-primary rounded-xl hover:bg-brand-primary hover:text-white transition-all shadow-sm"
-                                        title="Lihat Detail">
-                                        <i class="fa-solid fa-eye text-xs"></i>
-                                    </a>
-                                    <button onclick="openStatusModal({{ $order->id }}, '{{ $order->status }}')"
-                                        class="w-9 h-9 flex items-center justify-center bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-500 hover:text-white transition-all shadow-sm"
-                                        title="Ubah Status">
-                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
-                                    </button>
-                                    @if (in_array($order->status, ['pending', 'confirmed']))
-                                        <button onclick="cancelOrder({{ $order->id }})"
-                                            class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-600 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
-                                            title="Batalkan">
-                                            <i class="fa-solid fa-ban text-xs"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
+                <tbody class="divide-y divide-gray-50"></tbody>
             </table>
         </div>
     </div>
 
-    {{-- ══════════════════════════════════════
-    STATUS MODAL
-    ══════════════════════════════════════ --}}
     <div id="statusModal"
         class="fixed inset-0 hidden bg-slate-900/50 backdrop-blur-sm items-center justify-center z-[100] p-4">
         <div class="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden border border-white/20">
-
             <div class="px-7 py-5 border-b border-gray-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div
@@ -346,7 +197,6 @@
                     </select>
                 </div>
 
-                {{-- Resi field (show when shipped) --}}
                 <div id="resiField" class="hidden space-y-1.5">
                     <label class="text-[10px] font-black text-gray-400 tracking-widest">NOMOR RESI</label>
                     <input type="text" name="resi" placeholder="Masukkan nomor resi pengiriman..."
@@ -376,57 +226,46 @@
 
     @push('scripts')
         <script>
+            const orderFilters = @json(array_filter($filters, fn ($value) => filled($value)));
+
             $(document).ready(function() {
-                $('#datatable').DataTable({
-                    responsive: {
-                        details: {
-                            type: 'column',
-                            target: 0
-                        }
+                $('#ordersTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    responsive: true,
+                    ajax: {
+                        url: "{{ route('orders.data') }}",
+                        data: orderFilters,
                     },
-                    order: [
-                        [6, 'desc']
-                    ], // Date column
+                    order: [[6, 'desc']],
                     pageLength: 10,
-                    lengthMenu: [
-                        [10, 25, 50, -1],
-                        [10, 25, 50, "Semua"]
+                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                    columns: [
+                        { data: 'order_identity', name: 'order_number' },
+                        { data: 'customer', name: 'customer', orderable: false },
+                        { data: 'items_summary', name: 'items_summary', orderable: false },
+                        { data: 'total_summary', name: 'total' },
+                        { data: 'payment_summary', name: 'payment_summary', orderable: false },
+                        { data: 'status_badge', name: 'status' },
+                        { data: 'date_summary', name: 'created_at' },
+                        { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' },
                     ],
                     language: {
                         search: "_INPUT_",
-                        searchPlaceholder: "🔍 Cari pesanan, pelanggan, atau nomor order...",
+                        searchPlaceholder: "Cari pesanan, pelanggan, produk...",
                         lengthMenu: "Tampilkan _MENU_ entri",
                         info: "Menampilkan _START_ hingga _END_ dari _TOTAL_ pesanan",
                         infoEmpty: "Tidak ada data tersedia",
                         infoFiltered: "(disaring dari _MAX_ total pesanan)",
+                        zeroRecords: "Pesanan tidak ditemukan",
                         paginate: {
                             first: "«",
                             last: "»",
                             next: "›",
                             previous: "‹"
                         },
-                        processing: '<div class="flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Memuat pesanan...</div>'
+                        processing: '<div class="flex items-center gap-2 text-brand-dark font-bold"><i class="fa-solid fa-spinner fa-spin"></i> Memuat pesanan...</div>'
                     },
-                    drawCallback: function() {
-                        // Re-apply hover effects after draw
-                        $('tbody tr').hover(
-                            function() {
-                                $(this).addClass(
-                                    'hover:bg-gradient-to-r hover:from-brand-primary/5 hover:to-brand-dark/5'
-                                    );
-                            },
-                            function() {
-                                $(this).removeClass(
-                                    'hover:bg-gradient-to-r hover:from-brand-primary/5 hover:to-brand-dark/5'
-                                    );
-                            }
-                        );
-                    },
-                    columnDefs: [{
-                        targets: -1, // Action column
-                        orderable: false,
-                        className: 'text-center'
-                    }]
                 });
             });
 
@@ -457,7 +296,6 @@
                 if (e.target === this) closeStatusModal();
             });
 
-            // Cancel Order
             window.cancelOrder = function(id) {
                 Swal.fire({
                     title: 'Batalkan Pesanan?',
@@ -470,37 +308,36 @@
                     cancelButtonText: 'Kembali',
                 }).then(r => {
                     if (r.isConfirmed) {
-                        $('<form>', {
-                                method: 'POST',
-                                action: `/orders/${id}/status`
-                            })
-                            .append($('<input>', {
-                                type: 'hidden',
-                                name: '_token',
-                                value: '{{ csrf_token() }}'
-                            }))
-                            .append($('<input>', {
-                                type: 'hidden',
-                                name: '_method',
-                                value: 'PATCH'
-                            }))
-                            .append($('<input>', {
-                                type: 'hidden',
-                                name: 'status',
-                                value: 'cancelled'
-                            }))
+                        $('<form>', { method: 'POST', action: `/orders/${id}/status` })
+                            .append($('<input>', { type: 'hidden', name: '_token', value: '{{ csrf_token() }}' }))
+                            .append($('<input>', { type: 'hidden', name: '_method', value: 'PATCH' }))
+                            .append($('<input>', { type: 'hidden', name: 'status', value: 'cancelled' }))
                             .appendTo('body').submit();
                     }
                 });
             }
 
             window.exportOrders = function() {
+                const params = new URLSearchParams(orderFilters);
+
                 Swal.fire({
-                    icon: 'info',
                     title: 'Export Pesanan',
-                    text: 'Fitur export akan segera tersedia.',
-                    timer: 2000,
-                    showConfirmButton: false,
+                    text: 'Pilih format file yang ingin diunduh.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    confirmButtonText: 'Excel',
+                    denyButtonText: 'PDF',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#81C784',
+                    denyButtonColor: '#ef4444',
+                }).then((result) => {
+                    if (!result.isConfirmed && !result.isDenied) {
+                        return;
+                    }
+
+                    params.set('format', result.isConfirmed ? 'excel' : 'pdf');
+                    window.location.href = "{{ route('reports.export', ['type' => 'orders']) }}" + '?' + params.toString();
                 });
             }
         </script>

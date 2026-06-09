@@ -14,6 +14,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -95,10 +96,16 @@ Route::middleware(['auth'])->group(function () {
         // Orders Management
         Route::prefix('orders')->controller(OrderController::class)->group(function () {
             Route::get('/', 'index')->name('orders.index');
+            Route::get('/data', 'data')->name('orders.data');
             Route::get('/{id}', 'show')->name('orders.show');
             Route::get('/{id}/api', 'showApi')->name('orders.api');
             Route::patch('/{id}/status', 'updateStatus')->name('orders.status');
             Route::patch('/{id}/resi', 'updateResi')->name('orders.resi');
+        });
+
+        Route::prefix('reports')->controller(ReportController::class)->group(function () {
+            Route::get('/', 'index')->name('reports.index');
+            Route::get('/export/{type}', 'export')->name('reports.export');
         });
 
         Route::prefix('profile')->controller(ProfileController::class)->group(function () {

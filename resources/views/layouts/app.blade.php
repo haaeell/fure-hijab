@@ -179,6 +179,12 @@
                 <i class="fa-solid fa-ticket w-5"></i> Kupon Promo
             </a>
 
+            <a href="{{ route('reports.index') }}"
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                {{ request()->is('reports*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
+                <i class="fa-solid fa-chart-pie w-5"></i> Laporan
+            </a>
+
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] px-4 mb-3 mt-6">Pengguna</p>
 
             <a href="/customers"
