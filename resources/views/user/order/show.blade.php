@@ -180,7 +180,7 @@
                                                             class="w-full text-sm border border-gray-100 rounded-xl p-3 bg-gray-50 resize-none focus:outline-none focus:border-brand-primary/50 transition-colors"
                                                             rows="2" placeholder="Tulis ulasanmu..."
                                                             id="comment-{{ $item->id }}"></textarea>
-                                                        <button onclick="submitReview({{ $order->id }}, {{ $item->id }})"
+                                                        <button onclick="submitReview('{{ $order->order_number }}', {{ $item->id }})"
                                                             class="mt-2 px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition-all">
                                                             Kirim Ulasan
                                                         </button>
@@ -370,7 +370,7 @@
 
                     {{-- KONFIRMASI SELESAI --}}
                     @if ($order->status == 'shipped')
-                        <form action="{{ route('order.history.complete', $order->id) }}" method="POST">
+                        <form action="{{ route('order.history.complete', $order->order_number) }}" method="POST">
                             @csrf @method('PATCH')
                             <button type="submit"
                                 class="w-full py-5 bg-green-500 text-white font-black rounded-2xl shadow-lg hover:bg-green-600 transition-all flex items-center justify-center gap-3">
@@ -403,7 +403,7 @@
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <form action="{{ route('order.history.cancel', $order->id) }}" method="POST" class="p-6 space-y-4">
+                <form action="{{ route('order.history.cancel', $order->order_number) }}" method="POST" class="p-6 space-y-4">
                     @csrf
                     @method('PATCH')
                     <textarea name="cancellation_reason" rows="4" required minlength="5" maxlength="500"
@@ -468,7 +468,7 @@
                 if (pollingInterval) return;
                 pollingInterval = setInterval(async () => {
                     try {
-                        const res = await fetch('/order/{{ $order->id }}/payment-status');
+                        const res = await fetch('/order/{{ $order->order_number }}/payment-status');
                         const data = await res.json();
 
                         if (data.status === 'success') {
@@ -566,7 +566,7 @@
                 });
             });
 
-            async function submitReview(orderId, itemId) {
+            async function submitReview(orderNumber, itemId) {
                 const rating = document.getElementById('rating-' + itemId).value;
                 const comment = document.getElementById('comment-' + itemId).value;
 
@@ -576,7 +576,7 @@
                 }
 
                 try {
-                    const res = await fetch(`/order/${orderId}/review`, {
+                    const res = await fetch(`/order/${orderNumber}/review`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

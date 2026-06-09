@@ -41,7 +41,7 @@ class CheckoutController extends Controller
             $expiresAt = $this->paymentExpiresAt($blockedOrder);
 
             return redirect()
-                ->route('order.history.show', $blockedOrder->id)
+                ->route('order.history.show', $blockedOrder->order_number)
                 ->with('error', 'Kamu masih punya pesanan yang belum dibayar. Selesaikan atau batalkan dulu sebelum membuat pesanan baru. Batas bayar sampai ' . $expiresAt->format('d M Y H:i') . '.');
         }
 
@@ -228,7 +228,7 @@ class CheckoutController extends Controller
 
         if ($blockedOrder) {
             return redirect()
-                ->route('order.history.show', $blockedOrder->id)
+                ->route('order.history.show', $blockedOrder->order_number)
                 ->with('error', 'Kamu masih punya pesanan yang belum dibayar. Selesaikan atau batalkan dulu sebelum membuat pesanan baru.');
         }
 
@@ -270,7 +270,7 @@ class CheckoutController extends Controller
         }
 
         $grandTotal = $subtotal - $discountAmount + $request->shipping_cost;
-        $orderNumber = 'ORD-' . date('Ymd') . '-' . str_pad(Order::count() + 1, 5, '0', STR_PAD_LEFT);
+        $orderNumber = Order::generateOrderNumber();
 
         $order = DB::transaction(function () use ($request, $user, $cart, $subtotal, $grandTotal, $discountAmount, $couponId, $coupon, $orderNumber) {
 
@@ -371,7 +371,7 @@ class CheckoutController extends Controller
             return $order;
         });
 
-        return redirect()->route('order.history.show', $order->id)->with('success', 'Pesanan berhasil dibuat! No. Pesanan: ' . $order->order_number);
+        return redirect()->route('order.history.show', $order->order_number)->with('success', 'Pesanan berhasil dibuat! No. Pesanan: ' . $order->order_number);
     }
 
     public function validateVoucher(Request $request)

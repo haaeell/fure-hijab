@@ -87,7 +87,7 @@ class CartController extends Controller
             return response()->json([
                 'status' => 'blocked',
                 'message' => 'Kamu masih punya pesanan yang belum dibayar. Selesaikan atau batalkan pesanan tersebut sebelum membuat pesanan baru.',
-                'redirect' => route('order.history.show', $blockedOrder->id),
+                'redirect' => route('order.history.show', $blockedOrder->order_number),
             ], 422);
         }
 

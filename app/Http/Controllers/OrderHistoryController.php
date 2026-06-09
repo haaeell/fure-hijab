@@ -30,7 +30,7 @@ class OrderHistoryController extends Controller
         return view('user.order.index', compact('orders', 'filteredOrders'));
     }
 
-    public function show($id)
+    public function show(string $orderNumber)
     {
         $this->expireUnpaidOrders();
 
@@ -44,7 +44,8 @@ class OrderHistoryController extends Controller
             'payment'
         ])
             ->where('user_id', Auth::id())
-            ->findOrFail($id);
+            ->where('order_number', $orderNumber)
+            ->firstOrFail();
 
         $tracking = null;
         if ($order->shipment && $order->shipment->resi) {
@@ -103,11 +104,12 @@ class OrderHistoryController extends Controller
             return null;
         }
     }
-    public function markAsCompleted($id)
+    public function markAsCompleted(string $orderNumber)
     {
         $order = Order::where('user_id', Auth::id())
             ->where('status', 'shipped')
-            ->findOrFail($id);
+            ->where('order_number', $orderNumber)
+            ->firstOrFail();
 
         $order->update([
             'status' => 'delivered'
@@ -116,7 +118,7 @@ class OrderHistoryController extends Controller
         return redirect()->back()->with('success', 'Pesanan selesai');
     }
 
-    public function cancel(Request $request, $id)
+    public function cancel(Request $request, string $orderNumber)
     {
         $request->validate([
             'cancellation_reason' => ['required', 'string', 'min:5', 'max:500'],
@@ -125,7 +127,8 @@ class OrderHistoryController extends Controller
         $order = Order::with('payment')
             ->where('user_id', Auth::id())
             ->whereIn('status', ['pending', 'confirmed'])
-            ->findOrFail($id);
+            ->where('order_number', $orderNumber)
+            ->firstOrFail();
 
         $order->update([
             'status' => 'cancelled',
@@ -138,7 +141,7 @@ class OrderHistoryController extends Controller
             $order->payment->update(['status' => 'failed']);
         }
 
-        return redirect()->route('order.history.show', $order->id)->with('success', 'Pesanan berhasil dibatalkan.');
+        return redirect()->route('order.history.show', $order->order_number)->with('success', 'Pesanan berhasil dibatalkan.');
     }
 
     public function submitReview(Request $request, Order $order)

@@ -32,8 +32,8 @@ Route::get('/user/profile', [LandingPageController::class, 'profile'])->name('pr
 Route::view('/terms-and-conditions', 'user.terms.index')->name('terms.index');
 
 Route::post('/midtrans/callback', [App\Http\Controllers\MidtransController::class, 'callback']);
-Route::get('/order/{order}/payment-status', [CheckoutController::class, 'checkPaymentStatus'])->middleware('auth');
-Route::post('/order/{order}/review', [OrderHistoryController::class, 'submitReview'])->middleware('auth')->name('order.review.store');
+Route::get('/order/{order:order_number}/payment-status', [CheckoutController::class, 'checkPaymentStatus'])->middleware('auth');
+Route::post('/order/{order:order_number}/review', [OrderHistoryController::class, 'submitReview'])->middleware('auth')->name('order.review.store');
 
 Route::middleware(['auth'])->group(function () {
 
@@ -154,9 +154,9 @@ Route::middleware(['auth'])->group(function () {
         // Order History
         Route::prefix('order-history')->controller(OrderHistoryController::class)->group(function () {
             Route::get('/', 'index')->name('order.history');
-            Route::get('/{id}', 'show')->name('order.history.show');
-            Route::patch('/{id}/complete', 'markAsCompleted')->name('order.history.complete');
-            Route::patch('/{id}/cancel', 'cancel')->name('order.history.cancel');
+            Route::get('/{orderNumber}', 'show')->name('order.history.show');
+            Route::patch('/{orderNumber}/complete', 'markAsCompleted')->name('order.history.complete');
+            Route::patch('/{orderNumber}/cancel', 'cancel')->name('order.history.cancel');
         });
     });
 });
