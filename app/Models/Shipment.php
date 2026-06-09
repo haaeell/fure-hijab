@@ -15,16 +15,19 @@ class Shipment extends Model
         'service',
         'service_code',
         'cost',
+        'total_weight',
         'resi',
         'status',
         'origin_city_id',
         'destination_city_id',
         'estimated_days',
-        'tracking_history'
+        'tracking_history',
+        'tracked_at',
     ];
 
     protected $casts = [
-        'tracking_history' => 'array'
+        'tracking_history' => 'array',
+        'tracked_at' => 'datetime',
     ];
 
     public function order()

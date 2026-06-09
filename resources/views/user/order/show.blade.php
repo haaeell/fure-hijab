@@ -197,22 +197,38 @@
                     {{-- TRACKING --}}
                     @if ($order->shipment && $order->shipment->resi)
                         <div class="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100">
-                            <div class="flex items-center justify-between mb-8">
+                            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
                                 <h3 class="font-bold text-brand-dark flex items-center gap-3 text-lg">
                                     <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center">
                                         <i class="fa-solid fa-truck-fast text-brand-primary"></i>
                                     </div>
                                     Lacak Pengiriman
                                 </h3>
-                                <div class="text-right">
+                                <div class="text-left md:text-right">
                                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">No. Resi</p>
                                     <span
                                         class="font-mono font-bold text-brand-dark bg-gray-100 px-3 py-1 rounded-lg text-sm italic">
                                         {{ $order->shipment->resi }}
                                     </span>
+                                    @if($order->shipment->tracked_at)
+                                        <p class="text-[10px] text-gray-400 mt-2">Update {{ $order->shipment->tracked_at->format('d M Y H:i') }}</p>
+                                    @endif
                                 </div>
                             </div>
-                            {{-- (Log pelacakan Anda di sini...) --}}
+
+                            <div class="flex flex-col sm:flex-row gap-3 mb-6">
+                                <div class="flex-1 rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3">
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Berat Paket</p>
+                                    <p class="font-black text-brand-dark mt-1">{{ number_format($order->shipment->total_weight ?? 1000, 0, ',', '.') }} gram</p>
+                                </div>
+                                <form action="{{ route('order.history.track', $order->order_number) }}" method="POST" class="sm:w-auto">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full sm:w-auto h-full min-h-[58px] px-5 bg-brand-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-brand-dark transition-all">
+                                        <i class="fa-solid fa-location-crosshairs mr-2"></i>Lacak Resi
+                                    </button>
+                                </form>
+                            </div>
 
                             @if ($tracking && isset($tracking['manifest']))
                                 <div

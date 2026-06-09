@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Review;
+use App\Services\ShipmentTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -47,63 +48,39 @@ class OrderHistoryController extends Controller
             ->where('order_number', $orderNumber)
             ->firstOrFail();
 
-        $tracking = null;
-        if ($order->shipment && $order->shipment->resi) {
-            $tracking = $this->getTrackingInfo(
-                $order->shipment->resi,
-                $order->shipment->courier
-            );
-        }
+        $tracking = $order->shipment?->tracking_history;
 
         return view('user.order.show', compact('order', 'tracking'));
     }
 
-    private function getTrackingInfo($waybill, $courier)
+    public function trackShipment(string $orderNumber, ShipmentTrackingService $trackingService)
     {
-        if (str_contains($waybill, 'DUMMY')) {
-            return [
-                'manifest' => [
-                    [
-                        'manifest_description' => 'Pesanan sedang diproses di gudang pusat Al-Hayya',
-                        'city_name' => 'Bandung',
-                        'manifest_date' => now()->subDays(2)->format('Y-m-d'),
-                        'manifest_time' => '09:00'
-                    ],
-                    [
-                        'manifest_description' => 'Paket telah diserahkan ke kurir ' . strtoupper($courier),
-                        'city_name' => 'Bandung',
-                        'manifest_date' => now()->subDays(1)->format('Y-m-d'),
-                        'manifest_time' => '14:30'
-                    ],
-                    [
-                        'manifest_description' => 'Paket sedang transit di Hub Jakarta Selatan',
-                        'city_name' => 'Jakarta',
-                        'manifest_date' => now()->format('Y-m-d'),
-                        'manifest_time' => '08:15'
-                    ],
-                    [
-                        'manifest_description' => 'Paket dibawa kurir [Sdr. Budi] menuju lokasi penerima',
-                        'city_name' => 'Jakarta',
-                        'manifest_date' => now()->format('Y-m-d'),
-                        'manifest_time' => '10:00'
-                    ],
-                ]
-            ];
+        $order = Order::with('shipment')
+            ->where('user_id', Auth::id())
+            ->where('order_number', $orderNumber)
+            ->firstOrFail();
+
+        if (!$order->shipment || blank($order->shipment->resi)) {
+            return back()->with('error', 'Nomor resi belum tersedia.');
         }
 
-        try {
-            $response = \Illuminate\Support\Facades\Http::withHeaders([
-                'key' => config('services.rajaongkir.api_key'),
-            ])->asForm()->post('https://rajaongkir.komerce.id/api/v1/waybill/domestic-waybill', [
-                'waybill' => $waybill,
-                'courier' => $courier,
-            ]);
+        $tracking = $trackingService->track($order->shipment->resi, $order->shipment->courier);
 
-            return $response->successful() ? $response->json()['data'] : null;
-        } catch (\Exception $e) {
-            return null;
+        if (!$tracking) {
+            return back()->with('error', 'Tracking resi belum tersedia atau gagal menghubungi layanan ekspedisi.');
         }
+
+        $order->shipment->update([
+            'tracking_history' => $tracking,
+            'tracked_at' => now(),
+            'status' => str_contains(strtolower((string) $trackingService->latestStatus($tracking)), 'delivered')
+                ? 'delivered'
+                : 'in_transit',
+        ]);
+
+        return back()->with('success', 'Tracking resi berhasil diperbarui.');
     }
+
     public function markAsCompleted(string $orderNumber)
     {
         $order = Order::where('user_id', Auth::id())

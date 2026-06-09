@@ -100,6 +100,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/data', 'data')->name('orders.data');
             Route::get('/{id}', 'show')->name('orders.show');
             Route::get('/{id}/api', 'showApi')->name('orders.api');
+            Route::post('/{id}/track', 'trackShipment')->name('orders.track');
             Route::patch('/{id}/status', 'updateStatus')->name('orders.status');
             Route::patch('/{id}/resi', 'updateResi')->name('orders.resi');
         });
@@ -155,6 +156,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('order-history')->controller(OrderHistoryController::class)->group(function () {
             Route::get('/', 'index')->name('order.history');
             Route::get('/{orderNumber}', 'show')->name('order.history.show');
+            Route::post('/{orderNumber}/track', 'trackShipment')->name('order.history.track');
             Route::patch('/{orderNumber}/complete', 'markAsCompleted')->name('order.history.complete');
             Route::patch('/{orderNumber}/cancel', 'cancel')->name('order.history.cancel');
         });

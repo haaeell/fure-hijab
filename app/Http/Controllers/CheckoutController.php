@@ -60,7 +60,7 @@ class CheckoutController extends Controller
 
         foreach ($carts as $item) {
             $total_price  += (float) $item->price * (int) $item->qty;
-            $total_weight += ($item->product->weight ?? 1000) * $item->qty;
+            $total_weight += $this->itemWeight($item) * (int) $item->qty;
         }
 
         // Ambil kupon dari session jika ada
@@ -148,7 +148,6 @@ class CheckoutController extends Controller
     {
         $request->validate([
             'couriers' => 'required|array|min:1',
-            'weight'   => 'required|integer|min:1',
         ]);
 
         $address = Auth::user()->addresses()->where('is_default', true)->first();
@@ -161,12 +160,22 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Data alamat belum lengkap. Silakan edit dan pilih ulang lokasi tujuan.'], 400);
         }
 
+        $cart = Cart::with(['items.product', 'items.variant'])
+            ->where('user_id', Auth::id())
+            ->first();
+
+        $weight = $cart ? $this->cartWeight($cart) : 0;
+
+        if ($weight <= 0) {
+            return response()->json(['error' => 'Berat paket tidak valid. Pastikan produk memiliki berat.'], 422);
+        }
+
         $response = Http::withHeaders([
             'key' => config('services.rajaongkir.api_key'),
         ])->asForm()->post('https://rajaongkir.komerce.id/api/v1/calculate/domestic-cost', [
             'origin'      => config('services.rajaongkir.origin'),
             'destination' => $address->rajaongkir_destination_id,
-            'weight'      => max(1, (int) $request->weight),
+            'weight'      => $weight,
             'courier'     => implode(':', $request->couriers),
             'price'       => 'lowest',
         ]);
@@ -253,6 +262,7 @@ class CheckoutController extends Controller
         $subtotal = $cart->items->reduce(function ($carry, $item) {
             return $carry + ($item->price * $item->qty);
         }, 0);
+        $totalWeight = $this->cartWeight($cart);
 
         $discountAmount = 0;
         $couponId       = null;
@@ -272,7 +282,7 @@ class CheckoutController extends Controller
         $grandTotal = $subtotal - $discountAmount + $request->shipping_cost;
         $orderNumber = Order::generateOrderNumber();
 
-        $order = DB::transaction(function () use ($request, $user, $cart, $subtotal, $grandTotal, $discountAmount, $couponId, $coupon, $orderNumber) {
+        $order = DB::transaction(function () use ($request, $user, $cart, $subtotal, $grandTotal, $discountAmount, $couponId, $coupon, $orderNumber, $totalWeight) {
 
             $order = Order::create([
                 'user_id'        => $user->id,
@@ -319,6 +329,7 @@ class CheckoutController extends Controller
                 'service'           => $request->courier_service,
                 'service_code'      => $request->courier_service,
                 'cost'              => $request->shipping_cost,
+                'total_weight'      => $totalWeight,
                 'status'            => 'pending',
                 'estimated_days'    => $request->shipping_etd,
             ]);
@@ -433,6 +444,20 @@ class CheckoutController extends Controller
             'order_status' => $order->status,
             'expired_at' => $payment?->expired_at?->toIso8601String(),
         ]);
+    }
+
+    private function cartWeight(Cart $cart): int
+    {
+        return (int) $cart->items->sum(function ($item) {
+            return $this->itemWeight($item) * (int) $item->qty;
+        });
+    }
+
+    private function itemWeight($item): int
+    {
+        $weight = $item->variant?->weight ?: $item->product?->weight ?: 1000;
+
+        return max(1, (int) ceil((float) $weight));
     }
 
     private function activeUnpaidOrder(int $userId): ?Order

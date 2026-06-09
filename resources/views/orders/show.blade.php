@@ -179,6 +179,7 @@
                 <p style="margin:0;"><strong>Kurir:</strong> {{ strtoupper($order->shipment?->courier ?? '-') }}</p>
                 <p style="margin:3px 0 0;"><strong>Layanan:</strong> {{ $order->shipment?->service ?? '-' }}</p>
                 <p style="margin:3px 0 0;"><strong>Estimasi:</strong> {{ $order->shipment?->estimated_days ? $order->shipment->estimated_days . ' hari' : '-' }}</p>
+                <p style="margin:3px 0 0;"><strong>Berat:</strong> {{ number_format($order->shipment?->total_weight ?? 1000, 0, ',', '.') }} gram</p>
                 <p style="margin:3px 0 0;"><strong>Resi:</strong> {{ $order->shipment?->resi ?? '-' }}</p>
             </div>
         </div>
@@ -502,7 +503,7 @@
                             </span>
                         </div>
                         <div class="px-6 py-5">
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-5">
                                 <div>
                                     <p class="text-[10px] font-black text-gray-400 tracking-widest">KURIR</p>
                                     <p class="font-bold text-brand-dark mt-1">{{ strtoupper($ship->courier) }}</p>
@@ -520,19 +521,35 @@
                                     <p class="font-bold text-brand-dark mt-1">Rp {{ number_format($ship->cost, 0, ',', '.') }}
                                     </p>
                                 </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 tracking-widest">BERAT</p>
+                                    <p class="font-bold text-brand-dark mt-1">{{ number_format($ship->total_weight ?? 1000, 0, ',', '.') }} gram</p>
+                                </div>
                             </div>
 
                             @if($ship->resi)
-                                <div class="flex items-center gap-3 bg-cyan-50 rounded-2xl px-4 py-3 mb-5">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-cyan-50 rounded-2xl px-4 py-3 mb-5">
                                     <i class="fa-solid fa-barcode text-cyan-500 text-lg"></i>
-                                    <div>
+                                    <div class="flex-1">
                                         <p class="text-[9px] font-black text-cyan-400 tracking-widest">NOMOR RESI</p>
                                         <p class="font-extrabold text-cyan-700 font-mono text-sm">{{ $ship->resi }}</p>
+                                        @if($ship->tracked_at)
+                                            <p class="text-[10px] text-cyan-500 mt-1">Update {{ $ship->tracked_at->format('d M Y H:i') }}</p>
+                                        @endif
                                     </div>
-                                    <button onclick="copyResi('{{ $ship->resi }}')"
-                                        class="ml-auto px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
-                                        <i class="fa-solid fa-copy mr-1"></i>Salin
-                                    </button>
+                                    <div class="flex gap-2 sm:ml-auto">
+                                        <button onclick="copyResi('{{ $ship->resi }}')"
+                                            class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
+                                            <i class="fa-solid fa-copy mr-1"></i>Salin
+                                        </button>
+                                        <form action="{{ route('orders.track', $order->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                class="px-3 py-1.5 bg-cyan-500 text-white text-[10px] font-black rounded-xl hover:bg-brand-dark transition-all">
+                                                <i class="fa-solid fa-location-crosshairs mr-1"></i>Lacak
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             @endif
 
@@ -550,7 +567,10 @@
 
                             {{-- Tracking History --}}
                             @if($ship->tracking_history)
-                                @php $history = is_string($ship->tracking_history) ? json_decode($ship->tracking_history, true) : $ship->tracking_history; @endphp
+                                @php
+                                    $trackingPayload = is_string($ship->tracking_history) ? json_decode($ship->tracking_history, true) : $ship->tracking_history;
+                                    $history = $trackingPayload['manifest'] ?? $trackingPayload ?? [];
+                                @endphp
                                 @if(count($history) > 0)
                                     <div class="mt-4">
                                         <p class="text-[10px] font-black text-gray-400 tracking-widest mb-3">RIWAYAT TRACKING</p>
@@ -562,9 +582,9 @@
                                                         class="absolute left-2.5 top-1 w-3 h-3 rounded-full bg-brand-primary border-2 border-white shadow-sm">
                                                     </div>
                                                     <div class="flex-1">
-                                                        <p class="font-bold text-sm text-brand-dark">{{ $track['description'] ?? '-' }}</p>
-                                                        <p class="text-[10px] text-gray-400 mt-0.5">{{ $track['date'] ?? '' }}
-                                                            {{ $track['time'] ?? '' }} — {{ $track['location'] ?? '' }}
+                                                        <p class="font-bold text-sm text-brand-dark">{{ $track['manifest_description'] ?? $track['description'] ?? '-' }}</p>
+                                                        <p class="text-[10px] text-gray-400 mt-0.5">{{ $track['manifest_date'] ?? $track['date'] ?? '' }}
+                                                            {{ $track['manifest_time'] ?? $track['time'] ?? '' }} — {{ $track['city_name'] ?? $track['location'] ?? '' }}
                                                         </p>
                                                     </div>
                                                 </div>

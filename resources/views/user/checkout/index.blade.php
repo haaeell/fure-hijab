@@ -305,6 +305,11 @@
                                         <span class="font-extrabold text-brand-dark" id="shipping_cost_display">Rp0</span>
                                     </div>
 
+                                    <div class="flex justify-between text-sm text-gray-500">
+                                        <span>Berat Paket</span>
+                                        <span class="font-extrabold text-brand-dark">{{ number_format($total_weight, 0, ',', '.') }} gram</span>
+                                    </div>
+
                                     <div id="selected_service_info" class="hidden rounded-2xl bg-soft-mint/60 border border-brand-primary/10 p-3">
                                         <div class="flex justify-between gap-3 text-xs text-brand-dark">
                                             <span id="selected_service_label" class="font-bold">-</span>
@@ -721,7 +726,7 @@
                 $.ajax({
                     url: "{{ route('checkout.check-ongkir') }}",
                     method: 'POST',
-                    data: { _token: csrfToken, couriers, weight: totalWeight },
+                    data: { _token: csrfToken, couriers },
                     success: function (services) {
                         currentServices = services;
                         displayServices(services);

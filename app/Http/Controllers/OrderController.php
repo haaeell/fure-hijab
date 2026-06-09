@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Shipment;
+use App\Services\ShipmentTrackingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -165,6 +166,31 @@ class OrderController extends Controller
         $shipment->save();
 
         return redirect()->back()->with('success', 'Nomor resi berhasil disimpan.');
+    }
+
+    public function trackShipment($id, ShipmentTrackingService $trackingService)
+    {
+        $order = Order::with('shipment')->findOrFail($id);
+
+        if (!$order->shipment || blank($order->shipment->resi)) {
+            return redirect()->back()->with('error', 'Nomor resi belum tersedia.');
+        }
+
+        $tracking = $trackingService->track($order->shipment->resi, $order->shipment->courier);
+
+        if (!$tracking) {
+            return redirect()->back()->with('error', 'Tracking resi belum tersedia atau gagal menghubungi layanan ekspedisi.');
+        }
+
+        $order->shipment->update([
+            'tracking_history' => $tracking,
+            'tracked_at' => now(),
+            'status' => str_contains(strtolower((string) $trackingService->latestStatus($tracking)), 'delivered')
+                ? 'delivered'
+                : 'in_transit',
+        ]);
+
+        return redirect()->back()->with('success', 'Tracking resi berhasil diperbarui.');
     }
 
     // ─── API: show (for fetch) ─────────────────────────────────────────────────
