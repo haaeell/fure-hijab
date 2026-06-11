@@ -22,7 +22,7 @@ class ShipmentTrackingService
                 ],
                 'manifest' => [
                     [
-                        'manifest_description' => 'Pesanan sedang diproses di gudang pusat Al-Hayya',
+                        'manifest_description' => 'Pesanan sedang diproses di gudang pusat FURE',
                         'city_name' => 'Bandung',
                         'manifest_date' => now()->subDays(2)->format('Y-m-d'),
                         'manifest_time' => '09:00',

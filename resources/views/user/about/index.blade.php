@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Tentang Kami - Al-Hayya Hijab')
+@section('title', 'Tentang Kami - FURE')
 
 @section('content')
     <section class="py-16 bg-gray-50 min-h-screen px-4 sm:px-6 lg:px-8">
@@ -13,7 +13,7 @@
                     <span class="text-brand-dark">Tentang Kami</span>
                 </nav>
                 <h1 class="text-3xl md:text-5xl font-extrabold text-brand-dark tracking-tight mb-4">
-                    Tentang <span class="text-brand-primary">Al-Hayya</span>
+                    Tentang <span class="text-brand-primary">FURE</span>
                 </h1>
                 <p class="text-gray-500 text-sm md:text-base">
                     Elegansi dalam kesantunan. Kami menghadirkan hijab premium untuk wanita modern yang menghargai kualitas,
@@ -25,7 +25,7 @@
                 <div class="space-y-6">
                     <h2 class="text-2xl font-bold text-brand-dark">Cerita Kami</h2>
                     <p class="text-gray-500 text-sm leading-relaxed">
-                        Al-Hayya Hijab lahir dari keinginan untuk menghadirkan produk hijab yang tidak hanya indah
+                        FURE lahir dari keinginan untuk menghadirkan produk hijab yang tidak hanya indah
                         dipandang, tetapi juga nyaman digunakan sepanjang hari. Kami percaya bahwa setiap wanita berhak
                         tampil percaya diri dengan gaya yang anggun dan berkelas.
                     </p>
@@ -84,7 +84,7 @@
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-primary/20 rounded-full blur-3xl"></div>
                 <h2 class="text-2xl md:text-3xl font-bold mb-4">Bergabung Bersama Kami</h2>
                 <p class="text-brand-secondary/70 text-sm mb-6 max-w-xl mx-auto">
-                    Jadilah bagian dari perjalanan Al-Hayya Hijab dan temukan koleksi terbaik untuk gaya eleganmu.
+                    Jadilah bagian dari perjalanan FURE dan temukan koleksi terbaik untuk gaya eleganmu.
                 </p>
                 <a href="{{ route('collections.index') }}"
                     class="inline-block px-8 py-3 bg-white text-brand-dark font-bold rounded-xl hover:bg-brand-secondary transition">

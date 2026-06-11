@@ -26,7 +26,7 @@ class ProductSeeder extends Seeder
         }
 
         $brands = [
-            ['name' => 'Al-Hayya Exclusive', 'slug' => 'al-hayya-exclusive'],
+            ['name' => 'FURE Exclusive', 'slug' => 'fure-exclusive'],
             ['name' => 'Daily Hijab', 'slug' => 'daily-hijab'],
         ];
 

@@ -3,7 +3,7 @@
 @section('content')
     <div class="mb-8">
         <h1 class="text-2xl font-extrabold text-brand-dark">Dashboard Analitik</h1>
-        <p class="text-gray-400 text-sm">Pantau performa penjualan AL-HAYYA HIJAB secara real-time.</p>
+        <p class="text-gray-400 text-sm">Pantau performa penjualan FURE secara real-time.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Al-Hayya Hijab</title>
+    <title>Admin Dashboard - FURE</title>
 
     <link href="https://fonts.bunny.net/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -23,9 +23,9 @@
             theme: {
                 extend: {
                     colors: {
-                        'brand-primary': '#81C784',
-                        'brand-secondary': '#A5D6A7',
-                        'brand-dark': '#2D5A27',
+                        'brand-primary': '#A78B6F',
+                        'brand-secondary': '#D6C4B0',
+                        'brand-dark': '#5F4A3A',
                         'soft-mint': '#F1F8E9',
                         'soft-bg': '#F8FBF8',
                     },
@@ -54,7 +54,7 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #81C784;
+            background: #A78B6F;
             border-radius: 10px;
         }
 
@@ -63,9 +63,9 @@
         }
 
         .active-menu {
-            background: rgba(129, 199, 132, 0.1);
-            color: #2D5A27 !important;
-            border-right: 4px solid #81C784;
+            background: rgba(167, 139, 111, 0.1);
+            color: #5F4A3A !important;
+            border-right: 4px solid #A78B6F;
         }
 
         @media (max-width: 1024px) {
@@ -100,7 +100,7 @@
         }
 
         .select2-container--default .select2-selection--single:focus {
-            border-color: #81C784;
+            border-color: #A78B6F;
             outline: none;
         }
     </style>
@@ -119,7 +119,7 @@
                     class="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-md shadow-brand-primary/20">
                     <i class="fa-solid fa-wand-magic-sparkles text-white"></i>
                 </div>
-                <span class="text-brand-dark font-extrabold text-xl tracking-tight">AL-HYA</span>
+                <span class="text-brand-dark font-extrabold text-xl tracking-tight">FURE</span>
             </div>
             <button id="closeSidebar" class="lg:hidden text-gray-400 hover:text-red-500">
                 <i class="fa-solid fa-xmark text-xl"></i>
@@ -130,7 +130,7 @@
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] px-4 mb-3 mt-4">Utama</p>
 
             <a href="/home"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('home') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-gray-50' }}">
                 <i class="fa-solid fa-chart-simple w-5"></i> Dashboard
             </a>
@@ -138,27 +138,33 @@
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] px-4 mb-3 mt-6">Master</p>
 
             <a href="/categories"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('categories*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-layer-group w-5"></i> Kategori
             </a>
 
             <a href="/brands"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('brands*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-copyright w-5"></i> Brand
             </a>
 
             <a href="/products"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('products*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-box w-5"></i> Produk
+            </a>
+
+            <a href="{{ route('landing-content.index') }}"
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
+                {{ request()->is('landing-content*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
+                <i class="fa-solid fa-images w-5"></i> Landing Page
             </a>
 
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] px-4 mb-3 mt-6">Penjualan</p>
 
             <a href="/orders"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('orders*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-cart-shopping w-5"></i> Pesanan
 
@@ -174,13 +180,13 @@
             </a>
 
             <a href="/coupons"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('coupons*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-ticket w-5"></i> Kupon Promo
             </a>
 
             <a href="{{ route('reports.index') }}"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('reports*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-chart-pie w-5"></i> Laporan
             </a>
@@ -188,13 +194,13 @@
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] px-4 mb-3 mt-6">Pengguna</p>
 
             <a href="/customers"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('customers*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-user-group w-5"></i> Pelanggan
             </a>
 
             <a href="/reviews"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('reviews*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-message w-5"></i> Ulasan
             </a>
@@ -202,7 +208,7 @@
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] px-4 mb-3 mt-6">Sistem</p>
 
             <a href="{{ route('settings.index') }}"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all 
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('settings*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-gear w-5"></i> Pengaturan Integrasi
             </a>
@@ -229,7 +235,7 @@
                     <i class="fa-solid fa-bars-staggered"></i>
                 </button>
                 <div class="hidden md:block">
-                    <p class="text-gray-400 text-sm font-medium">Panel Admin toko Al-Hayya.</p>
+                    <p class="text-gray-400 text-sm font-medium">Panel Admin toko FURE.</p>
                 </div>
             </div>
 

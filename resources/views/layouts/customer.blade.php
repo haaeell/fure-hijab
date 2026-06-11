@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AL-HAYYA HIJAB - @yield('title', 'Elegansi dalam Kesantunan')</title>
+    <title>FURE - @yield('title', 'Elegansi dalam Kesantunan')</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -25,9 +25,9 @@
                     colors: {
                         'soft-mint': '#F1F8E9',
                         'soft-blue': '#E3F2FD',
-                        'brand-primary': '#81C784',
-                        'brand-secondary': '#A5D6A7',
-                        'brand-dark': '#2D5A27',
+                        'brand-primary': '#A78B6F',
+                        'brand-secondary': '#D6C4B0',
+                        'brand-dark': '#5F4A3A',
                     },
                     fontFamily: { sans: ['Poppins', 'sans-serif'] },
                 }
@@ -103,8 +103,8 @@
         }
 
         .dataTables_wrapper .dataTables_filter input:focus {
-            border-color: #81C784 !important;
-            box-shadow: 0 0 0 3px rgba(129, 199, 132, 0.1) !important;
+            border-color: #A78B6F !important;
+            box-shadow: 0 0 0 3px rgba(167, 139, 111, 0.1) !important;
             outline: none !important;
         }
 
@@ -130,14 +130,14 @@
         }
 
         .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled) {
-            background: #81C784 !important;
-            border-color: #81C784 !important;
+            background: #A78B6F !important;
+            border-color: #A78B6F !important;
             color: white !important;
         }
 
         .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #81C784 !important;
-            border-color: #81C784 !important;
+            background: #A78B6F !important;
+            border-color: #A78B6F !important;
             color: white !important;
         }
 
@@ -169,17 +169,17 @@
 
         table.dataTable thead .sorting_asc::after {
             content: "\f0de";
-            color: #81C784;
+            color: #A78B6F;
         }
 
         table.dataTable thead .sorting_desc::after {
             content: "\f0dd";
-            color: #81C784;
+            color: #A78B6F;
         }
 
         /* Rows */
         #datatable tbody tr:hover {
-            background: rgba(129, 199, 132, 0.05) !important;
+            background: rgba(167, 139, 111, 0.05) !important;
         }
 
         /* Info */
@@ -202,42 +202,74 @@
 
 <body class="bg-white font-sans text-gray-900 antialiased overflow-x-hidden">
 
-    <nav class="fixed w-full z-50 glass-nav border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
-            <a href="/" class="flex items-center gap-2.5 group">
+    <nav class="sticky top-0 z-50 border-b border-brand-secondary/40 bg-white">
+        <div class="bg-brand-dark text-white">
+            <div
+                class="no-scrollbar mx-auto flex max-w-7xl overflow-hidden whitespace-nowrap px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] sm:px-6 lg:px-8">
+                @for ($i = 0; $i < 5; $i++)
+                    <span class="mr-10">Exclusive discount 10% off</span>
+                    <span class="mr-10 text-brand-secondary">Mushroom collection ready</span>
+                    <span class="mr-10">Free gift selected item</span>
+                @endfor
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 grid grid-cols-3 items-center lg:flex lg:justify-between">
+            <div class="flex items-center gap-2 lg:hidden">
+                <button type="button" aria-label="Menu" class="p-2 text-brand-dark">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <a href="{{ route('collections.index') }}" aria-label="Cari produk" class="p-2 text-brand-dark">
+                    <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                </a>
+            </div>
+
+            <a href="/" class="group flex items-center justify-center gap-2.5 lg:justify-start">
                 <div
-                    class="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/20 group-hover:rotate-12 transition-transform">
-                    <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+                    class="hidden w-9 h-9 bg-brand-primary items-center justify-center transition-colors group-hover:bg-brand-dark sm:flex">
+                    <i class="fa-solid fa-wand-magic-sparkles text-white text-base"></i>
                 </div>
-                <span class="text-brand-dark font-extrabold text-xl tracking-tight uppercase">Al-Hayya ok</span>
+                <span class="text-brand-dark font-black text-xl tracking-[0.22em] uppercase">FURE</span>
             </a>
 
-            <div class="hidden md:flex items-center gap-8 text-sm font-semibold text-brand-dark/80">
+            <div class="hidden lg:flex items-center gap-7 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-dark/80">
                 <a href="/"
-                    class="transition-colors relative {{ request()->is('/') ? 'text-brand-primary after:scale-x-100' : 'hover:text-brand-primary after:scale-x-0' }} after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-0.5 after:bg-brand-primary hover:after:scale-x-100 after:transition-transform">
-                    Beranda
+                    class="transition-colors relative {{ request()->is('/') ? 'text-brand-primary after:scale-x-100' : 'hover:text-brand-primary after:scale-x-0' }} after:content-[''] after:absolute after:bottom-[-6px] after:left-0 after:w-full after:h-px after:bg-brand-primary hover:after:scale-x-100 after:transition-transform">
+                    Home
                 </a>
 
-                <a href="{{ route('collections.index') }}"
-                    class="transition-colors {{ request()->routeIs('collections.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
-                    Koleksi
+                <a href="{{ route('best-seller.index') }}"
+                    class="transition-colors {{ request()->routeIs('best-seller.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    Best Seller
                 </a>
 
-                <a href="{{ route('promo.index') }}"
-                    class="transition-colors {{ request()->routeIs('promo.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
-                    Promo
+                <a href="{{ route('hijab.index') }}"
+                    class="transition-colors {{ request()->routeIs('hijab.*') || request()->routeIs('collections.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    Hijab
+                </a>
+
+                <a href="{{ route('syari.index') }}"
+                    class="transition-colors {{ request()->routeIs('syari.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    Syar'i
+                </a>
+
+                <a href="{{ route('new-arrived.index') }}"
+                    class="transition-colors {{ request()->routeIs('new-arrived.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    New Arrived
                 </a>
 
                 <a href="{{ route('about.index') }}"
                     class="transition-colors {{ request()->routeIs('about.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
-                    Tentang Kami
+                    Store Locator
                 </a>
             </div>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center justify-end gap-2 lg:gap-3">
+                <a href="{{ route('collections.index') }}" class="hidden p-2 text-brand-dark transition-colors hover:text-brand-primary md:block">
+                    <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                </a>
                 <a href="/cart" class="relative p-2 text-brand-dark hover:text-brand-primary transition-colors">
-                    <i class="fa-solid fa-cart-shopping text-xl"></i>
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
                     <span
-                        class="absolute top-0 right-0 bg-brand-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow">
+                        class="absolute top-0 right-0 bg-brand-primary text-white text-[10px] w-4 h-4 flex items-center justify-center border-2 border-white shadow">
                         @auth
                                             {{ \App\Models\CartItem::whereHas('cart', function ($q) {
                             $q->where('user_id', auth()->id()); })->count() }}
@@ -261,7 +293,7 @@
                         </button>
 
                         <div id="userDropdownMenu"
-                            class="hidden absolute right-0 mt-3 w-56 bg-white/90 backdrop-blur-xl rounded-[24px] shadow-[0_20px_50px_rgba(45,90,39,0.1)] border border-white p-2 z-[60] origin-top-right transition-all">
+                            class="hidden absolute right-0 mt-3 w-56 bg-white/90 backdrop-blur-xl rounded-[24px] shadow-[0_20px_50px_rgba(95,74,58,0.1)] border border-white p-2 z-[60] origin-top-right transition-all">
 
                             <div class="px-4 py-3 border-b border-gray-50 mb-1">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Role Akun</p>
@@ -307,13 +339,24 @@
                     <a href="/login"
                         class="hidden md:block text-sm font-semibold text-brand-dark hover:text-brand-primary transition-colors">Masuk</a>
                     <a href="/register"
-                        class="px-6 py-3 bg-brand-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 hover:-translate-y-0.5 transition-all active:scale-95">Daftar</a>
+                        class="hidden px-6 py-3 bg-brand-primary text-white text-sm font-bold shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 hover:-translate-y-0.5 transition-all active:scale-95 md:inline-flex">Daftar</a>
+                    <a href="/login" aria-label="Masuk" class="p-2 text-brand-dark md:hidden">
+                        <i class="fa-regular fa-user text-lg"></i>
+                    </a>
                 @endauth
             </div>
         </div>
+        <div class="no-scrollbar flex gap-6 overflow-x-auto border-t border-brand-secondary/30 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-dark/75 lg:hidden">
+            <a href="/" class="{{ request()->is('/') ? 'text-brand-primary' : '' }} whitespace-nowrap">Home</a>
+            <a href="{{ route('best-seller.index') }}" class="{{ request()->routeIs('best-seller.*') ? 'text-brand-primary' : '' }} whitespace-nowrap">Best Seller</a>
+            <a href="{{ route('hijab.index') }}" class="{{ request()->routeIs('hijab.*') || request()->routeIs('collections.*') ? 'text-brand-primary' : '' }} whitespace-nowrap">Hijab</a>
+            <a href="{{ route('syari.index') }}" class="{{ request()->routeIs('syari.*') ? 'text-brand-primary' : '' }} whitespace-nowrap">Syar'i</a>
+            <a href="{{ route('new-arrived.index') }}" class="{{ request()->routeIs('new-arrived.*') ? 'text-brand-primary' : '' }} whitespace-nowrap">New Arrived</a>
+            <a href="{{ route('about.index') }}" class="{{ request()->routeIs('about.*') ? 'text-brand-primary' : '' }} whitespace-nowrap">Store Locator</a>
+        </div>
     </nav>
 
-    <main class="pt-20">
+    <main>
         @yield('content')
     </main>
 
@@ -332,7 +375,7 @@
                         </div>
                         <span
                             class="text-2xl font-black tracking-widest uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-secondary/80">
-                            Al-Hayya
+                            FURE
                         </span>
                     </div>
                     <p class="text-brand-secondary/70 text-lg leading-relaxed max-w-sm">
@@ -383,7 +426,7 @@
 
             <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
                 <p class="text-brand-secondary/40 text-xs tracking-widest uppercase">
-                    &copy; 2026 AL-HAYYA HIJAB. Crafted with Grace.
+                    &copy; 2026 FURE. Crafted with Grace.
                 </p>
                 <div class="flex gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-secondary/30">
                     <a href="#" class="hover:text-brand-secondary transition-colors">Privacy Policy</a>
@@ -392,80 +435,6 @@
             </div>
         </div>
     </footer>
-
-    <div class="md:hidden fixed bottom-4 left-4 right-4 z-50">
-        <div
-            class="bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 px-4 py-3 flex justify-between items-center">
-
-            <a href="/" class="flex flex-col items-center gap-1 group w-1/5">
-                <div
-                    class="w-10 h-10 flex items-center justify-center rounded-xl {{ request()->is('/') ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'bg-gray-50 text-gray-400' }} transition-all">
-                    <i class="fa-solid fa-house text-lg"></i>
-                </div>
-                <span
-                    class="text-[9px] font-bold tracking-tighter {{ request()->is('/') ? 'text-brand-primary' : 'text-gray-400' }}">Home</span>
-            </a>
-
-            <a href="{{ route('collections.index') }}" class="flex flex-col items-center gap-1 group w-1/5">
-                <div
-                    class="w-10 h-10 flex items-center justify-center rounded-xl {{ request()->routeIs('collections.*') ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'bg-gray-50 text-gray-400' }} transition-all">
-                    <i class="fa-solid fa-layer-group text-lg"></i>
-                </div>
-                <span
-                    class="text-[9px] font-bold tracking-tighter {{ request()->routeIs('collections.*') ? 'text-brand-primary' : 'text-gray-400' }}">Koleksi</span>
-            </a>
-
-            <a href="/cart" class="relative flex flex-col items-center gap-1 w-1/5">
-                <div
-                    class="w-12 h-12 flex items-center justify-center rounded-2xl {{ request()->is('cart') ? 'bg-brand-primary' : 'bg-brand-dark' }} text-white shadow-lg -mt-10 border-4 border-[#FBFBFE] transition">
-                    <i class="fa-solid fa-cart-shopping text-lg"></i>
-                </div>
-                <span
-                    class="text-[9px] font-bold tracking-tighter {{ request()->is('cart') ? 'text-brand-primary' : 'text-brand-dark' }} mt-1">Cart</span>
-                <span
-                    class="absolute -top-11 right-2 bg-brand-primary text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white font-bold shadow-sm">
-                    @auth
-                                    {{ \App\Models\CartItem::whereHas('cart', function ($q) {
-                        $q->where('user_id', auth()->id()); })->count() }}
-                    @else
-                        0
-                    @endauth
-                </span>
-            </a>
-
-            <a href="{{ route('about.index') }}" class="flex flex-col items-center gap-1 group w-1/5">
-                <div
-                    class="w-10 h-10 flex items-center justify-center rounded-xl {{ request()->routeIs('about.*') ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'bg-gray-50 text-gray-400' }} transition-all">
-                    <i class="fa-solid fa-circle-info text-lg"></i>
-                </div>
-                <span
-                    class="text-[9px] font-bold tracking-tighter {{ request()->routeIs('about.*') ? 'text-brand-primary' : 'text-gray-400' }}">Tentang</span>
-            </a>
-
-            @auth
-                <a href="/user/profile" class="flex flex-col items-center gap-1 group w-1/5">
-                    <div
-                        class="w-10 h-10 flex items-center justify-center rounded-xl {{ request()->is('user/profile*') ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'bg-gray-50 text-gray-400' }} transition-all">
-                        <i class="fa-solid fa-user text-lg"></i>
-                    </div>
-                    <span
-                        class="text-[9px] font-bold tracking-tighter {{ request()->is('user/profile*') ? 'text-brand-primary' : 'text-gray-400' }}">Profile</span>
-                </a>
-            @else
-                <a href="/login" class="flex flex-col items-center gap-1 group w-1/5">
-                    <div
-                        class="w-10 h-10 flex items-center justify-center rounded-xl {{ request()->is('login') ? 'bg-brand-primary text-white' : 'bg-gray-50 text-gray-400' }} transition-all border border-dashed border-gray-200">
-                        <i class="fa-solid fa-right-to-bracket text-lg"></i>
-                    </div>
-                    <span
-                        class="text-[9px] font-bold tracking-tighter {{ request()->is('login') ? 'text-brand-primary' : 'text-gray-400' }}">Login</span>
-                </a>
-            @endauth
-
-        </div>
-    </div>
-
-    <div class="h-28 md:hidden"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
@@ -481,7 +450,7 @@
                 icon: @json(session('success') ? 'success' : 'error'),
                 title: @json(session('success') ? 'Berhasil' : 'Perhatian'),
                 text: @json(session('success') ?: session('error')),
-                confirmButtonColor: '#81C784',
+                confirmButtonColor: '#A78B6F',
             });
         </script>
     @endif
@@ -492,7 +461,7 @@
                 icon: 'warning',
                 title: 'Lengkapi Data',
                 html: @json(implode('<br>', $errors->all())),
-                confirmButtonColor: '#81C784',
+                confirmButtonColor: '#A78B6F',
             });
         </script>
     @endif

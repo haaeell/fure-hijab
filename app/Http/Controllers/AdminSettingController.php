@@ -66,9 +66,9 @@ class AdminSettingController extends Controller
         $this->applyMailSettings($this->settings());
 
         try {
-            Mail::raw('Email percobaan dari AL-HAYYA HIJAB. Jika email ini masuk, konfigurasi SMTP sudah aktif.', function ($message) use ($validated) {
+            Mail::raw('Email percobaan dari FURE. Jika email ini masuk, konfigurasi SMTP sudah aktif.', function ($message) use ($validated) {
                 $message->to($validated['test_email'])
-                    ->subject('Test Email AL-HAYYA HIJAB');
+                    ->subject('Test Email FURE');
             });
         } catch (Throwable $th) {
             return back()->with('error', 'Gagal mengirim test email: ' . $th->getMessage());

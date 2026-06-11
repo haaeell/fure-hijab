@@ -10,6 +10,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LandingPageController;
+use App\Http\Controllers\LandingContentController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\ProductController;
@@ -25,6 +26,10 @@ Route::get('/', [LandingPageController::class, 'index']);
 Auth::routes();
 
 Route::get('/collections', [LandingPageController::class, 'collections'])->name('collections.index');
+Route::get('/best-seller', [LandingPageController::class, 'bestSeller'])->name('best-seller.index');
+Route::get('/hijab', [LandingPageController::class, 'hijab'])->name('hijab.index');
+Route::get('/syari', [LandingPageController::class, 'syari'])->name('syari.index');
+Route::get('/new-arrived', [LandingPageController::class, 'newArrived'])->name('new-arrived.index');
 Route::get('/collections/{slug}', [LandingPageController::class, 'show'])->name('collections.show');
 Route::get('/about-us', [LandingPageController::class, 'about'])->name('about.index');
 Route::get('/promo', [LandingPageController::class, 'promo'])->name('promo.index');
@@ -121,6 +126,16 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/', 'update')->name('settings.update');
             Route::post('/test-email', 'testEmail')->name('settings.test-email');
             Route::get('/rajaongkir/origins', 'searchOrigins')->name('settings.rajaongkir.origins');
+        });
+
+        Route::prefix('landing-content')->controller(LandingContentController::class)->name('landing-content.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/banners', 'storeBanner')->name('banners.store');
+            Route::put('/banners/{banner}', 'updateBanner')->name('banners.update');
+            Route::delete('/banners/{banner}', 'destroyBanner')->name('banners.destroy');
+            Route::post('/sections', 'storeSection')->name('sections.store');
+            Route::put('/sections/{section}', 'updateSection')->name('sections.update');
+            Route::delete('/sections/{section}', 'destroySection')->name('sections.destroy');
         });
     });
 

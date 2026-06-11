@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Coupon;
+use App\Models\LandingBanner;
+use App\Models\LandingSection;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +16,7 @@ class LandingPageController extends Controller
 {
     public function index()
     {
-        $categories = Category::where('is_active', true)->orderBy('sort_order', 'asc')->get();
+        $categories = Category::where('is_active', true)->withCount('products')->orderBy('sort_order', 'asc')->get();
 
         $flashSaleProducts = Product::with(['category', 'images' => function ($q) {
             $q->where('is_primary', true);
@@ -34,27 +36,35 @@ class LandingPageController extends Controller
             ->take(8)
             ->get();
 
-        return view('welcome', compact('categories', 'flashSaleProducts', 'latestProducts'));
+        $landingBanners = LandingBanner::where('is_active', true)->orderBy('sort_order')->latest()->get();
+        $landingSections = LandingSection::where('is_active', true)->orderBy('sort_order')->latest()->get();
+
+        return view('welcome', compact('categories', 'flashSaleProducts', 'latestProducts', 'landingBanners', 'landingSections'));
     }
 
     public function collections(Request $request)
     {
-        $query = Product::with(['category', 'images']);
+        return $this->catalog($request, 'all');
+    }
 
-        if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
+    public function bestSeller(Request $request)
+    {
+        return $this->catalog($request, 'best-seller');
+    }
 
-        if ($request->has('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
-            });
-        }
+    public function hijab(Request $request)
+    {
+        return $this->catalog($request, 'hijab');
+    }
 
-        $products = $query->latest()->paginate(12);
-        $categories = Category::withCount('products')->get();
+    public function syari(Request $request)
+    {
+        return $this->catalog($request, 'syari');
+    }
 
-        return view('user.collections.index', compact('categories', 'products'));
+    public function newArrived(Request $request)
+    {
+        return $this->catalog($request, 'new-arrived');
     }
 
     public function show($slug)
@@ -108,5 +118,97 @@ class LandingPageController extends Controller
             ->get();
 
         return view('user.promo.index', compact('coupons'));
+    }
+
+    private function catalog(Request $request, string $type)
+    {
+        $query = Product::with(['category', 'images', 'variants'])->where('is_active', true);
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('category')) {
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('slug', $request->category);
+            });
+        }
+
+        if ($request->filled('availability')) {
+            if ($request->availability === 'in_stock') {
+                $query->where('stock', '>', 0);
+            }
+
+            if ($request->availability === 'out_of_stock') {
+                $query->where('stock', '<=', 0);
+            }
+        }
+
+        if ($request->filled('min_price')) {
+            $query->where('price', '>=', (int) $request->min_price);
+        }
+
+        if ($request->filled('max_price')) {
+            $query->where('price', '<=', (int) $request->max_price);
+        }
+
+        if ($type === 'syari') {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%syari%')
+                    ->orWhere('name', 'like', "%syar'i%")
+                    ->orWhereHas('category', function ($cat) {
+                        $cat->where('name', 'like', '%syari%')
+                            ->orWhere('name', 'like', "%syar'i%");
+                    });
+            });
+        }
+
+        $sort = $request->get('sort');
+
+        if ($type === 'best-seller' || $sort === 'best_seller') {
+            $query->orderByDesc('sold_count')->latest();
+        } elseif ($sort === 'price_low') {
+            $query->orderBy('price');
+        } elseif ($sort === 'price_high') {
+            $query->orderByDesc('price');
+        } else {
+            $query->latest();
+        }
+
+        $products = $query->paginate(12)->withQueryString();
+        $categories = Category::where('is_active', true)->withCount('products')->orderBy('sort_order', 'asc')->get();
+        $inStockCount = Product::where('is_active', true)->where('stock', '>', 0)->count();
+        $outOfStockCount = Product::where('is_active', true)->where('stock', '<=', 0)->count();
+
+        $catalogMeta = match ($type) {
+            'best-seller' => [
+                'title' => 'BEST SELLER FROM FURE',
+                'route' => 'best-seller.index',
+            ],
+            'hijab' => [
+                'title' => 'HIJAB COLLECTION',
+                'route' => 'hijab.index',
+            ],
+            'syari' => [
+                'title' => "SYAR'I COLLECTION",
+                'route' => 'syari.index',
+            ],
+            'new-arrived' => [
+                'title' => 'NEW ARRIVED',
+                'route' => 'new-arrived.index',
+            ],
+            default => [
+                'title' => 'ALL COLLECTIONS',
+                'route' => 'collections.index',
+            ],
+        };
+
+        return view('user.collections.index', compact(
+            'categories',
+            'products',
+            'catalogMeta',
+            'inStockCount',
+            'outOfStockCount'
+        ));
     }
 }

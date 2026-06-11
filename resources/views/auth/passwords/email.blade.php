@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Lupa Password - AL-HAYYA HIJAB</title>
+    <title>Lupa Password - FURE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -19,9 +19,9 @@
                 extend: {
                     colors: {
                         'soft-mint': '#F1F8E9',
-                        'brand-primary': '#81C784',
-                        'brand-secondary': '#A5D6A7',
-                        'brand-dark': '#2D5A27',
+                        'brand-primary': '#A78B6F',
+                        'brand-secondary': '#D6C4B0',
+                        'brand-dark': '#5F4A3A',
                     },
                     fontFamily: { sans: ['Poppins', 'sans-serif'] },
                 }
@@ -34,12 +34,12 @@
         .auth-bg {
             background:
                 linear-gradient(135deg, rgba(248,251,248,.96), rgba(255,255,255,.92)),
-                radial-gradient(circle at 20% 18%, rgba(129,199,132,.24), transparent 28%),
-                radial-gradient(circle at 86% 78%, rgba(45,90,39,.13), transparent 24%);
+                radial-gradient(circle at 20% 18%, rgba(167,139,111,.24), transparent 28%),
+                radial-gradient(circle at 86% 78%, rgba(95,74,58,.13), transparent 24%);
         }
         .field:focus-within {
-            border-color: #81C784;
-            box-shadow: 0 0 0 4px rgba(129,199,132,.12);
+            border-color: #A78B6F;
+            box-shadow: 0 0 0 4px rgba(167,139,111,.12);
         }
     </style>
 </head>
@@ -51,7 +51,7 @@
                 <div class="w-11 h-11 rounded-2xl bg-brand-primary flex items-center justify-center text-white shadow-lg shadow-brand-primary/30">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
-                <span class="text-brand-dark font-extrabold text-xl tracking-tight uppercase">Al-Hayya</span>
+                <span class="text-brand-dark font-extrabold text-xl tracking-tight uppercase">FURE</span>
             </a>
 
             <div class="bg-white rounded-[32px] border border-white shadow-2xl shadow-brand-dark/10 p-6 sm:p-8">

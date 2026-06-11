@@ -183,7 +183,7 @@
                     <div class="space-y-1.5">
                         <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">From Name</label>
                         <input type="text" name="mail_from_name" value="{{ old('mail_from_name', $settings['mail_from_name']) }}"
-                            placeholder="AL-HAYYA HIJAB"
+                            placeholder="FURE"
                             class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
                     </div>
                 </div>

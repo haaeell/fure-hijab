@@ -121,7 +121,7 @@
                         AH
                     </div>
                     <div>
-                        <h1 style="font-size:20px; margin:0; color:#2D5A27; letter-spacing:.02em;">AL-HAYYA HIJAB</h1>
+                        <h1 style="font-size:20px; margin:0; color:#2D5A27; letter-spacing:.02em;">FURE</h1>
                         <p class="print-muted" style="margin:2px 0 0;">Invoice / Detail Pesanan</p>
                     </div>
                 </div>
@@ -251,7 +251,7 @@
             </p>
             <div style="text-align:center; width:190px;">
                 <p class="print-muted" style="margin:0 0 46px;">Admin</p>
-                <div style="border-top:1px solid #111827; padding-top:6px;">AL-HAYYA HIJAB</div>
+                <div style="border-top:1px solid #111827; padding-top:6px;">FURE</div>
             </div>
         </div>
     </section>

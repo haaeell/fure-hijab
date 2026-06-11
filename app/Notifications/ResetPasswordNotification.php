@@ -27,7 +27,7 @@ class ResetPasswordNotification extends Notification
         ]);
 
         return (new MailMessage)
-            ->subject('Reset Password Akun Al-Hayya')
+            ->subject('Reset Password Akun FURE')
             ->view('emails.auth.reset-password', [
                 'user' => $notifiable,
                 'url' => $url,

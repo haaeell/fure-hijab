@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', $product->name . ' - Al-Hayya Hijab')
+@section('title', $product->name . ' - FURE')
 
 @section('content')
     @php

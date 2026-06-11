@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Checkout - Al-Hayya Hijab')
+@section('title', 'Checkout - FURE')
 
 @section('content')
     <section class="bg-[#F8FBF8] min-h-screen px-4 sm:px-6 lg:px-8 pt-28 pb-12">

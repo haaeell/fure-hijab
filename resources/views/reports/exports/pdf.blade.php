@@ -87,7 +87,7 @@
 
 <body>
     <div class="header">
-        <div class="brand">Al-Hayya Hijab</div>
+        <div class="brand">FURE</div>
         <h1>{{ $title }}</h1>
         <div class="meta">
             <span>Periode: {{ $filters['start_date'] }} - {{ $filters['end_date'] }}</span>

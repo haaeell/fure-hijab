@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Daftar Akun - AL-HAYYA HIJAB</title>
+    <title>Daftar Akun - FURE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -20,9 +20,9 @@
                     colors: {
                         'soft-mint': '#F1F8E9',
                         'soft-blue': '#E3F2FD',
-                        'brand-primary': '#81C784',
-                        'brand-secondary': '#A5D6A7',
-                        'brand-dark': '#2D5A27',
+                        'brand-primary': '#A78B6F',
+                        'brand-secondary': '#D6C4B0',
+                        'brand-dark': '#5F4A3A',
                     },
                     fontFamily: { sans: ['Poppins', 'sans-serif'] },
                 }
@@ -38,13 +38,13 @@
         .auth-bg {
             background:
                 linear-gradient(135deg, rgba(248, 251, 248, .96), rgba(255, 255, 255, .9)),
-                radial-gradient(circle at 16% 14%, rgba(129, 199, 132, .24), transparent 28%),
-                radial-gradient(circle at 92% 78%, rgba(45, 90, 39, .12), transparent 24%);
+                radial-gradient(circle at 16% 14%, rgba(167, 139, 111, .24), transparent 28%),
+                radial-gradient(circle at 92% 78%, rgba(95, 74, 58, .12), transparent 24%);
         }
 
         .field:focus-within {
-            border-color: #81C784;
-            box-shadow: 0 0 0 4px rgba(129, 199, 132, .12);
+            border-color: #A78B6F;
+            box-shadow: 0 0 0 4px rgba(167, 139, 111, .12);
         }
     </style>
 </head>
@@ -57,7 +57,7 @@
                     <div class="w-12 h-12 rounded-2xl bg-brand-primary flex items-center justify-center text-white shadow-lg shadow-brand-primary/30">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                     </div>
-                    <span class="font-extrabold text-2xl tracking-tight uppercase">Al-Hayya</span>
+                    <span class="font-extrabold text-2xl tracking-tight uppercase">FURE</span>
                 </a>
 
                 <div>
@@ -88,7 +88,7 @@
                 <div class="mb-7">
                     <p class="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em]">Daftar akun</p>
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-brand-dark mt-2">Buat akun baru</h2>
-                    <p class="text-sm text-gray-400 mt-2">Isi data berikut untuk mulai belanja di Al-Hayya.</p>
+                    <p class="text-sm text-gray-400 mt-2">Isi data berikut untuk mulai belanja di FURE.</p>
                 </div>
 
                 <div id="alertContainer"></div>

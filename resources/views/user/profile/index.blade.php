@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Profil Saya - Al-Hayya Hijab')
+@section('title', 'Profil Saya - FURE')
 
 @section('content')
     <section class="py-12 bg-[#FBFBFE] min-h-screen px-4 sm:px-6 lg:px-8">
