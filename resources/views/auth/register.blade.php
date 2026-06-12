@@ -1,189 +1,146 @@
-<!doctype html>
-<html lang="id">
+@extends('layouts.customer')
 
-<head>
-    <meta charset="utf-8">
-    <title>Daftar Akun - FURE</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+@section('title', 'Daftar Akun')
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'soft-mint': '#F1F8E9',
-                        'soft-blue': '#E3F2FD',
-                        'brand-primary': '#A78B6F',
-                        'brand-secondary': '#D6C4B0',
-                        'brand-dark': '#5F4A3A',
-                    },
-                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
-                }
-            }
-        }
-    </script>
-
+@section('styles')
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .auth-bg {
-            background:
-                linear-gradient(135deg, rgba(248, 251, 248, .96), rgba(255, 255, 255, .9)),
-                radial-gradient(circle at 16% 14%, rgba(167, 139, 111, .24), transparent 28%),
-                radial-gradient(circle at 92% 78%, rgba(95, 74, 58, .12), transparent 24%);
-        }
-
-        .field:focus-within {
+        .auth-field:focus-within {
             border-color: #A78B6F;
             box-shadow: 0 0 0 4px rgba(167, 139, 111, .12);
         }
     </style>
-</head>
+@endsection
 
-<body class="min-h-screen auth-bg text-gray-900">
-    <main class="min-h-screen flex items-center justify-center px-4 py-8 sm:px-6">
-        <div class="w-full max-w-6xl grid lg:grid-cols-[430px_1fr] bg-white/90 border border-white rounded-[32px] shadow-2xl shadow-brand-dark/10 overflow-hidden">
-            <section class="bg-brand-dark text-white p-7 sm:p-10 flex flex-col justify-between gap-10">
-                <a href="/" class="inline-flex items-center gap-3 w-fit">
-                    <div class="w-12 h-12 rounded-2xl bg-brand-primary flex items-center justify-center text-white shadow-lg shadow-brand-primary/30">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    </div>
-                    <span class="font-extrabold text-2xl tracking-tight uppercase">FURE</span>
-                </a>
-
-                <div>
-                    <p class="text-[10px] font-black text-brand-primary uppercase tracking-[0.32em] mb-4">Create account</p>
-                    <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight">Mulai pengalaman belanja yang lebih personal.</h1>
-                    <p class="text-sm text-white/60 mt-5 leading-relaxed">
-                        Daftar untuk menyimpan alamat, memantau pesanan, dan mendapatkan akses voucher koleksi terbaru.
+@section('content')
+    <section class="bg-[#f8f3ee] text-brand-dark">
+        <div class="mx-auto grid min-h-[calc(100vh-7.25rem)] max-w-7xl grid-cols-1 lg:grid-cols-[0.9fr_1.1fr]">
+            <div class="relative min-h-[360px] overflow-hidden bg-brand-dark lg:min-h-[calc(100vh-7.25rem)]">
+                <img src="https://images.unsplash.com/photo-1618232118117-98d49b20e2f5?auto=format&fit=crop&q=85&w=1200"
+                    alt="Koleksi modest FURE"
+                    class="absolute inset-0 h-full w-full object-cover opacity-75">
+                <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/35 to-transparent"></div>
+                <div class="absolute inset-x-0 bottom-0 p-6 text-white sm:p-10 lg:p-12">
+                    <p class="mb-4 inline-flex border border-white/40 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.28em]">
+                        Create Account
+                    </p>
+                    <h1 class="max-w-lg text-4xl font-semibold leading-tight sm:text-5xl">
+                        Mulai pengalaman belanja yang lebih personal.
+                    </h1>
+                    <p class="mt-5 max-w-md text-sm leading-7 text-white/75">
+                        Simpan alamat, cek riwayat pesanan, dan akses promo koleksi terbaru dari satu akun FURE.
                     </p>
                 </div>
+            </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
-                    <div class="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-center gap-3">
-                        <i class="fa-solid fa-location-dot text-brand-primary"></i>
-                        <p class="text-xs font-bold">Alamat tersimpan otomatis</p>
+            <div class="flex items-center px-4 py-10 sm:px-6 lg:px-12">
+                <div class="mx-auto w-full max-w-2xl">
+                    <div class="mb-8">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Daftar akun</p>
+                        <h2 class="mt-3 text-3xl font-semibold leading-tight sm:text-4xl">Buat akun baru</h2>
+                        <p class="mt-3 text-sm leading-6 text-brand-dark/60">
+                            Isi data berikut untuk belanja lebih cepat di web dan mobile FURE.
+                        </p>
                     </div>
-                    <div class="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-center gap-3">
-                        <i class="fa-solid fa-bag-shopping text-brand-primary"></i>
-                        <p class="text-xs font-bold">Riwayat pesanan lengkap</p>
-                    </div>
-                    <div class="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-center gap-3">
-                        <i class="fa-solid fa-shield-heart text-brand-primary"></i>
-                        <p class="text-xs font-bold">Akun aman dan privat</p>
-                    </div>
+
+                    <div id="alertContainer"></div>
+
+                    <form id="ajaxRegisterForm" class="space-y-5">
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-dark/55">Nama lengkap</label>
+                                <div class="auth-field mt-2 flex items-center gap-3 border border-brand-secondary/70 bg-white px-4 transition-all">
+                                    <i class="fa-regular fa-user text-brand-primary/70"></i>
+                                    <input type="text" name="name" required autocomplete="name"
+                                        class="w-full bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
+                                        placeholder="Nama kamu">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-dark/55">Nomor WhatsApp</label>
+                                <div class="auth-field mt-2 flex items-center gap-3 border border-brand-secondary/70 bg-white px-4 transition-all">
+                                    <i class="fa-brands fa-whatsapp text-brand-primary/70"></i>
+                                    <input type="tel" name="phone" required autocomplete="tel"
+                                        class="w-full bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
+                                        placeholder="0812...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-dark/55">Email</label>
+                            <div class="auth-field mt-2 flex items-center gap-3 border border-brand-secondary/70 bg-white px-4 transition-all">
+                                <i class="fa-regular fa-envelope text-brand-primary/70"></i>
+                                <input type="email" name="email" required autocomplete="email"
+                                    class="w-full bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
+                                    placeholder="nama@email.com">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-dark/55">Password</label>
+                                <div class="auth-field mt-2 flex items-center gap-3 border border-brand-secondary/70 bg-white px-4 transition-all">
+                                    <i class="fa-solid fa-lock text-brand-primary/70"></i>
+                                    <input type="password" id="password" name="password" required autocomplete="new-password"
+                                        class="w-full min-w-0 bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
+                                        placeholder="Minimal 8 karakter">
+                                    <button type="button" class="toggle-password shrink-0 text-brand-dark/35 transition hover:text-brand-primary"
+                                        data-target="#password" aria-label="Lihat password">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="mt-2 h-1.5 overflow-hidden bg-brand-secondary/35">
+                                    <div id="strengthBar" class="h-full w-0 bg-red-400 transition-all"></div>
+                                </div>
+                                <p id="strengthText" class="mt-1 text-[10px] font-bold text-brand-dark/45">Kekuatan password</p>
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-dark/55">Konfirmasi password</label>
+                                <div class="auth-field mt-2 flex items-center gap-3 border border-brand-secondary/70 bg-white px-4 transition-all">
+                                    <i class="fa-solid fa-lock text-brand-primary/70"></i>
+                                    <input type="password" id="password_confirmation" name="password_confirmation" required autocomplete="new-password"
+                                        class="w-full min-w-0 bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
+                                        placeholder="Ulangi password">
+                                    <button type="button" class="toggle-password shrink-0 text-brand-dark/35 transition hover:text-brand-primary"
+                                        data-target="#password_confirmation" aria-label="Lihat password">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
+                                <p id="matchText" class="mt-2 text-[10px] font-bold text-brand-dark/45">Konfirmasi harus sama.</p>
+                            </div>
+                        </div>
+
+                        <label class="flex items-start gap-3 text-xs leading-relaxed text-brand-dark/65">
+                            <input type="checkbox" name="terms" value="1" required
+                                class="mt-0.5 h-4 w-4 shrink-0 border-brand-secondary text-brand-primary focus:ring-brand-primary">
+                            <span>
+                                Saya menyetujui
+                                <a href="{{ route('terms.index') }}" target="_blank"
+                                    class="font-bold text-brand-primary transition hover:text-brand-dark">Syarat & Ketentuan</a>
+                                serta penggunaan data untuk akun, transaksi, dan pengiriman pesanan.
+                            </span>
+                        </label>
+
+                        <button type="submit" id="regBtn"
+                            class="flex w-full items-center justify-center gap-3 bg-brand-primary px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-white shadow-lg shadow-brand-primary/20 transition hover:bg-brand-dark active:scale-[0.99]">
+                            <span id="regText">Daftar</span>
+                            <i id="regIcon" class="fa-solid fa-arrow-right-long"></i>
+                            <i id="regLoader" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                        </button>
+
+                        <p class="text-center text-sm text-brand-dark/60">
+                            Sudah punya akun?
+                            <a href="{{ route('login') }}"
+                                class="font-bold text-brand-primary transition hover:text-brand-dark">Masuk</a>
+                        </p>
+                    </form>
                 </div>
-            </section>
-
-            <section class="p-6 sm:p-8 lg:p-12">
-                <div class="mb-7">
-                    <p class="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em]">Daftar akun</p>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-brand-dark mt-2">Buat akun baru</h2>
-                    <p class="text-sm text-gray-400 mt-2">Isi data berikut untuk mulai belanja di FURE.</p>
-                </div>
-
-                <div id="alertContainer"></div>
-
-                <form id="ajaxRegisterForm" class="space-y-5">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Nama Lengkap</label>
-                            <div class="field mt-2 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 transition-all">
-                                <i class="fa-regular fa-user text-gray-300"></i>
-                                <input type="text" name="name" required autocomplete="name"
-                                    class="w-full bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
-                                    placeholder="Nama kamu">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Nomor WhatsApp</label>
-                            <div class="field mt-2 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 transition-all">
-                                <i class="fa-brands fa-whatsapp text-gray-300"></i>
-                                <input type="tel" name="phone" required autocomplete="tel"
-                                    class="w-full bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
-                                    placeholder="0812...">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Email</label>
-                        <div class="field mt-2 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 transition-all">
-                            <i class="fa-regular fa-envelope text-gray-300"></i>
-                            <input type="email" name="email" required autocomplete="email"
-                                class="w-full bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
-                                placeholder="nama@email.com">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Password</label>
-                            <div class="field mt-2 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 transition-all">
-                                <i class="fa-solid fa-lock text-gray-300"></i>
-                                <input type="password" id="password" name="password" required autocomplete="new-password"
-                                    class="w-full bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
-                                    placeholder="Minimal 8 karakter">
-                                <button type="button" class="toggle-password text-gray-300 hover:text-brand-primary transition-colors" data-target="#password" aria-label="Lihat password">
-                                    <i class="fa-regular fa-eye"></i>
-                                </button>
-                            </div>
-                            <div class="mt-2 h-2 rounded-full bg-gray-100 overflow-hidden">
-                                <div id="strengthBar" class="h-full w-0 bg-red-400 transition-all"></div>
-                            </div>
-                            <p id="strengthText" class="mt-1 text-[10px] font-bold text-gray-400">Kekuatan password</p>
-                        </div>
-                        <div>
-                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest">Konfirmasi Password</label>
-                            <div class="field mt-2 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 transition-all">
-                                <i class="fa-solid fa-lock text-gray-300"></i>
-                                <input type="password" id="password_confirmation" name="password_confirmation" required autocomplete="new-password"
-                                    class="w-full bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
-                                    placeholder="Ulangi password">
-                                <button type="button" class="toggle-password text-gray-300 hover:text-brand-primary transition-colors" data-target="#password_confirmation" aria-label="Lihat password">
-                                    <i class="fa-regular fa-eye"></i>
-                                </button>
-                            </div>
-                            <p id="matchText" class="mt-2 text-[10px] font-bold text-gray-400">Konfirmasi harus sama.</p>
-                        </div>
-                    </div>
-
-                    <label class="flex items-start gap-3 text-xs leading-relaxed text-gray-500">
-                        <input type="checkbox" name="terms" value="1" required class="mt-0.5 w-4 h-4 rounded border-gray-200 text-brand-primary focus:ring-brand-primary">
-                        <span>
-                            Saya menyetujui
-                            <a href="{{ route('terms.index') }}" target="_blank" class="font-bold text-brand-primary hover:text-brand-dark">Syarat & Ketentuan</a>
-                            serta penggunaan data untuk kebutuhan akun, transaksi, dan pengiriman pesanan.
-                        </span>
-                    </label>
-
-                    <button type="submit" id="regBtn"
-                        class="w-full py-4 rounded-2xl bg-brand-primary text-white font-black shadow-lg shadow-brand-primary/30 hover:bg-brand-dark hover:-translate-y-0.5 transition-all active:scale-[0.98] flex items-center justify-center gap-3">
-                        <span id="regText">Daftar Sekarang</span>
-                        <i id="regIcon" class="fa-solid fa-arrow-right-long"></i>
-                        <i id="regLoader" class="fa-solid fa-circle-notch fa-spin hidden"></i>
-                    </button>
-
-                    <p class="text-center text-sm text-gray-500">
-                        Sudah punya akun?
-                        <a href="{{ route('login') }}" class="font-bold text-brand-primary hover:text-brand-dark transition-colors">Masuk</a>
-                    </p>
-                </form>
-            </section>
+            </div>
         </div>
-    </main>
+    </section>
+@endsection
 
-    @include('partials.customer-bottom-navigation')
-
+@push('scripts')
     <script>
         $(function () {
             $('.toggle-password').on('click', function () {
@@ -220,13 +177,13 @@
                 const password = $('#password').val();
                 const confirmation = $('#password_confirmation').val();
                 if (!confirmation) {
-                    $('#matchText').removeClass('text-green-600 text-red-500').addClass('text-gray-400').text('Konfirmasi harus sama.');
+                    $('#matchText').removeClass('text-green-600 text-red-500').addClass('text-brand-dark/45').text('Konfirmasi harus sama.');
                     return;
                 }
 
                 const same = password === confirmation;
                 $('#matchText').toggleClass('text-green-600', same).toggleClass('text-red-500', !same)
-                    .removeClass('text-gray-400')
+                    .removeClass('text-brand-dark/45')
                     .text(same ? 'Password cocok.' : 'Password belum sama.');
             }
 
@@ -239,7 +196,7 @@
                 }
 
                 $('#alertContainer').html(`
-                    <div class="mb-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                    <div class="mb-5 border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                         <div class="flex gap-3">
                             <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
                             <ul class="space-y-1">${items}</ul>
@@ -264,7 +221,7 @@
                         btn.prop('disabled', true).addClass('opacity-80');
                         $('#regLoader').removeClass('hidden');
                         $('#regIcon').addClass('hidden');
-                        $('#regText').text('Mendaftarkan...');
+                        $('#regText').text('Mendaftarkan');
                         $('#alertContainer').empty();
                     },
                     success: function (response) {
@@ -274,13 +231,11 @@
                         btn.prop('disabled', false).removeClass('opacity-80');
                         $('#regLoader').addClass('hidden');
                         $('#regIcon').removeClass('hidden');
-                        $('#regText').text('Daftar Sekarang');
+                        $('#regText').text('Daftar');
                         showErrors(xhr.responseJSON?.errors, xhr.responseJSON?.message || 'Pendaftaran gagal.');
                     }
                 });
             });
         });
     </script>
-</body>
-
-</html>
+@endpush

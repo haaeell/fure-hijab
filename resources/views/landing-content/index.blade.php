@@ -33,7 +33,7 @@
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="space-y-1.5">
                         <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Label kecil</label>
-                        <input name="eyebrow" placeholder="New Mushroom Collection"
+                        <input name="eyebrow" placeholder="New Hijab Collection"
                             class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary">
                     </div>
                     <div class="space-y-1.5">

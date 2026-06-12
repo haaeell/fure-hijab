@@ -16,227 +16,262 @@
             ? $product->variants->first()->stock
             : $product->stock;
 
-        $primaryImage = $product->images->where('is_primary', true)->first();
+        $primaryImage = $product->images->where('is_primary', true)->first() ?? $product->images->first();
+        $galleryImages = $product->images->count() > 0 ? $product->images : collect([$primaryImage])->filter();
     @endphp
 
-    <section class="py-12 bg-white px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto">
-            <nav class="flex text-xs font-bold text-gray-400 uppercase tracking-widest mb-8">
-                <a href="/" class="hover:text-brand-primary transition-colors">Beranda</a>
-                <span class="mx-2">/</span>
-                <a href="{{ route('collections.index') }}" class="hover:text-brand-primary transition-colors">Koleksi</a>
-                <span class="mx-2">/</span>
+    <section class="bg-[#f8f3ee]">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            <nav class="mb-8 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-brand-dark/45">
+                <a href="/" class="transition hover:text-brand-primary">Home</a>
+                <span class="text-brand-secondary">/</span>
+                <a href="{{ route('collections.index') }}" class="transition hover:text-brand-primary">Collections</a>
+                <span class="text-brand-secondary">/</span>
                 <span class="text-brand-dark">{{ $product->name }}</span>
             </nav>
 
-            <div class="flex flex-col lg:flex-row gap-12">
-                <div class="w-full  lg:w-4/12 space-y-4">
-                    <div
-                        class="relative w-full max-w-[340px] mx-auto rounded-[32px] overflow-hidden bg-gray-50 border border-gray-100 shadow-sm aspect-[3/4]">
-                        <img id="mainImage"
-                            src="{{ asset('storage/' . ($primaryImage ? $primaryImage->image_url : 'default.jpg')) }}"
-                            class="w-full h-full object-cover transition-all duration-500 hover:scale-105">
+            <div class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+                <div class="space-y-4">
+                    <div class="overflow-hidden bg-white">
+                        <div class="relative aspect-[4/5] bg-[#eee5dc]">
+                            <img id="mainImage"
+                                src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/900x1125?text=FURE' }}"
+                                class="h-full w-full object-cover" alt="{{ $product->name }}">
 
-                        @if($displayComparePrice > $displayPrice)
-                            <div
-                                class="absolute top-4 left-4 px-3 py-1.5 bg-red-500 text-white text-xs font-black rounded-full shadow-lg">
-                                SALE
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="flex justify-center gap-2 overflow-x-auto no-scrollbar pb-2">
-                        @foreach($product->images as $img)
-                            <button onclick="changeImage('{{ asset('storage/' . $img->image_url) }}')"
-                                class="flex-none w-12 h-12 rounded-lg overflow-hidden border-2 {{ $img->is_primary ? 'border-brand-primary' : 'border-transparent' }} hover:border-brand-primary transition-all shadow-sm">
-                                <img src="{{ asset('storage/' . $img->image_url) }}" class="w-full h-full object-cover">
-                            </button>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="w-full lg:w-8/12  space-y-8">
-                    <div>
-                        <span
-                            class="text-brand-primary font-bold text-xs uppercase tracking-[0.2em] mb-2 block">{{ $product->category->name }}</span>
-                        <h1 class="text-3xl md:text-4xl font-extrabold text-brand-dark leading-tight">{{ $product->name }}
-                        </h1>
-
-                        <div class="flex items-center gap-4 mt-4">
-                            <div id="displayPrice"
-                                class="flex items-center text-brand-dark font-black text-2xl md:text-3xl">
-                                Rp{{ number_format($displayPrice, 0, ',', '.') }}
-                            </div>
                             @if($displayComparePrice > $displayPrice)
-                                <div id="displayComparePrice" class="text-gray-300 line-through font-bold text-lg">
-                                    Rp{{ number_format($displayComparePrice, 0, ',', '.') }}
+                                <div class="absolute left-4 top-4 bg-brand-dark px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+                                    Sale
                                 </div>
                             @endif
                         </div>
                     </div>
 
-                    <div class="h-px bg-gray-100 w-full"></div>
+                    @if($galleryImages->count() > 1)
+                        <div class="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+                            @foreach($galleryImages as $img)
+                                <button type="button" onclick="changeImage('{{ asset('storage/' . $img->image_url) }}')"
+                                    class="h-20 w-16 flex-none overflow-hidden border {{ $img->is_primary ? 'border-brand-primary' : 'border-brand-secondary/60' }} bg-white transition hover:border-brand-primary">
+                                    <img src="{{ asset('storage/' . $img->image_url) }}" class="h-full w-full object-cover" alt="{{ $product->name }}">
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
 
-                    <div class="prose prose-sm max-w-none text-gray-500 leading-relaxed">
-                        <p class="font-bold text-brand-dark text-sm uppercase tracking-widest mb-2">Deskripsi Produk</p>
-                        <div class="text-gray-600">
-                            {!! $product->description !!}
+                <div class="lg:sticky lg:top-36">
+                    <div class="bg-white p-6 sm:p-8">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-brand-primary">
+                            {{ $product->category->name }}
+                        </p>
+                        <h1 class="mt-3 text-3xl font-semibold leading-tight sm:text-4xl">
+                            {{ $product->name }}
+                        </h1>
+
+                        <div class="mt-5 flex items-end gap-4">
+                            <div id="displayPrice" class="text-3xl font-semibold text-brand-dark">
+                                Rp{{ number_format($displayPrice, 0, ',', '.') }}
+                            </div>
+                            @if($displayComparePrice > $displayPrice)
+                                <div id="displayComparePrice" class="pb-1 text-sm font-semibold text-brand-dark/35 line-through">
+                                    Rp{{ number_format($displayComparePrice, 0, ',', '.') }}
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="mt-5 grid grid-cols-2 gap-3">
+                            <div class="border border-brand-secondary/40 bg-[#f8f3ee] p-4">
+                                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-dark/45">Stok</p>
+                                <p class="mt-2 text-lg font-semibold text-brand-dark" id="productStock">{{ $displayStock }}</p>
+                            </div>
+                            <div class="border border-brand-secondary/40 bg-[#f8f3ee] p-4">
+                                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-dark/45">Rating</p>
+                                <p class="mt-2 text-lg font-semibold text-brand-dark">
+                                    {{ number_format($product->reviews->avg('rating') ?: 0, 1) }}/5
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 border-t border-brand-secondary/40 pt-6">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/45">Deskripsi</p>
+                            <div class="prose prose-sm mt-4 max-w-none text-brand-dark/65">
+                                {!! $product->description !!}
+                            </div>
+                        </div>
+
+                        <form id="addToCartForm" class="mt-7 space-y-6">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <input type="hidden" name="product_variant_id" id="selectedVariantId">
+
+                            @if($product->has_variant && $product->variants->count() > 0)
+                                @php
+                                    $groupedAttributes = [];
+                                    foreach ($product->variants as $variant) {
+                                        foreach ($variant->attributes as $attr) {
+                                            $groupedAttributes[$attr->attribute_name][] = $attr->attribute_value;
+                                        }
+                                    }
+                                    foreach ($groupedAttributes as $name => $values) {
+                                        $groupedAttributes[$name] = array_unique($values);
+                                    }
+                                @endphp
+
+                                <div class="space-y-5" id="variantSelection">
+                                    @foreach($groupedAttributes as $attrName => $values)
+                                        <div class="variant-group">
+                                            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/45">
+                                                {{ $attrName }}
+                                            </p>
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach($values as $value)
+                                                    <button type="button" data-type="{{ $attrName }}" data-value="{{ $value }}"
+                                                        class="variant-btn border border-brand-secondary/60 bg-white px-4 py-2 text-sm font-semibold text-brand-dark/65 transition hover:border-brand-primary hover:text-brand-primary">
+                                                        {{ $value }}
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center border border-brand-secondary/60 bg-white">
+                                    <button type="button" onclick="adjustQty(-1)"
+                                        class="h-12 w-12 text-brand-dark transition hover:bg-[#f8f3ee]">-</button>
+                                    <input type="number" name="quantity" id="qtyInput" value="1" min="1" max="{{ $displayStock }}"
+                                        class="h-12 w-14 border-x border-brand-secondary/60 bg-transparent text-center text-sm font-semibold outline-none">
+                                    <button type="button" onclick="adjustQty(1)"
+                                        class="h-12 w-12 text-brand-dark transition hover:bg-[#f8f3ee]">+</button>
+                                </div>
+                                <p class="text-xs font-bold uppercase tracking-[0.16em] text-brand-dark/45">
+                                    Sisa <span class="text-brand-dark" id="productStockLabel">{{ $displayStock }}</span>
+                                </p>
+                            </div>
+
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <button type="submit" id="btnAddToCart"
+                                    class="inline-flex items-center justify-center gap-3 border border-brand-primary bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-dark transition hover:bg-[#eee5dc]">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                    <span id="btnText">Tambah ke Keranjang</span>
+                                </button>
+                                <button type="button" id="btnBuyNow"
+                                    class="inline-flex items-center justify-center gap-3 bg-brand-primary px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-dark">
+                                    <i class="fa-solid fa-bolt"></i>
+                                    <span>Beli Sekarang</span>
+                                </button>
+                            </div>
+
+                            <button type="button"
+                                class="inline-flex w-full items-center justify-center gap-3 border border-brand-secondary/60 bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-dark transition hover:border-brand-primary">
+                                <i class="fa-regular fa-heart"></i>
+                                Wishlist
+                            </button>
+                        </form>
+
+                        <div class="mt-6 grid grid-cols-2 gap-3">
+                            <div class="border border-brand-secondary/40 bg-[#f8f3ee] p-4">
+                                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-dark/45">Pengiriman</p>
+                                <p class="mt-2 text-sm font-semibold text-brand-dark">Cepat & rapi</p>
+                            </div>
+                            <div class="border border-brand-secondary/40 bg-[#f8f3ee] p-4">
+                                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-dark/45">Kualitas</p>
+                                <p class="mt-2 text-sm font-semibold text-brand-dark">Material terpilih</p>
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <form id="addToCartForm" class="space-y-8">
-                        @csrf
-                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                        <input type="hidden" name="product_variant_id" id="selectedVariantId">
+            <div class="mt-16 grid gap-8 lg:grid-cols-[1fr_340px]">
+                <div class="space-y-8">
+                    <section class="bg-white p-6 sm:p-8">
+                        <div class="flex items-end justify-between gap-4">
+                            <div>
+                                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">Reviews</p>
+                                <h2 class="mt-2 text-2xl font-semibold">Ulasan Pembeli</h2>
+                            </div>
+                            <span class="text-sm font-semibold text-brand-dark/45">({{ $totalReviews }} ulasan)</span>
+                        </div>
 
-                        @if($product->has_variant && $product->variants->count() > 0)
-                            @php
-                                $groupedAttributes = [];
-                                foreach ($product->variants as $variant) {
-                                    foreach ($variant->attributes as $attr) {
-                                        $groupedAttributes[$attr->attribute_name][] = $attr->attribute_value;
-                                    }
-                                }
-                                foreach ($groupedAttributes as $name => $values) {
-                                    $groupedAttributes[$name] = array_unique($values);
-                                }
-                            @endphp
-
-                            <div class="space-y-6" id="variantSelection">
-                                @foreach($groupedAttributes as $attrName => $values)
-                                    <div class="variant-group">
-                                        <p class="font-bold text-brand-dark text-xs uppercase tracking-widest mb-3">{{ $attrName }}
-                                        </p>
-                                        <div class="flex flex-wrap gap-2">
-                                            @foreach($values as $value)
-                                                <button type="button" data-type="{{ $attrName }}" data-value="{{ $value }}"
-                                                    class="variant-btn px-4 py-2 border-2 border-gray-100 rounded-xl text-sm font-bold text-gray-500 hover:border-brand-primary transition-all">
-                                                    {{ $value }}
-                                                </button>
-                                            @endforeach
-                                        </div>
+                        @if($totalReviews > 0)
+                            <div class="mt-6 grid gap-4 sm:grid-cols-[180px_1fr]">
+                                <div class="border border-brand-secondary/40 bg-[#f8f3ee] p-5 text-center">
+                                    <div class="text-5xl font-semibold text-brand-dark">{{ number_format($averageRating, 1) }}</div>
+                                    <div class="mt-2 flex justify-center gap-1">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <i class="fa-star text-xs {{ $i <= round($averageRating) ? 'fa-solid text-yellow-400' : 'fa-regular text-gray-300' }}"></i>
+                                        @endfor
                                     </div>
-                                @endforeach
+                                </div>
+                                <div class="space-y-4">
+                                    @forelse($product->reviews->take(3) as $review)
+                                        <div class="border border-brand-secondary/40 p-4">
+                                            <div class="flex items-center justify-between gap-3">
+                                                <p class="text-sm font-semibold text-brand-dark">{{ $review->user->name }}</p>
+                                                <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-dark/35">
+                                                    {{ $review->created_at->diffForHumans() }}
+                                                </span>
+                                            </div>
+                                            <div class="mt-2 flex gap-1">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="fa-star text-xs {{ $i <= $review->rating ? 'fa-solid text-yellow-400' : 'fa-regular text-gray-300' }}"></i>
+                                                @endfor
+                                            </div>
+                                            <p class="mt-3 text-sm leading-6 text-brand-dark/60">{{ $review->comment }}</p>
+                                        </div>
+                                    @empty
+                                    @endforelse
+                                </div>
                             </div>
                         @endif
 
-                        <div class="flex items-center gap-6">
-                            <div class="flex items-center bg-gray-50 rounded-2xl border border-gray-100 p-1">
-                                <button type="button" onclick="adjustQty(-1)"
-                                    class="w-10 h-10 flex items-center justify-center text-brand-dark hover:bg-white rounded-xl transition-all shadow-sm">-</button>
-                                <input type="number" name="quantity" id="qtyInput" value="1" min="1"
-                                    max="{{ $displayStock }}"
-                                    class="w-12 text-center bg-transparent font-bold text-brand-dark outline-none">
-                                <button type="button" onclick="adjustQty(1)"
-                                    class="w-10 h-10 flex items-center justify-center text-brand-dark hover:bg-white rounded-xl transition-all shadow-sm">+</button>
-                            </div>
-                            <p class="text-xs font-bold text-gray-400">Stok: <span class="text-brand-dark"
-                                    id="productStock">{{ $displayStock }}</span></p>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <button type="submit" id="btnAddToCart"
-                                class="flex-1 py-4 bg-white text-brand-dark border-2 border-brand-primary/30 font-bold rounded-[20px] hover:bg-soft-mint transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm">
-                                <i class="fa-solid fa-cart-plus"></i>
-                                <span id="btnText">Tambah ke Keranjang</span>
-                            </button>
-                            <button type="button" id="btnBuyNow"
-                                class="flex-1 py-4 bg-brand-primary text-white font-bold rounded-[20px] shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm">
-                                <i class="fa-solid fa-bolt"></i>
-                                <span>Beli Sekarang</span>
-                            </button>
-                            <button type="button"
-                                class="px-6 py-4 bg-white text-brand-dark border-2 border-brand-dark/10 font-bold rounded-[20px] hover:bg-brand-dark hover:text-white transition-all active:scale-95">
-                                <i class="fa-regular fa-heart"></i>
-                            </button>
-                        </div>
-                    </form>
-
-                    <div class="grid grid-cols-2 gap-4 pt-4">
-                        <div class="flex items-center gap-3 p-4 rounded-2xl bg-soft-mint/50 border border-brand-primary/10">
-                            <i class="fa-solid fa-truck-fast text-brand-primary text-lg"></i>
-                            <span class="text-[10px] font-bold text-brand-dark uppercase">Pengiriman Cepat</span>
-                        </div>
-                        <div class="flex items-center gap-3 p-4 rounded-2xl bg-soft-blue/50 border border-blue-100">
-                            <i class="fa-solid fa-shield-check text-blue-500 text-lg"></i>
-                            <span class="text-[10px] font-bold text-brand-dark uppercase">Kualitas Terjamin</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-16">
-                <div class="flex items-center gap-4 mb-8">
-                    <h2 class="text-2xl font-extrabold text-brand-dark">Ulasan <span
-                            class="text-brand-primary">Pembeli</span></h2>
-                    <span class="text-sm font-bold text-gray-400">({{ $totalReviews }} ulasan)</span>
-                </div>
-
-                @if($totalReviews > 0)
-                    <div class="flex items-center gap-4 mb-8 p-6 bg-soft-mint/30 rounded-2xl border border-brand-primary/10">
-                        <div class="text-center">
-                            <div class="text-5xl font-black text-brand-dark">{{ number_format($averageRating, 1) }}</div>
-                            <div class="flex justify-center gap-1 mt-1">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <i
-                                        class="fa-star text-sm {{ $i <= round($averageRating) ? 'fa-solid text-yellow-400' : 'fa-regular text-gray-300' }}"></i>
-                                @endfor
-                            </div>
-                            <div class="text-xs text-gray-400 mt-1">dari 5</div>
-                        </div>
-                    </div>
-                @endif
-
-                @forelse($product->reviews as $review)
-                    <div class="py-6 border-b border-gray-100 last:border-0">
-                        <div class="flex items-start gap-4">
-                            <div
-                                class="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
-                                <span
-                                    class="text-brand-primary font-bold text-sm">{{ strtoupper(substr($review->user->name, 0, 1)) }}</span>
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between">
-                                    <p class="font-bold text-brand-dark text-sm">{{ $review->user->name }}</p>
-                                    <span class="text-xs text-gray-400">{{ $review->created_at->diffForHumans() }}</span>
-                                </div>
-                                <div class="flex gap-1 my-1">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <i
-                                            class="fa-star text-xs {{ $i <= $review->rating ? 'fa-solid text-yellow-400' : 'fa-regular text-gray-300' }}"></i>
-                                    @endfor
-                                </div>
-                                <p class="text-gray-600 text-sm mt-2">{{ $review->comment }}</p>
-                                @if($review->images)
-                                    <div class="flex gap-2 mt-3">
-                                        @foreach($review->images as $img)
-                                            <img src="{{ asset('storage/' . $img) }}"
-                                                class="w-16 h-16 rounded-xl object-cover border border-gray-100">
-                                        @endforeach
+                        @forelse($product->reviews->skip(3) as $review)
+                            <div class="border-t border-brand-secondary/30 pt-5 mt-5">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-brand-primary/10 text-brand-primary">
+                                        <span class="text-sm font-bold">{{ strtoupper(substr($review->user->name, 0, 1)) }}</span>
                                     </div>
-                                @endif
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <p class="text-sm font-semibold text-brand-dark">{{ $review->user->name }}</p>
+                                            <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-dark/35">
+                                                {{ $review->created_at->diffForHumans() }}
+                                            </span>
+                                        </div>
+                                        <div class="mt-2 flex gap-1">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <i class="fa-star text-xs {{ $i <= $review->rating ? 'fa-solid text-yellow-400' : 'fa-regular text-gray-300' }}"></i>
+                                            @endfor
+                                        </div>
+                                        <p class="mt-3 text-sm leading-6 text-brand-dark/60">{{ $review->comment }}</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="text-center py-12 text-gray-400">
-                        <i class="fa-regular fa-comment text-4xl mb-3 block"></i>
-                        <p class="font-bold">Belum ada ulasan untuk produk ini.</p>
-                    </div>
-                @endforelse
-            </div>
-
-            @if($relatedProducts->count() > 0)
-                <div class="mt-24">
-                    <h2 class="text-2xl font-extrabold text-brand-dark mb-8">Produk <span
-                            class="text-brand-primary">Terkait</span></h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        @foreach($relatedProducts as $rel)
-                            @include('user.components.product-card', ['product' => $rel, 'isFlashSale' => $rel->compare_price > $rel->price])
-                        @endforeach
-                    </div>
+                        @empty
+                            @if($totalReviews === 0)
+                                <div class="mt-8 border border-dashed border-brand-secondary/50 p-8 text-center text-brand-dark/45">
+                                    Belum ada ulasan untuk produk ini.
+                                </div>
+                            @endif
+                        @endforelse
+                    </section>
                 </div>
-            @endif
+
+                @if($relatedProducts->count() > 0)
+                    <aside class="space-y-4">
+                        <div class="bg-white p-6">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">Related</p>
+                            <h2 class="mt-2 text-2xl font-semibold">Produk Terkait</h2>
+                        </div>
+                        <div class="grid gap-4">
+                            @foreach($relatedProducts as $rel)
+                                @include('user.components.product-card', ['product' => $rel, 'isFlashSale' => $rel->compare_price > $rel->price])
+                            @endforeach
+                        </div>
+                    </aside>
+                @endif
+            </div>
         </div>
     </section>
 @endsection
@@ -247,45 +282,48 @@
         let selectedChoices = {};
 
         function changeImage(src) {
-            $('#mainImage').fadeOut(200, function () {
-                $(this).attr('src', src).fadeIn(200);
-            });
+            $('#mainImage').attr('src', src);
         }
 
         function adjustQty(val) {
-            let input = $('#qtyInput');
-            let stock = parseInt($('#productStock').text());
-            let current = parseInt(input.val());
-            let next = current + val;
+            const input = $('#qtyInput');
+            const stock = parseInt($('#productStock').text(), 10) || 1;
+            const current = parseInt(input.val(), 10) || 1;
+            const next = current + val;
             if (next >= 1 && next <= stock) input.val(next);
         }
 
         function findMatchingVariant() {
-            const match = variants.find(v => {
-                return v.attributes.every(attr => selectedChoices[attr.attribute_name] === attr.attribute_value);
-            });
+            const match = variants.find(v => v.attributes.every(attr => selectedChoices[attr.attribute_name] === attr.attribute_value));
 
-            if (match) {
-                $('#selectedVariantId').val(match.id);
-                $('#displayPrice').text('Rp' + new Intl.NumberFormat('id-ID').format(match.price));
+            if (!match) return;
 
-                if (match.compare_price > match.price) {
-                    $('#displayComparePrice').text('Rp' + new Intl.NumberFormat('id-ID').format(match.compare_price)).show();
-                } else {
-                    $('#displayComparePrice').hide();
+            $('#selectedVariantId').val(match.id);
+            $('#displayPrice').text('Rp' + new Intl.NumberFormat('id-ID').format(match.price));
+
+            if (match.compare_price > match.price) {
+                if (!$('#displayComparePrice').length) {
+                    $('#displayPrice').after('<div id="displayComparePrice" class="pb-1 text-sm font-semibold text-brand-dark/35 line-through"></div>');
                 }
+                $('#displayComparePrice').text('Rp' + new Intl.NumberFormat('id-ID').format(match.compare_price)).show();
+            } else {
+                $('#displayComparePrice').hide();
+            }
 
-                $('#productStock').text(match.stock);
-                $('#qtyInput').attr('max', match.stock);
-                if (parseInt($('#qtyInput').val()) > match.stock) $('#qtyInput').val(match.stock);
+            $('#productStock').text(match.stock);
+            $('#productStockLabel').text(match.stock);
+            $('#qtyInput').attr('max', match.stock);
 
-                if (match.stock <= 0) {
-                    $('#btnAddToCart').prop('disabled', true).addClass('opacity-50 text-gray-300 pointer-events-none');
-                    $('#btnText').text('Stok Habis');
-                } else {
-                    $('#btnAddToCart').prop('disabled', false).removeClass('opacity-50 text-gray-300 pointer-events-none');
-                    $('#btnText').text('Tambah ke Keranjang');
-                }
+            if (parseInt($('#qtyInput').val(), 10) > match.stock) {
+                $('#qtyInput').val(match.stock);
+            }
+
+            if (match.stock <= 0) {
+                $('#btnAddToCart').prop('disabled', true).addClass('opacity-50 pointer-events-none');
+                $('#btnText').text('Stok Habis');
+            } else {
+                $('#btnAddToCart').prop('disabled', false).removeClass('opacity-50 pointer-events-none');
+                $('#btnText').text('Tambah ke Keranjang');
             }
         }
 
@@ -295,11 +333,11 @@
                 const value = $(this).data('value');
 
                 $(this).closest('.variant-group').find('.variant-btn')
-                    .removeClass('border-brand-primary bg-soft-mint text-brand-primary')
-                    .addClass('border-gray-100 text-gray-500');
+                    .removeClass('border-brand-primary bg-[#eee5dc] text-brand-primary')
+                    .addClass('border-brand-secondary/60 bg-white text-brand-dark/65');
 
-                $(this).addClass('border-brand-primary bg-soft-mint text-brand-primary')
-                    .removeClass('border-gray-100 text-gray-500');
+                $(this).addClass('border-brand-primary bg-[#eee5dc] text-brand-primary')
+                    .removeClass('border-brand-secondary/60 bg-white text-brand-dark/65');
 
                 selectedChoices[type] = value;
                 if (Object.keys(selectedChoices).length === $('.variant-group').length) {
@@ -309,7 +347,6 @@
 
             $('#addToCartForm').on('submit', function (e) {
                 e.preventDefault();
-
                 submitCartAction('cart');
             });
 
@@ -330,7 +367,7 @@
                     return;
                 @endif
 
-                let btn = action === 'buy-now' ? $('#btnBuyNow') : $('#btnAddToCart');
+                const btn = action === 'buy-now' ? $('#btnBuyNow') : $('#btnAddToCart');
                 btn.prop('disabled', true).addClass('opacity-70');
 
                 $.ajax({
@@ -365,17 +402,6 @@
                     },
                     complete: function () {
                         btn.prop('disabled', false).removeClass('opacity-70');
-                    }
-                });
-            }
-
-            function updateCartCount() {
-                $.ajax({
-                    url: "{{ route('home') }}",
-                    method: "GET",
-                    success: function (data) {
-                        let newCount = $(data).find('#navbar-cart-count').text();
-                        $('#navbar-cart-count').text(newCount);
                     }
                 });
             }

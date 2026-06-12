@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Shipment;
+use App\Services\BiteshipService;
 use App\Services\ShipmentTrackingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Yajra\DataTables\Facades\DataTables;
 
 class OrderController extends Controller
@@ -168,6 +171,46 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Nomor resi berhasil disimpan.');
     }
 
+    public function generateBiteshipWaybill($id, BiteshipService $biteship)
+    {
+        $order = Order::with(['user', 'items.product', 'shipment', 'address'])->findOrFail($id);
+
+        if (!$order->shipment) {
+            return redirect()->back()->with('error', 'Data shipment belum tersedia.');
+        }
+
+        if ($order->shipment->resi) {
+            return redirect()->back()->with('error', 'Order ini sudah memiliki resi.');
+        }
+
+        try {
+            $result = $biteship->createOrder($order);
+            $courier = $result['courier'] ?? [];
+            $waybill = $courier['waybill_id']
+                ?? $courier['waybill_number']
+                ?? $result['courier_waybill_id']
+                ?? $result['waybill_id']
+                ?? $result['waybill_number']
+                ?? null;
+
+            $order->shipment->update([
+                'biteship_order_id' => $result['id'] ?? $result['order_id'] ?? null,
+                'resi' => $waybill,
+                'label_url' => $this->biteshipLabelUrl($result),
+                'status' => $waybill ? 'in_transit' : 'pending',
+                'biteship_payload' => $result,
+            ]);
+
+            if ($waybill) {
+                $order->update(['status' => 'shipped']);
+            }
+
+            return redirect()->back()->with('success', $waybill ? 'Resi Biteship berhasil dibuat: ' . $waybill : 'Order Biteship berhasil dibuat, tetapi resi belum tersedia.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal generate resi Biteship: ' . $e->getMessage());
+        }
+    }
+
     public function trackShipment($id, ShipmentTrackingService $trackingService)
     {
         $order = Order::with('shipment')->findOrFail($id);
@@ -176,10 +219,10 @@ class OrderController extends Controller
             return redirect()->back()->with('error', 'Nomor resi belum tersedia.');
         }
 
-        $tracking = $trackingService->track($order->shipment->resi, $order->shipment->courier);
-
-        if (!$tracking) {
-            return redirect()->back()->with('error', 'Tracking resi belum tersedia atau gagal menghubungi layanan ekspedisi.');
+        try {
+            $tracking = $trackingService->trackShipment($order->shipment);
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Tracking Biteship gagal: ' . $e->getMessage());
         }
 
         $order->shipment->update([
@@ -191,6 +234,123 @@ class OrderController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Tracking resi berhasil diperbarui.');
+    }
+
+    public function printBiteshipLabel(Request $request, $id)
+    {
+        $order = Order::with(['user', 'items', 'shipment', 'address'])->findOrFail($id);
+
+        if (!$order->shipment) {
+            return redirect()->back()->with('error', 'Data shipment belum tersedia.');
+        }
+
+        $payload = is_array($order->shipment->biteship_payload)
+            ? $order->shipment->biteship_payload
+            : [];
+        $courier = $payload['courier'] ?? [];
+
+        $label = [
+            'waybill' => Arr::get($payload, 'courier_waybill_id')
+                ?: Arr::get($payload, 'waybill_id')
+                ?: Arr::get($payload, 'waybill_number')
+                ?: Arr::get($courier, 'waybill_id')
+                ?: Arr::get($courier, 'waybill_number')
+                ?: $order->shipment->resi,
+            'tracking_id' => Arr::get($payload, 'courier_tracking_id')
+                ?: Arr::get($payload, 'tracking_id')
+                ?: Arr::get($payload, 'id'),
+            'tracking_link' => Arr::get($payload, 'courier_link')
+                ?: Arr::get($payload, 'link'),
+            'driver_name' => Arr::get($payload, 'courier_driver_name')
+                ?: Arr::get($courier, 'driver_name'),
+            'driver_phone' => Arr::get($payload, 'courier_driver_phone')
+                ?: Arr::get($courier, 'driver_phone'),
+            'driver_plate' => Arr::get($payload, 'courier_driver_plate_number')
+                ?: Arr::get($courier, 'driver_plate_number'),
+            'origin_name' => Arr::get($payload, 'origin.contact_name')
+                ?: config('services.biteship.origin_contact_name', config('app.name')),
+            'origin_phone' => Arr::get($payload, 'origin.contact_phone')
+                ?: config('services.biteship.origin_contact_phone'),
+            'origin_address' => Arr::get($payload, 'origin.address')
+                ?: config('services.biteship.origin_address'),
+            'destination_name' => Arr::get($payload, 'destination.contact_name')
+                ?: $order->address?->receiver_name
+                ?: $order->user?->name,
+            'destination_phone' => Arr::get($payload, 'destination.contact_phone')
+                ?: $order->address?->phone
+                ?: $order->user?->phone,
+            'destination_address' => Arr::get($payload, 'destination.address')
+                ?: trim(($order->address?->address ?? '') . ', ' . ($order->address?->subdistrict ?? '') . ', ' . ($order->address?->district ?? '') . ', ' . ($order->address?->city ?? '') . ', ' . ($order->address?->province ?? '') . ' ' . ($order->address?->postal_code ?? '')),
+            'weight' => Arr::get($payload, 'weight')
+                ?: Arr::get($payload, 'total_weight')
+                ?: $order->shipment->total_weight,
+            'price' => Arr::get($payload, 'order_price')
+                ?: Arr::get($payload, 'price')
+                ?: $order->shipment->cost,
+            'service' => Arr::get($payload, 'courier_type')
+                ?: Arr::get($courier, 'type')
+                ?: $order->shipment->service,
+        ];
+
+        if (!$label['tracking_link'] && $label['tracking_id']) {
+            $label['tracking_link'] = 'https://track.biteship.com/' . $label['tracking_id'];
+        }
+
+        $fromModal = $request->has('auto_print');
+        $labelOptions = [
+            'insurance' => $fromModal ? $request->boolean('insurance') : true,
+            'shipping_cost' => $fromModal ? $request->boolean('shipping_cost') : true,
+            'item_description' => $fromModal ? $request->boolean('item_description') : true,
+            'item_sku' => $fromModal ? $request->boolean('item_sku') : true,
+            'sender_phone' => $fromModal ? $request->boolean('sender_phone') : true,
+            'sender_address' => $fromModal ? $request->boolean('sender_address') : true,
+            'receiver_phone' => $fromModal ? $request->boolean('receiver_phone') : true,
+            'mask_receiver_name' => $fromModal ? $request->boolean('mask_receiver_name') : true,
+            'auto_print' => $request->boolean('auto_print'),
+        ];
+
+        if ($labelOptions['mask_receiver_name']) {
+            $label['destination_name'] = $this->maskName((string) $label['destination_name']);
+        }
+
+        return view('orders.biteship-label', compact('order', 'label', 'labelOptions'));
+    }
+
+    public function downloadBiteshipLabel($id)
+    {
+        $order = Order::with('shipment')->findOrFail($id);
+
+        if (!$order->shipment) {
+            return redirect()->back()->with('error', 'Data shipment belum tersedia.');
+        }
+
+        $payload = is_array($order->shipment->biteship_payload)
+            ? $order->shipment->biteship_payload
+            : [];
+        $labelUrl = $order->shipment->label_url ?: $this->biteshipLabelUrl($payload);
+
+        if (!$labelUrl) {
+            return redirect()->back()->with('error', 'Label resmi Biteship belum tersedia. Gunakan Cetak Resi internal dulu.');
+        }
+
+        try {
+            $response = Http::timeout(30)->get($labelUrl);
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Gagal mengambil label Biteship: ' . $e->getMessage());
+        }
+
+        if ($response->failed()) {
+            return redirect()->back()->with('error', 'Label Biteship belum bisa didownload. Coba buka Label Biteship langsung.');
+        }
+
+        $contentType = $response->header('Content-Type') ?: 'application/pdf';
+        $extension = str_contains($contentType, 'image/png') ? 'png' : (str_contains($contentType, 'image/jpeg') ? 'jpg' : 'pdf');
+        $filename = 'label-biteship-' . $order->order_number . '.' . $extension;
+
+        return response($response->body(), 200, [
+            'Content-Type' => $contentType,
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     // ─── API: show (for fetch) ─────────────────────────────────────────────────
@@ -224,6 +384,29 @@ class OrderController extends Controller
             filled($validated['end_date'] ?? null) ? Carbon::parse($validated['end_date'])->endOfDay() : null,
             $validated['status'] ?? null,
         ];
+    }
+
+    private function biteshipLabelUrl(array $payload): ?string
+    {
+        return Arr::get($payload, 'label_url')
+            ?: Arr::get($payload, 'waybill_label_url')
+            ?: Arr::get($payload, 'courier.label_url')
+            ?: Arr::get($payload, 'courier.waybill_label_url')
+            ?: Arr::get($payload, 'data.label_url')
+            ?: Arr::get($payload, 'data.waybill_label_url')
+            ?: Arr::get($payload, 'data.courier.label_url')
+            ?: Arr::get($payload, 'data.courier.waybill_label_url');
+    }
+
+    private function maskName(string $name): string
+    {
+        $name = trim($name);
+
+        if ($name === '') {
+            return '-';
+        }
+
+        return mb_substr($name, 0, 1) . str_repeat('*', max(3, mb_strlen($name) - 1));
     }
 
     private function renderOrderIdentity(Order $order): string

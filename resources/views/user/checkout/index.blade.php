@@ -64,10 +64,10 @@
                                             <div class="min-w-0">
                                                 <div class="flex flex-wrap items-center gap-2 mb-2">
                                                     <span class="px-2.5 py-1 rounded-lg bg-brand-primary text-white text-[10px] font-black uppercase">{{ $address->label }}</span>
-                                                    @if($address->rajaongkir_destination_id)
-                                                        <span class="px-2.5 py-1 rounded-lg bg-white text-brand-primary text-[10px] font-black uppercase">Siap kirim</span>
+                                                    @if($address->biteship_area_id)
+                                                        <span class="px-2.5 py-1 rounded-lg bg-white text-brand-primary text-[10px] font-black uppercase">Area Biteship</span>
                                                     @else
-                                                        <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-600 text-[10px] font-black uppercase">Perlu dilengkapi</span>
+                                                        <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-600 text-[10px] font-black uppercase">Manual</span>
                                                     @endif
                                                 </div>
                                                 <p class="font-extrabold text-brand-dark">{{ $address->receiver_name }} <span class="font-semibold text-gray-400">| {{ $address->phone }}</span></p>
@@ -141,39 +141,39 @@
                         </div>
 
                         <div class="bg-white rounded-[28px] shadow-sm border border-gray-100 p-5 md:p-6">
-                            <div class="flex items-center gap-3 mb-5">
-                                <div class="w-10 h-10 rounded-2xl bg-soft-mint flex items-center justify-center text-brand-primary">
+                            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-soft-mint flex items-center justify-center text-brand-primary">
+                                        <i class="fa-solid fa-truck-fast"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-lg font-extrabold text-brand-dark">Opsi Pengiriman</h2>
+                                        <p class="text-xs text-gray-400">Pilih kurir dan layanan pengiriman di modal.</p>
+                                    </div>
+                                </div>
+
+                                <button type="button" onclick="toggleShippingModal(true)"
+                                    class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-brand-primary text-white text-xs font-black uppercase tracking-wider transition-all active:scale-95">
                                     <i class="fa-solid fa-truck-fast"></i>
-                                </div>
-                                <div>
-                                    <h2 class="text-lg font-extrabold text-brand-dark">Opsi Pengiriman</h2>
-                                    <p class="text-xs text-gray-400">Pilih kurir, lalu sistem menampilkan layanan tersedia otomatis.</p>
-                                </div>
+                                    Pilih Pengiriman
+                                </button>
                             </div>
 
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                @foreach($couriers as $code => $name)
-                                    <label class="relative cursor-pointer">
-                                        <input type="checkbox" name="courier_check[]" value="{{ $code }}"
-                                            class="courier-checkbox peer sr-only">
-                                        <div
-                                            class="h-full min-h-[58px] px-3 py-3 border border-gray-100 rounded-2xl bg-gray-50/70 flex items-center justify-center text-center transition-all peer-checked:border-brand-primary peer-checked:bg-soft-mint peer-checked:shadow-sm hover:border-brand-primary/40">
-                                            <span class="text-[11px] font-black text-gray-500 peer-checked:text-brand-dark uppercase tracking-widest">{{ $name }}</span>
-                                        </div>
-                                    </label>
-                                @endforeach
-                            </div>
-
-                            <button type="button" id="btn-cek-ongkir"
-                                class="mt-4 w-full py-3 bg-soft-mint border border-brand-primary/20 text-brand-primary font-black rounded-2xl text-sm transition-all active:scale-95">
-                                <i class="fa-solid fa-bolt mr-2"></i> Cek Ongkir Otomatis
-                            </button>
-
-                            <div id="shipping-services" class="mt-5 space-y-3">
-                                <div class="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                    <i class="fa-solid fa-truck text-gray-300 text-3xl mb-3"></i>
-                                    <p class="text-sm font-semibold text-gray-500">Pilih kurir untuk melihat layanan pengiriman.</p>
-                                    <p class="text-xs text-gray-400 mt-1">Biaya pengiriman akan masuk ke ringkasan pembayaran.</p>
+                            <div id="shipping-selected-card" class="mt-5 rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-5">
+                                <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                    <div>
+                                        <p class="text-[10px] font-black uppercase tracking-[0.22em] text-gray-400">Belum dipilih</p>
+                                        <p id="shipping-selected-title" class="mt-1 text-sm font-extrabold text-brand-dark">
+                                            Pilih kurir untuk melihat ongkir otomatis.
+                                        </p>
+                                        <p id="shipping-selected-meta" class="mt-1 text-xs text-gray-400">
+                                            Biaya pengiriman akan masuk ke ringkasan pembayaran.
+                                        </p>
+                                    </div>
+                                    <button type="button" onclick="toggleShippingModal(true)"
+                                        class="text-xs font-black text-brand-primary hover:text-brand-dark transition-colors">
+                                        Ubah
+                                    </button>
                                 </div>
                             </div>
 
@@ -334,7 +334,7 @@
                                     </div>
                                 </div>
 
-                                <button type="submit" id="btn-submit" @if(!$address || !$address->rajaongkir_destination_id) disabled @endif
+                                <button type="submit" id="btn-submit" @if(!$address) disabled @endif
                                     class="group mt-6 relative w-full py-4 bg-brand-primary text-brand-dark font-black rounded-2xl flex items-center justify-center gap-3 overflow-hidden transition-all active:scale-95 shadow-lg hover:shadow-brand-primary/30 hover:-translate-y-0.5 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none">
                                     <span class="relative z-10 uppercase tracking-tight">Buat Pesanan</span>
                                     <i class="fa-solid fa-arrow-right text-xs relative z-10 group-hover:translate-x-1 transition-transform"></i>
@@ -342,8 +342,6 @@
 
                                 @if(!$address)
                                     <p class="text-center text-gray-400 text-[10px] mt-3">Tambahkan alamat pengiriman terlebih dahulu.</p>
-                                @elseif(!$address->rajaongkir_destination_id)
-                                    <p class="text-center text-amber-500 text-[10px] mt-3">Lengkapi data alamat untuk melanjutkan.</p>
                                 @endif
                             </div>
                         </div>
@@ -352,6 +350,61 @@
             </form>
         </div>
     </section>
+
+    {{-- MODAL PENGIRIMAN --}}
+    <div id="shippingModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleShippingModal(false)"></div>
+        <div class="absolute inset-x-0 bottom-0 mx-auto w-full max-w-3xl md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:p-4">
+            <div class="flex max-h-[88vh] flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl md:rounded-[28px]">
+                <div class="flex items-start justify-between gap-4 border-b border-gray-100 p-5 md:p-6">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.25em] text-brand-primary">Shipping Method</p>
+                        <h3 class="mt-1 text-xl font-extrabold text-brand-dark">Pilih Pengiriman</h3>
+                        <p class="mt-1 text-xs text-gray-400">Pilih satu atau beberapa kurir, lalu pilih layanan yang tersedia.</p>
+                    </div>
+                    <button type="button" onclick="toggleShippingModal(false)"
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gray-50 text-gray-400 transition hover:bg-brand-dark hover:text-white">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="overflow-y-auto p-5 md:p-6">
+                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        @foreach($couriers as $code => $name)
+                            <label class="relative cursor-pointer">
+                                <input type="checkbox" name="courier_check[]" value="{{ $code }}"
+                                    class="courier-checkbox peer sr-only">
+                                <div
+                                    class="flex h-full min-h-[58px] items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/70 px-3 py-3 text-center transition-all peer-checked:border-brand-primary peer-checked:bg-soft-mint peer-checked:shadow-sm hover:border-brand-primary/40">
+                                    <span class="text-[11px] font-black uppercase tracking-widest text-gray-500 peer-checked:text-brand-dark">{{ $name }}</span>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <button type="button" id="btn-cek-ongkir"
+                        class="mt-4 w-full rounded-2xl border border-brand-primary/20 bg-soft-mint py-3 text-sm font-black text-brand-primary transition-all active:scale-95">
+                        <i class="fa-solid fa-bolt mr-2"></i> Cek Ongkir Otomatis
+                    </button>
+
+                    <div id="shipping-services" class="mt-5 space-y-3">
+                        <div class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-8 text-center">
+                            <i class="fa-solid fa-truck text-3xl text-gray-300 mb-3"></i>
+                            <p class="text-sm font-semibold text-gray-500">Pilih kurir untuk melihat layanan pengiriman.</p>
+                            <p class="mt-1 text-xs text-gray-400">Biaya pengiriman akan masuk ke ringkasan pembayaran.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-100 bg-white p-4 md:p-5">
+                    <button type="button" onclick="toggleShippingModal(false)"
+                        class="w-full rounded-2xl bg-brand-dark py-3.5 text-sm font-black uppercase tracking-wider text-white transition hover:bg-brand-primary">
+                        Simpan Pilihan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- MODAL ALAMAT --}}
     <div id="addressModal" class="fixed inset-0 z-[99] hidden">
@@ -392,12 +445,6 @@
                                                 class="text-[10px] font-bold uppercase px-2 py-0.5 bg-gray-100 rounded text-gray-500 mb-2 inline-block">
                                                 {{ $item->label }}
                                             </span>
-                                            @if(!$item->rajaongkir_destination_id)
-                                                <span
-                                                    class="text-[10px] font-bold uppercase px-2 py-0.5 bg-amber-100 rounded text-amber-600 mb-2 inline-block ml-1">
-                                                    Perlu diperbarui
-                                                </span>
-                                            @endif
                                             <p class="font-bold text-brand-dark text-sm">
                                                 {{ $item->receiver_name }}
                                                 <span class="font-normal text-gray-400">| {{ $item->phone }}</span>
@@ -460,31 +507,48 @@
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="text-xs font-bold text-gray-500 mb-1 block">Cari Lokasi Tujuan</label>
+                            <div class="relative">
+                                <label class="text-xs font-bold text-gray-500 mb-1 block">Cari Area Biteship</label>
                                 <div class="relative">
                                     <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
                                         <i class="fa-solid fa-magnifying-glass text-sm"></i>
                                     </div>
-                                    <input type="text" id="destination_search"
-                                        placeholder="Ketik nama kelurahan, kecamatan, atau kota..." autocomplete="off"
+                                    <input type="text" id="destination_search" placeholder="Contoh: Jakarta Selatan"
+                                        autocomplete="off"
                                         class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-primary transition-colors">
-                                    <div id="destination_results"
-                                        class="absolute z-50 w-full bg-white border border-gray-100 rounded-xl shadow-xl mt-1 max-h-52 overflow-y-auto hidden divide-y divide-gray-50">
-                                    </div>
                                 </div>
-                                <p class="text-[10px] text-gray-400 mt-1">Minimal 3 karakter. Provinsi, kota, kecamatan akan
-                                    terisi otomatis.</p>
+                                <div id="destination_results"
+                                    class="hidden absolute z-30 mt-2 w-full bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden"></div>
+                                <div id="dest_preview" class="hidden mt-2 rounded-xl bg-soft-mint/40 border border-brand-primary/10 px-4 py-3">
+                                    <p id="dest_preview_label" class="text-xs font-black text-brand-dark">Lokasi valid</p>
+                                    <p id="dest_preview_detail" class="text-[11px] text-gray-500 mt-0.5"></p>
+                                </div>
                             </div>
 
-                            <div id="dest_preview"
-                                class="hidden p-3 bg-soft-mint/20 border border-brand-primary/20 rounded-xl">
-                                <div class="flex items-start gap-2">
-                                    <i class="fa-solid fa-circle-check text-brand-primary text-sm mt-0.5"></i>
-                                    <div>
-                                        <p class="text-xs font-bold text-brand-dark" id="dest_preview_label"></p>
-                                        <p class="text-[10px] text-gray-500" id="dest_preview_detail"></p>
-                                    </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 mb-1 block">Provinsi</label>
+                                    <input type="text" name="province" id="dest_province"
+                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-primary transition-colors"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 mb-1 block">Kota/Kabupaten</label>
+                                    <input type="text" name="city" id="dest_city"
+                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-primary transition-colors"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 mb-1 block">Kecamatan</label>
+                                    <input type="text" name="district" id="dest_district"
+                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-primary transition-colors"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 mb-1 block">Kelurahan/Desa</label>
+                                    <input type="text" name="subdistrict" id="dest_subdistrict"
+                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-primary transition-colors"
+                                        required>
                                 </div>
                             </div>
 
@@ -515,13 +579,9 @@
                                 </div>
                             </div>
 
-                            <input type="hidden" name="rajaongkir_destination_id" id="dest_id">
-                            <input type="hidden" name="province" id="dest_province">
-                            <input type="hidden" name="city" id="dest_city">
-                            <input type="hidden" name="district" id="dest_district">
-                            <input type="hidden" name="subdistrict" id="dest_subdistrict">
                             <input type="hidden" name="latitude" id="dest_latitude">
                             <input type="hidden" name="longitude" id="dest_longitude">
+                            <input type="hidden" name="biteship_area_id" id="biteship_area_id">
 
                             <div>
                                 <label class="text-xs font-bold text-gray-500 mb-1 block">Detail Alamat Lengkap</label>
@@ -530,7 +590,7 @@
                                     required></textarea>
                             </div>
 
-                            <button type="submit" id="btn-save-address" disabled
+                            <button type="submit" id="btn-save-address"
                                 class="w-full py-4 bg-brand-primary text-brand-dark font-black rounded-xl shadow-lg
                                                                                                                                                                    transition-all active:scale-95
                                                                                                                                                                    disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
@@ -608,11 +668,32 @@
                                             `);
             }
 
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, function (char) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#039;',
+                    }[char];
+                });
+            }
+
             // ─── ADDRESS MODAL ───────────────────────────────────────────────────
 
             window.toggleAddressModal = function () {
                 $('#addressModal').toggleClass('hidden');
                 $('body').toggleClass('overflow-hidden');
+            };
+
+            window.toggleShippingModal = function (forceOpen) {
+                const shouldOpen = typeof forceOpen === 'boolean'
+                    ? forceOpen
+                    : $('#shippingModal').hasClass('hidden');
+
+                $('#shippingModal').toggleClass('hidden', !shouldOpen);
+                $('body').toggleClass('overflow-hidden', shouldOpen || !$('#addressModal').hasClass('hidden'));
             };
 
             window.switchAddressTab = function (tab) {
@@ -659,18 +740,24 @@
 
                             results.forEach(function (item) {
                                 $list.append(`
-                                                                <div class="px-4 py-3 hover:bg-soft-mint/20 cursor-pointer transition-colors"
-                                                                     data-id="${item.id}"
-                                                                     data-province="${item.province_name}"
-                                                                     data-city="${item.city_name}"
-                                                                     data-district="${item.district_name}"
-                                                                     data-subdistrict="${item.subdistrict_name}"
-                                                                     data-zipcode="${item.zip_code}">
-                                                                    <p class="font-bold text-brand-dark text-xs">${item.subdistrict_name}, ${item.district_name}</p>
-                                                                    <p class="text-[10px] text-gray-400">${item.city_name}, ${item.province_name} ${item.zip_code}</p>
-                                                                </div>
-                                                            `);
+                                    <div class="px-4 py-3 hover:bg-soft-mint/20 cursor-pointer transition-colors"
+                                         data-id="${escapeHtml(item.id)}"
+                                         data-label="${escapeHtml(item.label)}"
+                                         data-province="${escapeHtml(item.province)}"
+                                         data-city="${escapeHtml(item.city)}"
+                                         data-district="${escapeHtml(item.district)}"
+                                         data-subdistrict="${escapeHtml(item.subdistrict)}"
+                                         data-postal-code="${escapeHtml(item.postal_code)}"
+                                         data-latitude="${escapeHtml(item.latitude)}"
+                                         data-longitude="${escapeHtml(item.longitude)}">
+                                        <p class="font-bold text-brand-dark text-xs">${escapeHtml(item.label || '-')}</p>
+                                        <p class="text-[10px] text-gray-400">Area ID: ${escapeHtml(item.id || '-')}${item.postal_code ? ' | ' + escapeHtml(item.postal_code) : ''}</p>
+                                    </div>
+                                `);
                             });
+                        },
+                        error: function (xhr) {
+                            $('#destination_results').html(`<div class="px-4 py-3 text-xs text-red-500">${xhr.responseJSON?.message || 'Gagal mencari lokasi.'}</div>`);
                         },
                     });
                 }, 400);
@@ -679,19 +766,34 @@
             $(document).on('click', '#destination_results > div[data-id]', function () {
                 const $el = $(this);
 
-                $('#dest_id').val($el.data('id'));
                 $('#dest_province').val($el.data('province'));
                 $('#dest_city').val($el.data('city'));
                 $('#dest_district').val($el.data('district'));
                 $('#dest_subdistrict').val($el.data('subdistrict'));
-                $('#new_postal_code').val($el.data('zipcode'));
+                $('#new_postal_code').val($el.data('postal-code'));
+                $('#biteship_area_id').val($el.data('id'));
 
-                $('#destination_search').val(`${$el.data('subdistrict')}, ${$el.data('district')}`);
+                $('#destination_search').val($el.data('label'));
                 $('#destination_results').addClass('hidden').empty();
 
                 $('#dest_preview_label').text('Lokasi valid');
-                $('#dest_preview_detail').text(`Kode Pos: ${$el.data('zipcode')}`);
+                $('#dest_preview_detail').text(`Area ID: ${$el.data('id')}${$el.data('postal-code') ? ' | Kode Pos: ' + $el.data('postal-code') : ''}`);
                 $('#dest_preview').removeClass('hidden');
+
+                if ($el.data('latitude') && $el.data('longitude')) {
+                    const lat = $el.data('latitude');
+                    const lng = $el.data('longitude');
+
+                    if (typeof setCoords === 'function') {
+                        setCoords(lat, lng);
+                    }
+
+                    if (typeof map !== 'undefined' && map && typeof marker !== 'undefined' && marker) {
+                        map.setView([lat, lng], 15);
+                        marker.setLatLng([lat, lng]);
+                    }
+                }
+
                 $('#btn-save-address').prop('disabled', false);
             });
 
@@ -811,6 +913,11 @@
                 currentShipping = 0;
                 $('#selected_shipping_cost').val('');
                 $('#selected_service_info').addClass('hidden');
+                $('#shipping-selected-card')
+                    .removeClass('border-brand-primary/30 bg-soft-mint/30')
+                    .addClass('border-dashed border-gray-200 bg-gray-50/70');
+                $('#shipping-selected-title').text('Pilih kurir untuk melihat ongkir otomatis.');
+                $('#shipping-selected-meta').text('Biaya pengiriman akan dihitung setelah kurir dipilih.');
                 updateTotals();
             }
 
@@ -826,6 +933,11 @@
                 $('#selected_service_etd').text(`Est. ${$el.data('etd')} hari`);
                 $('#selected_service_info').removeClass('hidden');
                 $('#btn-submit').prop('disabled', false);
+                $('#shipping-selected-card')
+                    .removeClass('border-dashed border-gray-200 bg-gray-50/70')
+                    .addClass('border-brand-primary/30 bg-soft-mint/30');
+                $('#shipping-selected-title').text(`${$el.data('name')} ${$el.data('service')} - ${formatRupiah(currentShipping)}`);
+                $('#shipping-selected-meta').text(`Estimasi ${$el.data('etd')} hari`);
 
                 updateTotals();
             });
@@ -937,7 +1049,7 @@
                         confirmButtonText: 'Mengerti',
                         confirmButtonColor: '#81C784',
                     });
-                    document.getElementById('shipping-services')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    toggleShippingModal(true);
                 }
             });
 

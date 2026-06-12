@@ -20,7 +20,7 @@ class LandingPageController extends Controller
 
         $flashSaleProducts = Product::with(['category', 'images' => function ($q) {
             $q->where('is_primary', true);
-        }])
+        }, 'variants'])
             ->where('is_active', true)
             ->whereNotNull('compare_price')
             ->where('compare_price', '>', DB::raw('price'))
@@ -30,16 +30,59 @@ class LandingPageController extends Controller
 
         $latestProducts = Product::with(['category', 'images' => function ($q) {
             $q->where('is_primary', true);
-        }])
+        }, 'variants'])
             ->where('is_active', true)
             ->latest()
             ->take(8)
             ->get();
 
+        $bestSellerProducts = Product::with(['category', 'images' => function ($q) {
+            $q->where('is_primary', true);
+        }, 'variants'])
+            ->where('is_active', true)
+            ->orderByDesc('sold_count')
+            ->latest()
+            ->take(4)
+            ->get();
+
+        $featuredCategorySections = $categories->take(3)->map(function ($category) {
+            $products = Product::with(['category', 'images' => function ($q) {
+                $q->where('is_primary', true);
+            }, 'variants'])
+                ->where('is_active', true)
+                ->where('category_id', $category->id)
+                ->latest()
+                ->take(4)
+                ->get();
+
+            $category->setRelation('featuredProducts', $products);
+
+            return $category;
+        })->filter(function ($category) {
+            return $category->featuredProducts->count() > 0;
+        });
+
+        $shopLookProducts = Product::with(['category', 'images' => function ($q) {
+            $q->where('is_primary', true);
+        }, 'variants'])
+            ->where('is_active', true)
+            ->latest()
+            ->take(2)
+            ->get();
+
         $landingBanners = LandingBanner::where('is_active', true)->orderBy('sort_order')->latest()->get();
         $landingSections = LandingSection::where('is_active', true)->orderBy('sort_order')->latest()->get();
 
-        return view('welcome', compact('categories', 'flashSaleProducts', 'latestProducts', 'landingBanners', 'landingSections'));
+        return view('welcome', compact(
+            'categories',
+            'flashSaleProducts',
+            'latestProducts',
+            'bestSellerProducts',
+            'featuredCategorySections',
+            'shopLookProducts',
+            'landingBanners',
+            'landingSections'
+        ));
     }
 
     public function collections(Request $request)

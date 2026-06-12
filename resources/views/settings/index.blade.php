@@ -6,7 +6,7 @@
     <div class="mx-auto max-w-5xl">
         <div class="mb-8">
             <h1 class="text-xl md:text-2xl font-extrabold text-brand-dark tracking-tight">Pengaturan Integrasi</h1>
-            <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">Atur kredensial RajaOngkir, Midtrans, dan email SMTP langsung dari panel admin.</p>
+            <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">Atur kredensial Biteship, Midtrans, dan email SMTP langsung dari panel admin.</p>
         </div>
 
         <form action="{{ route('settings.update') }}" method="POST" class="space-y-8">
@@ -19,32 +19,106 @@
                         <i class="fa-solid fa-truck-fast"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-extrabold text-brand-dark">RajaOngkir</h3>
-                        <p class="text-xs text-gray-400 font-medium">Digunakan untuk cek ongkir dan pelacakan resi.</p>
+                        <h3 class="text-lg font-extrabold text-brand-dark">Biteship</h3>
+                        <p class="text-xs text-gray-400 font-medium">Dipakai untuk cek ongkir, generate resi otomatis, label, dan tracking.</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="md:col-span-2 space-y-1.5">
                         <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">API Key</label>
-                        <input type="text" name="rajaongkir_api_key" value="{{ old('rajaongkir_api_key', $settings['rajaongkir_api_key']) }}"
-                            id="rajaongkir_api_key"
+                        <input type="text" name="biteship_api_key" value="{{ old('biteship_api_key', $settings['biteship_api_key']) }}"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+                    <div class="md:col-span-2 space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Webhook Secret</label>
+                        <input type="text" name="biteship_webhook_secret" value="{{ old('biteship_webhook_secret', $settings['biteship_webhook_secret']) }}"
+                            placeholder="Opsional, isi token rahasia yang sama di dashboard Biteship"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                        <p class="text-[11px] text-gray-400 ml-1">Jika diisi, webhook hanya diterima ketika request membawa Bearer token, header secret, atau query token yang sama.</p>
+                    </div>
+                    <div class="md:col-span-2 space-y-1.5 relative">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Area Origin Biteship</label>
+                        @php
+                            $originAreaId = old('biteship_origin_area_id', $settings['biteship_origin_area_id']);
+                            $originAreaLabel = old('biteship_origin_area_label', $settings['biteship_origin_area_label']);
+                            $originAreaDisplay = $originAreaLabel ?: ($originAreaId ? 'Area origin sudah dipilih' : '');
+                        @endphp
+                        <input type="hidden" name="biteship_origin_area_id" id="biteship_origin_area_id"
+                            value="{{ $originAreaId }}">
+                        <input type="hidden" name="biteship_origin_area_label" id="biteship_origin_area_label"
+                            value="{{ $originAreaLabel }}">
+                        <div class="relative">
+                            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary">
+                                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                            </div>
+                            <input type="text" id="biteship_origin_area_search"
+                                value="{{ $originAreaDisplay }}"
+                                placeholder="Cari dan pilih area gudang/toko..."
+                                autocomplete="off"
+                                class="w-full pl-11 pr-12 py-3 bg-white border-2 border-dashed border-brand-primary/30 rounded-2xl focus:border-brand-primary focus:border-solid outline-none transition-all text-sm font-semibold cursor-pointer">
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                        <div id="biteship_origin_area_results"
+                            class="hidden absolute z-30 mt-2 w-full bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden"></div>
+                        <div id="biteship_origin_area_status"
+                            class="{{ $originAreaId ? '' : 'hidden' }} inline-flex items-center gap-2 ml-1 mt-1 px-3 py-1.5 rounded-xl bg-soft-mint/50 text-brand-primary text-[11px] font-bold">
+                            <i class="fa-solid fa-circle-check text-[10px]"></i>
+                            <span>{{ $originAreaLabel ? 'Area origin sudah dipilih' : 'Area origin tersimpan. Pilih ulang jika ingin memperbarui nama area.' }}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-400 ml-1">
+                            Klik field ini, ketik minimal 3 huruf, lalu pilih salah satu hasil Biteship. Field ini bukan isian bebas; pilihan yang dipilih akan dipakai untuk cek ongkir dan cetak resi.
+                        </p>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Origin / Gudang</label>
+                        <input type="text" name="biteship_origin_contact_name" value="{{ old('biteship_origin_contact_name', $settings['biteship_origin_contact_name']) }}"
                             class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
                     </div>
                     <div class="space-y-1.5">
-                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Origin Pengiriman</label>
-                        <select id="rajaongkir_origin_select"
-                            class="w-full bg-gray-50/50 border border-gray-200 rounded-2xl text-sm font-semibold">
-                            @if(old('rajaongkir_origin', $settings['rajaongkir_origin']))
-                                <option value="{{ old('rajaongkir_origin', $settings['rajaongkir_origin']) }}" selected>
-                                    Origin ID: {{ old('rajaongkir_origin', $settings['rajaongkir_origin']) }}
-                                </option>
-                            @endif
-                        </select>
-                        <input type="hidden" name="rajaongkir_origin" id="rajaongkir_origin"
-                            value="{{ old('rajaongkir_origin', $settings['rajaongkir_origin']) }}">
-                        <p class="text-[11px] text-gray-400 ml-1">Ketik minimal 3 huruf nama kecamatan, kota, atau provinsi lalu pilih origin dari RajaOngkir.</p>
-                        <p id="origin-help" class="text-[11px] text-gray-400 ml-1"></p>
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Telepon Origin</label>
+                        <input type="text" name="biteship_origin_contact_phone" value="{{ old('biteship_origin_contact_phone', $settings['biteship_origin_contact_phone']) }}"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+                    <div class="md:col-span-2 space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Alamat Origin / Gudang</label>
+                        <textarea name="biteship_origin_address" rows="3"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold resize-none">{{ old('biteship_origin_address', $settings['biteship_origin_address']) }}</textarea>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode Pos Origin</label>
+                        <input type="text" name="biteship_origin_postal_code" value="{{ old('biteship_origin_postal_code', $settings['biteship_origin_postal_code']) }}"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1.5">
+                            <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Latitude</label>
+                            <input type="text" name="biteship_origin_latitude" id="biteship_origin_latitude" value="{{ old('biteship_origin_latitude', $settings['biteship_origin_latitude']) }}"
+                                class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Longitude</label>
+                            <input type="text" name="biteship_origin_longitude" id="biteship_origin_longitude" value="{{ old('biteship_origin_longitude', $settings['biteship_origin_longitude']) }}"
+                                class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Pin Lokasi Origin</label>
+                                <p class="text-[11px] text-gray-400 ml-1 mt-1">Klik map atau geser pin untuk set latitude dan longitude gudang/toko.</p>
+                            </div>
+                            <button type="button" id="btn-origin-my-location"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-soft-mint text-brand-primary text-xs font-black hover:bg-brand-primary hover:text-white transition-all">
+                                <i class="fa-solid fa-location-crosshairs"></i>
+                                Gunakan Lokasi Saya
+                            </button>
+                        </div>
+                        <div class="rounded-[24px] overflow-hidden border border-gray-200 shadow-sm bg-gray-50">
+                            <div id="origin_map" class="w-full h-72"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -215,75 +289,213 @@
     </div>
 @endsection
 
+@push('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@endpush
+
 @push('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         $(function () {
-            const $originSelect = $('#rajaongkir_origin_select');
-            const $originInput = $('#rajaongkir_origin');
-            const $originHelp = $('#origin-help');
-            const $apiKeyInput = $('#rajaongkir_api_key');
-
-            $originSelect.select2({
-                placeholder: 'Cari origin RajaOngkir',
-                allowClear: true,
-                width: '100%',
-                ajax: {
-                    url: "{{ route('settings.rajaongkir.origins') }}",
-                    dataType: 'json',
-                    delay: 350,
-                    data: function (params) {
-                        return {
-                            search: params.term || '',
-                            api_key: $apiKeyInput.val()
-                        };
-                    },
-                    processResults: function (response) {
-                        return {
-                            results: response.data || []
-                        };
-                    },
-                    transport: function (params, success, failure) {
-                        const term = (params.data && params.data.search ? params.data.search : '').trim();
-
-                        if (term.length < 3) {
-                            success({ data: [] });
-                            return null;
-                        }
-
-                        return $.ajax(params).done(success).fail(function (xhr) {
-                            const message = xhr.responseJSON?.message || 'Gagal mencari origin RajaOngkir.';
-                            $originHelp.text(message).removeClass('text-gray-400').addClass('text-red-500');
-                            failure(xhr);
-                        });
-                    }
-                }
-            });
-
-            $originSelect.on('select2:select', function (e) {
-                const selected = e.params.data;
-                $originInput.val(selected.id);
-                $originHelp.text('Origin terpilih: ' + selected.text + ' (ID: ' + selected.id + ')')
-                    .removeClass('text-red-500')
-                    .addClass('text-gray-400');
-            });
-
-            $originSelect.on('select2:clear', function () {
-                $originInput.val('');
-                $originHelp.text('Origin dibersihkan. Silakan cari dan pilih ulang lokasi origin.')
-                    .removeClass('text-red-500')
-                    .addClass('text-gray-400');
-            });
-
-            if ($originInput.val()) {
-                $originHelp.text('Origin tersimpan saat ini memakai ID: ' + $originInput.val())
-                    .removeClass('text-red-500')
-                    .addClass('text-gray-400');
-            }
-
             $('#toggleMailPassword').on('click', function () {
                 const $input = $('#mail_password');
                 $input.attr('type', $input.attr('type') === 'password' ? 'text' : 'password');
                 $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+            });
+
+            let originAreaTimer;
+            let originMap;
+            let originMarker;
+            const defaultOriginLat = -6.2088;
+            const defaultOriginLng = 106.8456;
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, function (char) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#039;',
+                    }[char];
+                });
+            }
+
+            function currentOriginCoords() {
+                const lat = parseFloat($('#biteship_origin_latitude').val());
+                const lng = parseFloat($('#biteship_origin_longitude').val());
+
+                return {
+                    lat: Number.isFinite(lat) ? lat : defaultOriginLat,
+                    lng: Number.isFinite(lng) ? lng : defaultOriginLng,
+                };
+            }
+
+            function setOriginCoords(lat, lng, focusMap = true) {
+                const latValue = parseFloat(lat);
+                const lngValue = parseFloat(lng);
+
+                if (!Number.isFinite(latValue) || !Number.isFinite(lngValue)) {
+                    return;
+                }
+
+                const latFixed = latValue.toFixed(7);
+                const lngFixed = lngValue.toFixed(7);
+
+                $('#biteship_origin_latitude').val(latFixed);
+                $('#biteship_origin_longitude').val(lngFixed);
+
+                if (originMap && originMarker) {
+                    originMarker.setLatLng([latValue, lngValue]);
+
+                    if (focusMap) {
+                        originMap.setView([latValue, lngValue], 16);
+                    }
+                }
+            }
+
+            function initOriginMap() {
+                if (originMap || !document.getElementById('origin_map')) {
+                    return;
+                }
+
+                const coords = currentOriginCoords();
+
+                originMap = L.map('origin_map').setView([coords.lat, coords.lng], 13);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap',
+                }).addTo(originMap);
+
+                originMarker = L.marker([coords.lat, coords.lng], { draggable: true }).addTo(originMap);
+
+                originMarker.on('dragend', function () {
+                    const position = originMarker.getLatLng();
+                    setOriginCoords(position.lat, position.lng, false);
+                });
+
+                originMap.on('click', function (event) {
+                    setOriginCoords(event.latlng.lat, event.latlng.lng, false);
+                });
+
+                setTimeout(function () {
+                    originMap.invalidateSize();
+                }, 250);
+            }
+
+            initOriginMap();
+
+            $('#biteship_origin_latitude, #biteship_origin_longitude').on('change', function () {
+                const coords = currentOriginCoords();
+                setOriginCoords(coords.lat, coords.lng);
+            });
+
+            $('#btn-origin-my-location').on('click', function () {
+                if (!navigator.geolocation) {
+                    return;
+                }
+
+                const $btn = $(this).prop('disabled', true).html('<i class="fa-solid fa-circle-notch fa-spin"></i> Mencari...');
+
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    setOriginCoords(position.coords.latitude, position.coords.longitude);
+                    $btn.prop('disabled', false).html('<i class="fa-solid fa-location-crosshairs"></i> Gunakan Lokasi Saya');
+                }, function () {
+                    $btn.prop('disabled', false).html('<i class="fa-solid fa-location-crosshairs"></i> Gunakan Lokasi Saya');
+                    alert('Tidak bisa mendapatkan lokasi perangkat.');
+                });
+            });
+
+            $('#biteship_origin_area_search').on('input', function () {
+                const query = $(this).val().trim();
+                clearTimeout(originAreaTimer);
+                $('#biteship_origin_area_id').val('');
+                $('#biteship_origin_area_label').val('');
+                $('#biteship_origin_area_status').addClass('hidden');
+
+                if (query.length < 3) {
+                    $('#biteship_origin_area_results').addClass('hidden').empty();
+                    return;
+                }
+
+                originAreaTimer = setTimeout(function () {
+                    $('#biteship_origin_area_results').removeClass('hidden').html(`
+                        <div class="px-4 py-3 text-xs text-gray-400 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Mencari area...
+                        </div>
+                    `);
+
+                    $.ajax({
+                        url: "{{ route('settings.biteship.areas') }}",
+                        method: 'GET',
+                        data: {
+                            search: query,
+                            api_key: $('input[name="biteship_api_key"]').val(),
+                        },
+                        success: function (areas) {
+                            const $list = $('#biteship_origin_area_results').empty();
+
+                            if (!areas?.length) {
+                                $list.html('<div class="px-4 py-3 text-xs text-gray-400">Area tidak ditemukan.</div>');
+                                return;
+                            }
+
+                            areas.forEach(function (area) {
+                                $list.append(`
+                                    <button type="button"
+                                        class="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
+                                        data-id="${escapeHtml(area.id)}"
+                                        data-label="${escapeHtml(area.label)}"
+                                        data-postal-code="${escapeHtml(area.postal_code)}"
+                                        data-latitude="${escapeHtml(area.latitude)}"
+                                        data-longitude="${escapeHtml(area.longitude)}">
+                                        <span class="block text-sm font-bold text-brand-dark">${escapeHtml(area.label || '-')}</span>
+                                        <span class="block text-[10px] text-gray-400 mt-0.5">${area.postal_code ? 'Kode pos ' + escapeHtml(area.postal_code) : 'Pilih area ini sebagai origin'}</span>
+                                    </button>
+                                `);
+                            });
+                        },
+                        error: function (xhr) {
+                            $('#biteship_origin_area_results').html(`<div class="px-4 py-3 text-xs text-red-500">${xhr.responseJSON?.message || 'Gagal mencari area.'}</div>`);
+                        },
+                    });
+                }, 400);
+            });
+
+            $(document).on('click', '#biteship_origin_area_results button[data-id]', function () {
+                const $el = $(this);
+
+                $('#biteship_origin_area_id').val($el.data('id'));
+                $('#biteship_origin_area_label').val($el.data('label'));
+                $('#biteship_origin_area_search').val($el.data('label'));
+                $('#biteship_origin_area_status')
+                    .removeClass('hidden')
+                    .find('span')
+                    .text('Area origin sudah dipilih');
+
+                if ($el.data('postal-code')) {
+                    $('input[name="biteship_origin_postal_code"]').val($el.data('postal-code'));
+                }
+
+                if ($el.data('latitude')) {
+                    $('input[name="biteship_origin_latitude"]').val($el.data('latitude'));
+                }
+
+                if ($el.data('longitude')) {
+                    $('input[name="biteship_origin_longitude"]').val($el.data('longitude'));
+                }
+
+                if ($el.data('latitude') && $el.data('longitude')) {
+                    setOriginCoords($el.data('latitude'), $el.data('longitude'));
+                }
+
+                $('#biteship_origin_area_results').addClass('hidden').empty();
+            });
+
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('#biteship_origin_area_search, #biteship_origin_area_results').length) {
+                    $('#biteship_origin_area_results').addClass('hidden');
+                }
             });
         });
     </script>

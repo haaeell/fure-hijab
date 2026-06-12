@@ -3,95 +3,88 @@
 @section('title', 'Tentang Kami - FURE')
 
 @section('content')
-    <section class="py-16 bg-gray-50 min-h-screen px-4 sm:px-6 lg:px-8">
-        <div class="max-w-6xl mx-auto">
+    <section class="bg-[#f8f3ee]">
+        <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <nav class="mb-8 flex text-[10px] font-bold uppercase tracking-[0.24em] text-brand-dark/45">
+                <a href="/" class="transition hover:text-brand-primary">Home</a>
+                <span class="mx-2 text-brand-secondary">/</span>
+                <span class="text-brand-dark">Tentang Kami</span>
+            </nav>
 
-            <div class="text-center max-w-2xl mx-auto mb-16">
-                <nav class="flex justify-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
-                    <a href="/" class="hover:text-brand-primary">Beranda</a>
-                    <span class="mx-2 text-gray-300">/</span>
-                    <span class="text-brand-dark">Tentang Kami</span>
-                </nav>
-                <h1 class="text-3xl md:text-5xl font-extrabold text-brand-dark tracking-tight mb-4">
-                    Tentang <span class="text-brand-primary">FURE</span>
-                </h1>
-                <p class="text-gray-500 text-sm md:text-base">
-                    Elegansi dalam kesantunan. Kami menghadirkan hijab premium untuk wanita modern yang menghargai kualitas,
-                    kenyamanan, dan estetika.
-                </p>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
-                <div class="space-y-6">
-                    <h2 class="text-2xl font-bold text-brand-dark">Cerita Kami</h2>
-                    <p class="text-gray-500 text-sm leading-relaxed">
-                        FURE lahir dari keinginan untuk menghadirkan produk hijab yang tidak hanya indah
-                        dipandang, tetapi juga nyaman digunakan sepanjang hari. Kami percaya bahwa setiap wanita berhak
-                        tampil percaya diri dengan gaya yang anggun dan berkelas.
-                    </p>
-                    <p class="text-gray-500 text-sm leading-relaxed">
-                        Dengan material pilihan dan desain yang terus mengikuti tren, kami berkomitmen untuk memberikan
-                        kualitas terbaik dalam setiap koleksi yang kami hadirkan.
-                    </p>
+            <div class="grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
+                <div class="relative min-h-[520px] overflow-hidden bg-brand-dark">
+                    <img src="https://images.unsplash.com/photo-1614668432718-8aa3e1b6dff6?auto=format&fit=crop&q=85&w=1600"
+                        alt="Tentang FURE"
+                        class="absolute inset-0 h-full w-full object-cover opacity-80">
+                    <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/85 via-brand-dark/20 to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 max-w-xl p-6 text-white sm:p-10">
+                        <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-brand-secondary">About FURE</p>
+                        <h1 class="text-4xl font-semibold leading-tight sm:text-5xl">Elegansi dalam kesantunan.</h1>
+                        <p class="mt-4 text-sm leading-7 text-white/75">
+                            FURE menghadirkan hijab premium untuk wanita modern yang menghargai kualitas, kenyamanan, dan estetika.
+                        </p>
+                    </div>
                 </div>
-                <div class="bg-white rounded-[32px] p-10 shadow-sm border border-gray-100">
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Visi</h3>
-                            <p class="text-brand-dark font-semibold text-sm">
-                                Menjadi brand hijab premium yang menginspirasi wanita untuk tampil elegan dan percaya diri.
-                            </p>
+
+                <div class="grid gap-4">
+                    <div class="bg-white p-6 sm:p-8">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-brand-primary">Our Story</p>
+                        <h2 class="mt-3 text-3xl font-semibold">Cerita Kami</h2>
+                        <p class="mt-4 text-sm leading-7 text-brand-dark/60">
+                            FURE lahir dari keinginan untuk menghadirkan produk hijab yang tidak hanya indah dipandang,
+                            tetapi juga nyaman digunakan sepanjang hari.
+                        </p>
+                        <p class="mt-4 text-sm leading-7 text-brand-dark/60">
+                            Dengan material pilihan dan desain yang mengikuti kebutuhan gaya hidup modern, kami berkomitmen
+                            untuk memberikan pengalaman berbelanja yang rapi, mudah, dan menyenangkan.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <div class="bg-white p-5">
+                            <i class="fa-solid fa-gem text-brand-primary"></i>
+                            <h3 class="mt-4 text-sm font-semibold text-brand-dark">Premium Quality</h3>
+                            <p class="mt-2 text-sm leading-6 text-brand-dark/55">Material yang nyaman dan terjaga kualitasnya.</p>
                         </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Misi</h3>
-                            <ul class="text-gray-500 text-sm space-y-2">
-                                <li>• Menghadirkan produk berkualitas tinggi</li>
-                                <li>• Mengutamakan kenyamanan dan desain modern</li>
-                                <li>• Memberikan pengalaman belanja terbaik</li>
-                            </ul>
+                        <div class="bg-white p-5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-brand-primary"></i>
+                            <h3 class="mt-4 text-sm font-semibold text-brand-dark">Elegant Design</h3>
+                            <p class="mt-2 text-sm leading-6 text-brand-dark/55">Desain bersih, modern, dan mudah dipadukan.</p>
+                        </div>
+                        <div class="bg-white p-5">
+                            <i class="fa-solid fa-heart text-brand-primary"></i>
+                            <h3 class="mt-4 text-sm font-semibold text-brand-dark">Customer First</h3>
+                            <p class="mt-2 text-sm leading-6 text-brand-dark/55">Pengalaman belanja yang jelas dan nyaman.</p>
                         </div>
                     </div>
+
+                    <div class="bg-brand-dark p-6 text-white sm:p-8">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-brand-secondary">Mission</p>
+                        <h2 class="mt-3 text-2xl font-semibold">Misi kami sederhana.</h2>
+                        <ul class="mt-4 space-y-3 text-sm leading-6 text-white/75">
+                            <li>• Menghadirkan produk berkualitas tinggi.</li>
+                            <li>• Mengutamakan kenyamanan dan desain modern.</li>
+                            <li>• Memberikan pengalaman belanja terbaik.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-6 mb-20">
-                <div class="bg-white p-8 rounded-[28px] border border-gray-100 text-center hover:shadow-md transition">
-                    <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-brand-primary/10 flex items-center justify-center">
-                        <i class="fa-solid fa-gem text-brand-primary text-xl"></i>
+            <div class="mt-12 bg-white p-6 sm:p-8">
+                <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-brand-primary">Join us</p>
+                        <h2 class="mt-3 text-3xl font-semibold">Bergabung bersama kami</h2>
+                        <p class="mt-3 max-w-2xl text-sm leading-7 text-brand-dark/60">
+                            Jadilah bagian dari perjalanan FURE dan temukan koleksi terbaik untuk gaya eleganmu.
+                        </p>
                     </div>
-                    <h4 class="font-bold text-brand-dark mb-2">Premium Quality</h4>
-                    <p class="text-gray-500 text-sm">Material terbaik dengan kualitas yang terjaga.</p>
-                </div>
-
-                <div class="bg-white p-8 rounded-[28px] border border-gray-100 text-center hover:shadow-md transition">
-                    <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-brand-primary/10 flex items-center justify-center">
-                        <i class="fa-solid fa-wand-magic-sparkles text-brand-primary text-xl"></i>
-                    </div>
-                    <h4 class="font-bold text-brand-dark mb-2">Elegant Design</h4>
-                    <p class="text-gray-500 text-sm">Desain modern yang mengikuti tren fashion.</p>
-                </div>
-
-                <div class="bg-white p-8 rounded-[28px] border border-gray-100 text-center hover:shadow-md transition">
-                    <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-brand-primary/10 flex items-center justify-center">
-                        <i class="fa-solid fa-heart text-brand-primary text-xl"></i>
-                    </div>
-                    <h4 class="font-bold text-brand-dark mb-2">Customer First</h4>
-                    <p class="text-gray-500 text-sm">Kepuasan pelanggan adalah prioritas kami.</p>
+                    <a href="{{ route('collections.index') }}"
+                        class="inline-flex bg-brand-primary px-6 py-3 text-xs font-bold uppercase tracking-[0.16em] text-white transition hover:bg-brand-dark">
+                        Lihat Koleksi
+                    </a>
                 </div>
             </div>
-
-            <div class="bg-brand-dark rounded-[40px] p-10 text-white text-center relative overflow-hidden">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-primary/20 rounded-full blur-3xl"></div>
-                <h2 class="text-2xl md:text-3xl font-bold mb-4">Bergabung Bersama Kami</h2>
-                <p class="text-brand-secondary/70 text-sm mb-6 max-w-xl mx-auto">
-                    Jadilah bagian dari perjalanan FURE dan temukan koleksi terbaik untuk gaya eleganmu.
-                </p>
-                <a href="{{ route('collections.index') }}"
-                    class="inline-block px-8 py-3 bg-white text-brand-dark font-bold rounded-xl hover:bg-brand-secondary transition">
-                    Lihat Koleksi
-                </a>
-            </div>
-
         </div>
     </section>
 @endsection

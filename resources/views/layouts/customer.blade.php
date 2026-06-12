@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>FURE - @yield('title', 'Elegansi dalam Kesantunan')</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -29,7 +29,7 @@
                         'brand-secondary': '#D6C4B0',
                         'brand-dark': '#5F4A3A',
                     },
-                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                 }
             }
         }
@@ -200,7 +200,7 @@
     @yield('styles')
 </head>
 
-<body class="bg-white font-sans text-gray-900 antialiased overflow-x-hidden">
+    <body class="bg-[#f8f3ee] font-sans text-gray-900 antialiased overflow-x-hidden">
 
     <nav class="sticky top-0 z-50 border-b border-brand-secondary/40 bg-white">
         <div class="bg-brand-dark text-white">
@@ -208,7 +208,7 @@
                 class="no-scrollbar mx-auto flex max-w-7xl overflow-hidden whitespace-nowrap px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] sm:px-6 lg:px-8">
                 @for ($i = 0; $i < 5; $i++)
                     <span class="mr-10">Exclusive discount 10% off</span>
-                    <span class="mr-10 text-brand-secondary">Mushroom collection ready</span>
+                    <span class="mr-10 text-brand-secondary">New hijab collection ready</span>
                     <span class="mr-10">Free gift selected item</span>
                 @endfor
             </div>

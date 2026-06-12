@@ -64,10 +64,10 @@ class OrderHistoryController extends Controller
             return back()->with('error', 'Nomor resi belum tersedia.');
         }
 
-        $tracking = $trackingService->track($order->shipment->resi, $order->shipment->courier);
-
-        if (!$tracking) {
-            return back()->with('error', 'Tracking resi belum tersedia atau gagal menghubungi layanan ekspedisi.');
+        try {
+            $tracking = $trackingService->trackShipment($order->shipment);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Tracking Biteship gagal: ' . $e->getMessage());
         }
 
         $order->shipment->update([

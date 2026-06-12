@@ -2,11 +2,16 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
-use Throwable;
+use App\Models\Shipment;
+use Illuminate\Support\Arr;
 
 class ShipmentTrackingService
 {
+    public function __construct(private ?BiteshipService $biteship = null)
+    {
+        $this->biteship ??= app(BiteshipService::class);
+    }
+
     public function track(?string $waybill, ?string $courier): ?array
     {
         if (blank($waybill) || blank($courier)) {
@@ -43,30 +48,52 @@ class ShipmentTrackingService
             ];
         }
 
-        try {
-            $response = Http::withHeaders([
-                'key' => config('services.rajaongkir.api_key'),
-            ])->asForm()->post('https://rajaongkir.komerce.id/api/v1/waybill/domestic-waybill', [
-                'waybill' => $waybill,
-                'courier' => $courier,
-            ]);
+        return $this->biteship->track($waybill, $courier);
+    }
 
-            if ($response->failed()) {
-                return null;
-            }
-
-            return $response->json('data');
-        } catch (Throwable) {
+    public function trackShipment(Shipment $shipment): ?array
+    {
+        if (blank($shipment->courier)) {
             return null;
         }
+
+        $payload = is_array($shipment->biteship_payload) ? $shipment->biteship_payload : [];
+        $candidates = collect([
+            Arr::get($payload, 'courier_tracking_id'),
+            Arr::get($payload, 'tracking_id'),
+            Arr::get($payload, 'id'),
+            Arr::get($payload, 'data.courier_tracking_id'),
+            Arr::get($payload, 'data.tracking_id'),
+            Arr::get($payload, 'data.id'),
+            Arr::get($payload, 'courier.waybill_id'),
+            Arr::get($payload, 'courier_waybill_id'),
+            Arr::get($payload, 'waybill_id'),
+            $shipment->resi,
+        ])->filter()->unique()->values();
+
+        $lastError = null;
+
+        foreach ($candidates as $candidate) {
+            try {
+                return $this->track($candidate, $shipment->courier);
+            } catch (\Throwable $e) {
+                $lastError = $e->getMessage();
+            }
+        }
+
+        if ($lastError) {
+            throw new \RuntimeException($lastError);
+        }
+
+        return null;
     }
 
     public function latestStatus(?array $tracking): ?string
     {
-        $manifest = $tracking['manifest'] ?? [];
+        $manifest = $tracking['manifest'] ?? $tracking['history'] ?? [];
 
         if (!is_array($manifest) || count($manifest) === 0) {
-            return $tracking['summary']['status'] ?? null;
+            return $tracking['summary']['status'] ?? $tracking['status'] ?? null;
         }
 
         $latest = collect($manifest)->sortByDesc(function ($item) {

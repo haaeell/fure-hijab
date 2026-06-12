@@ -20,6 +20,7 @@ class OrderAddress extends Model
         'district',
         'subdistrict',
         'postal_code',
+        'biteship_area_id',
         'latitude',
         'longitude',
     ];

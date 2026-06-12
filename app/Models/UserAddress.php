@@ -22,8 +22,8 @@ class UserAddress extends Model
         'district',
         'subdistrict',
         'postal_code',
+        'biteship_area_id',
         'is_default',
-        'rajaongkir_destination_id',
         'latitude',
         'longitude',
     ];

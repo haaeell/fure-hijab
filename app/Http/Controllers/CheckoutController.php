@@ -10,9 +10,9 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Shipment;
 use App\Models\UserAddress;
+use App\Services\BiteshipService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Midtrans\Config;
 use Midtrans\Snap;
@@ -22,14 +22,14 @@ class CheckoutController extends Controller
     private const PAYMENT_WINDOW_MINUTES = 1440;
 
     const SUPPORTED_COURIERS = [
-        'jne'      => 'JNE',
-        'tiki'     => 'TIKI',
-        'pos'      => 'POS Indonesia',
-        'sicepat'  => 'SiCepat',
-        'jnt'      => 'J&T Express',
-        'anteraja' => 'Anteraja',
-        'ninja'    => 'Ninja Xpress',
-        'lion'     => 'Lion Parcel',
+        'jne' => 'JNE',
+        'sicepat' => 'SiCepat',
+        'jnt' => 'J&T Express',
+        // 'anteraja' => 'Anteraja',
+        // 'ninja' => 'Ninja Xpress',
+        // 'lion' => 'Lion Parcel',
+        // 'tiki' => 'TIKI',
+        // 'pos' => 'POS Indonesia',
     ];
 
     public function index()
@@ -144,7 +144,7 @@ class CheckoutController extends Controller
         return redirect()->route('checkout.index');
     }
 
-    public function checkOngkir(Request $request)
+    public function checkOngkir(Request $request, BiteshipService $biteship)
     {
         $request->validate([
             'couriers' => 'required|array|min:1',
@@ -156,8 +156,8 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Alamat pengiriman belum dipilih.'], 400);
         }
 
-        if (!$address->rajaongkir_destination_id) {
-            return response()->json(['error' => 'Data alamat belum lengkap. Silakan edit dan pilih ulang lokasi tujuan.'], 400);
+        if (!$address->postal_code) {
+            return response()->json(['error' => 'Kode pos alamat belum diisi. Biteship membutuhkan kode pos tujuan.'], 400);
         }
 
         $cart = Cart::with(['items.product', 'items.variant'])
@@ -170,57 +170,43 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Berat paket tidak valid. Pastikan produk memiliki berat.'], 422);
         }
 
-        $response = Http::withHeaders([
-            'key' => config('services.rajaongkir.api_key'),
-        ])->asForm()->post('https://rajaongkir.komerce.id/api/v1/calculate/domestic-cost', [
-            'origin'      => config('services.rajaongkir.origin'),
-            'destination' => $address->rajaongkir_destination_id,
-            'weight'      => $weight,
-            'courier'     => implode(':', $request->couriers),
-            'price'       => 'lowest',
-        ]);
+        try {
+            $rates = $biteship->rates(
+                $request->couriers,
+                [
+                    'contact_name' => $address->receiver_name ?: Auth::user()->name,
+                    'contact_phone' => $address->phone ?: Auth::user()->phone,
+                    'address' => trim($address->address . ', ' . $address->subdistrict . ', ' . $address->district . ', ' . $address->city . ', ' . $address->province),
+                    'area_id' => $address->biteship_area_id,
+                    'postal_code' => $address->postal_code,
+                    'latitude' => $address->latitude,
+                    'longitude' => $address->longitude,
+                ],
+                $this->biteshipItems($cart)
+            );
 
-        if ($response->failed()) {
-            return response()->json(['error' => 'Gagal menghubungi API RajaOngkir.', 'details' => $response->json()], 500);
+            $services = $biteship->normalizeRates($rates);
+
+            if (empty($services)) {
+                return response()->json(['error' => 'Tidak ada layanan pengiriman tersedia untuk rute ini.'], 404);
+            }
+
+            return response()->json($services);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        $data = $response->json();
-
-        if (!isset($data['data']) || !is_array($data['data'])) {
-            return response()->json(['error' => 'Format response API tidak valid.', 'raw' => $data], 500);
-        }
-
-        if (empty($data['data'])) {
-            return response()->json(['error' => 'Tidak ada layanan pengiriman tersedia untuk rute ini.'], 404);
-        }
-
-        return response()->json($data['data']);
     }
 
-    public function searchDestination(Request $request)
+    public function searchDestination(Request $request, BiteshipService $biteship)
     {
         $request->validate([
             'search' => 'required|string|min:3'
         ]);
 
         try {
-            $response = Http::withHeaders([
-                'key' => config('services.rajaongkir.api_key'),
-            ])->get('https://rajaongkir.komerce.id/api/v1/destination/domestic-destination', [
-                'search' => $request->search,
-                'limit'  => 10,
-                'offset' => 0,
-            ]);
-
-            if ($response->failed()) {
-                return response()->json([]);
-            }
-
-            return response()->json(
-                $response->json()['data'] ?? []
-            );
+            return response()->json($biteship->searchAreas($request->search));
         } catch (\Throwable $e) {
-            return response()->json([]);
+            return response()->json(['message' => $e->getMessage()], 422);
         }
     }
     protected function initMidtrans()
@@ -308,6 +294,9 @@ class CheckoutController extends Controller
                 'district'       => $userAddress->district,
                 'subdistrict'    => $userAddress->subdistrict,
                 'postal_code'    => $userAddress->postal_code,
+                'biteship_area_id' => $userAddress->biteship_area_id,
+                'latitude'       => $userAddress->latitude,
+                'longitude'      => $userAddress->longitude,
             ]);
 
             foreach ($cart->items as $item) {
@@ -455,9 +444,25 @@ class CheckoutController extends Controller
 
     private function itemWeight($item): int
     {
-        $weight = $item->variant?->weight ?: $item->product?->weight ?: 1000;
+        $weight = $item->variant?->weight ?: $item->product?->weight ?: 10;
 
         return max(1, (int) ceil((float) $weight));
+    }
+
+    private function biteshipItems(Cart $cart): array
+    {
+        return $cart->items->map(function ($item) {
+            return [
+                'name' => $item->product->name,
+                'description' => $item->variant?->name ?: $item->product->name,
+                'value' => (int) $item->price,
+                'quantity' => (int) $item->qty,
+                'weight' => $this->itemWeight($item),
+                'length' => 20,
+                'width' => 20,
+                'height' => 5,
+            ];
+        })->values()->all();
     }
 
     private function activeUnpaidOrder(int $userId): ?Order

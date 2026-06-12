@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
-use Illuminate\Http\JsonResponse;
+use App\Services\BiteshipService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 use Throwable;
 
@@ -23,8 +23,16 @@ class AdminSettingController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'rajaongkir_api_key' => ['required', 'string'],
-            'rajaongkir_origin' => ['required', 'string', 'max:100'],
+            'biteship_api_key' => ['required', 'string'],
+            'biteship_webhook_secret' => ['nullable', 'string', 'max:255'],
+            'biteship_origin_area_id' => ['nullable', 'string', 'max:255'],
+            'biteship_origin_area_label' => ['nullable', 'string', 'max:500'],
+            'biteship_origin_contact_name' => ['required', 'string', 'max:255'],
+            'biteship_origin_contact_phone' => ['required', 'string', 'max:30'],
+            'biteship_origin_address' => ['required', 'string'],
+            'biteship_origin_postal_code' => ['required', 'string', 'max:10'],
+            'biteship_origin_latitude' => ['nullable', 'numeric'],
+            'biteship_origin_longitude' => ['nullable', 'numeric'],
             'midtrans_server_key' => ['required', 'string'],
             'midtrans_client_key' => ['required', 'string'],
             'midtrans_is_production' => ['nullable', 'boolean'],
@@ -57,6 +65,20 @@ class AdminSettingController extends Controller
         return back()->with('success', 'Pengaturan integrasi berhasil diperbarui.');
     }
 
+    public function searchBiteshipAreas(Request $request, BiteshipService $biteship): JsonResponse
+    {
+        $validated = $request->validate([
+            'search' => ['required', 'string', 'min:3'],
+            'api_key' => ['nullable', 'string'],
+        ]);
+
+        try {
+            return response()->json($biteship->searchAreas($validated['search'], $validated['api_key'] ?? null));
+        } catch (Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 422);
+        }
+    }
+
     public function testEmail(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -77,69 +99,19 @@ class AdminSettingController extends Controller
         return back()->with('success', 'Test email berhasil dikirim ke ' . $validated['test_email'] . '.');
     }
 
-    public function searchOrigins(Request $request): JsonResponse
-    {
-        $request->validate([
-            'search' => ['required', 'string', 'min:3'],
-            'api_key' => ['nullable', 'string'],
-        ]);
-
-        $apiKey = $request->input('api_key')
-            ?: Setting::getValue('rajaongkir_api_key', config('services.rajaongkir.api_key'));
-
-        if (!$apiKey) {
-            return response()->json([
-                'message' => 'API key RajaOngkir belum diisi.',
-                'data' => [],
-            ], 422);
-        }
-
-        $response = Http::withHeaders([
-            'key' => $apiKey,
-        ])->get('https://rajaongkir.komerce.id/api/v1/destination/domestic-destination', [
-            'search' => $request->input('search'),
-            'limit' => 20,
-            'offset' => 0,
-        ]);
-
-        if ($response->failed()) {
-            return response()->json([
-                'message' => 'Gagal mengambil data origin dari RajaOngkir.',
-                'details' => $response->json(),
-                'data' => [],
-            ], $response->status());
-        }
-
-        return response()->json([
-            'message' => 'Data origin berhasil diambil.',
-            'data' => collect($response->json('data', []))->map(function ($item) {
-                $parts = array_filter([
-                    $item['subdistrict_name'] ?? null,
-                    $item['district_name'] ?? null,
-                    $item['city_name'] ?? null,
-                    $item['province_name'] ?? null,
-                    $item['zip_code'] ?? null,
-                ]);
-
-                $label = implode(', ', $parts);
-
-                if ($label === '') {
-                    $label = $item['label'] ?? '';
-                }
-
-                return [
-                    'id' => (string) ($item['id'] ?? ''),
-                    'text' => $label,
-                ];
-            })->filter(fn ($item) => $item['id'] !== '')->values(),
-        ]);
-    }
-
     private function settings(): array
     {
         return [
-            'rajaongkir_api_key' => Setting::getValue('rajaongkir_api_key', config('services.rajaongkir.api_key')),
-            'rajaongkir_origin' => Setting::getValue('rajaongkir_origin', config('services.rajaongkir.origin')),
+            'biteship_api_key' => Setting::getValue('biteship_api_key', config('services.biteship.api_key')),
+            'biteship_webhook_secret' => Setting::getValue('biteship_webhook_secret', config('services.biteship.webhook_secret')),
+            'biteship_origin_area_id' => Setting::getValue('biteship_origin_area_id', config('services.biteship.origin_area_id')),
+            'biteship_origin_area_label' => Setting::getValue('biteship_origin_area_label'),
+            'biteship_origin_contact_name' => Setting::getValue('biteship_origin_contact_name', config('services.biteship.origin_contact_name')),
+            'biteship_origin_contact_phone' => Setting::getValue('biteship_origin_contact_phone', config('services.biteship.origin_contact_phone')),
+            'biteship_origin_address' => Setting::getValue('biteship_origin_address', config('services.biteship.origin_address')),
+            'biteship_origin_postal_code' => Setting::getValue('biteship_origin_postal_code', config('services.biteship.origin_postal_code')),
+            'biteship_origin_latitude' => Setting::getValue('biteship_origin_latitude', config('services.biteship.origin_latitude')),
+            'biteship_origin_longitude' => Setting::getValue('biteship_origin_longitude', config('services.biteship.origin_longitude')),
             'midtrans_server_key' => Setting::getValue('midtrans_server_key', config('services.midtrans.server_key')),
             'midtrans_client_key' => Setting::getValue('midtrans_client_key', config('services.midtrans.client_key')),
             'midtrans_is_production' => Setting::getValue('midtrans_is_production', config('services.midtrans.is_production')),

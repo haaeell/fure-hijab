@@ -3,7 +3,7 @@
 @section('title', 'Detail Pesanan #' . $order->order_number)
 
 @section('content')
-    <section class="py-12 bg-[#F8F9FA] min-h-screen px-4 sm:px-6 lg:px-8">
+    <section class="py-12 bg-[#f8f3ee] min-h-screen px-4 sm:px-6 lg:px-8">
         <div class="max-w-6xl mx-auto">
             @php
                 $statusMap = [
@@ -24,7 +24,7 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
                 <div class="flex items-center gap-4">
                     <a href="{{ route('order.history') }}"
-                        class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-brand-dark shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all">
+                        class="w-12 h-12 bg-white flex items-center justify-center text-brand-dark shadow-sm border border-brand-secondary/50 hover:bg-brand-primary hover:text-white transition-all">
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
@@ -34,8 +34,8 @@
                     </div>
                 </div>
 
-                <div
-                    class="flex items-center gap-3 {{ $currentStatus['bg'] }} p-2 pr-6 rounded-2xl border border-current/10 w-fit">
+                    <div
+                        class="flex items-center gap-3 {{ $currentStatus['bg'] }} p-2 pr-6 border border-current/10 w-fit bg-white">
                     <div
                         class="w-10 h-10 {{ str_replace('text-', 'bg-', $currentStatus['text']) }} rounded-xl flex items-center justify-center text-white shadow-lg">
                         <i class="fa-solid {{ $currentStatus['icon'] }}"></i>
@@ -52,7 +52,7 @@
                 <div class="lg:col-span-2 space-y-8">
 
                     {{-- STEPPER --}}
-                    <div class="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100">
+                    <div class="bg-white p-8 shadow-sm border border-brand-secondary/30">
                         @if (in_array($order->status, ['cancelled', 'refunded']))
                             <div class="flex items-center gap-4 p-4 rounded-2xl bg-red-50 border border-dashed border-red-200">
                                 <i class="fa-solid fa-circle-xmark text-red-500 text-2xl"></i>
@@ -83,7 +83,7 @@
                                 @foreach ($steps as $index => $step)
                                     <div class="relative z-10 flex flex-col items-center">
                                         <div
-                                            class="w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-sm transition-all 
+                                            class="w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-sm transition-all
                                                                                                                                                                                                                                             {{ $currentIndex >= $index ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-400' }}">
                                             <i class="fa-solid {{ $statusMap[$step]['icon'] }} text-[10px]"></i>
                                         </div>
@@ -98,8 +98,8 @@
                     </div>
 
                     {{-- PRODUK --}}
-                    <div class="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100">
-                        <div class="p-6 border-b border-gray-50 bg-gray-50/50">
+                    <div class="bg-white overflow-hidden shadow-sm border border-brand-secondary/30">
+                        <div class="p-6 border-b border-brand-secondary/20 bg-[#f8f3ee]/60">
                             <h3 class="font-bold text-brand-dark flex items-center gap-2">
                                 <i class="fa-solid fa-bag-shopping text-brand-primary"></i> Daftar Belanja
                             </h3>
@@ -134,8 +134,8 @@
 
                     {{-- REVIEW SECTION --}}
                     @if($order->status == 'delivered')
-                        <div class="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100">
-                            <div class="p-6 border-b border-gray-50 bg-gray-50/50">
+                    <div class="bg-white overflow-hidden shadow-sm border border-brand-secondary/30">
+                        <div class="p-6 border-b border-brand-secondary/20 bg-[#f8f3ee]/60">
                                 <h3 class="font-bold text-brand-dark flex items-center gap-2">
                                     <i class="fa-solid fa-star text-brand-primary"></i> Ulasan Produk
                                 </h3>
@@ -196,7 +196,7 @@
 
                     {{-- TRACKING --}}
                     @if ($order->shipment && $order->shipment->resi)
-                        <div class="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100">
+                        <div class="bg-white p-8 shadow-sm border border-brand-secondary/30">
                             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
                                 <h3 class="font-bold text-brand-dark flex items-center gap-3 text-lg">
                                     <div class="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center">
@@ -219,7 +219,7 @@
                             <div class="flex flex-col sm:flex-row gap-3 mb-6">
                                 <div class="flex-1 rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3">
                                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Berat Paket</p>
-                                    <p class="font-black text-brand-dark mt-1">{{ number_format($order->shipment->total_weight ?? 1000, 0, ',', '.') }} gram</p>
+                                    <p class="font-black text-brand-dark mt-1">{{ number_format($order->shipment->total_weight ?? 10, 0, ',', '.') }} gram</p>
                                 </div>
                                 <form action="{{ route('order.history.track', $order->order_number) }}" method="POST" class="sm:w-auto">
                                     @csrf
@@ -234,6 +234,19 @@
                                 <div
                                     class="relative pl-8 space-y-8 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
                                     @foreach (array_reverse($tracking['manifest']) as $log)
+                                        @php
+                                            $statusLabel = match(strtolower($log['status'] ?? '')) {
+                                                'confirmed' => 'Pesanan pengiriman sudah dikonfirmasi.',
+                                                'allocated' => 'Kurir sudah dialokasikan.',
+                                                'picked_up', 'pickup', 'picking_up' => 'Paket sedang dijemput.',
+                                                'in_transit', 'dropping_off', 'on_delivery' => 'Paket sedang dalam perjalanan.',
+                                                'delivered' => 'Paket sudah diterima.',
+                                                'cancelled', 'canceled' => 'Pengiriman dibatalkan.',
+                                                'failed' => 'Pengiriman gagal.',
+                                                default => null,
+                                            };
+                                            $description = $log['manifest_description'] ?? $log['description'] ?? $log['note'] ?? $statusLabel ?? '-';
+                                        @endphp
                                         <div class="relative">
                                             <div
                                                 class="absolute -left-[27px] top-1 w-4 h-4 rounded-full border-4 border-white {{ $loop->first ? 'bg-brand-primary ring-4 ring-brand-primary/20' : 'bg-gray-300' }}">
@@ -242,7 +255,7 @@
                                                 <div>
                                                     <p
                                                         class="text-sm font-bold {{ $loop->first ? 'text-brand-dark' : 'text-gray-500' }}">
-                                                        {{ $log['manifest_description'] }}
+                                                        {{ $description }}
                                                     </p>
                                                     <p class="text-xs text-gray-400 font-medium">{{ $log['city_name'] }}
                                                     </p>

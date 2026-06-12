@@ -179,7 +179,7 @@
                 <p style="margin:0;"><strong>Kurir:</strong> {{ strtoupper($order->shipment?->courier ?? '-') }}</p>
                 <p style="margin:3px 0 0;"><strong>Layanan:</strong> {{ $order->shipment?->service ?? '-' }}</p>
                 <p style="margin:3px 0 0;"><strong>Estimasi:</strong> {{ $order->shipment?->estimated_days ? $order->shipment->estimated_days . ' hari' : '-' }}</p>
-                <p style="margin:3px 0 0;"><strong>Berat:</strong> {{ number_format($order->shipment?->total_weight ?? 1000, 0, ',', '.') }} gram</p>
+                <p style="margin:3px 0 0;"><strong>Berat:</strong> {{ number_format($order->shipment?->total_weight ?? 10, 0, ',', '.') }} gram</p>
                 <p style="margin:3px 0 0;"><strong>Resi:</strong> {{ $order->shipment?->resi ?? '-' }}</p>
             </div>
         </div>
@@ -503,6 +503,43 @@
                             </span>
                         </div>
                         <div class="px-6 py-5">
+                            @php
+                                $biteshipPayload = is_string($ship->biteship_payload) ? json_decode($ship->biteship_payload, true) : ($ship->biteship_payload ?? []);
+                                $biteshipCourier = $biteshipPayload['courier'] ?? [];
+                                $biteshipWaybill = $biteshipPayload['courier_waybill_id']
+                                    ?? $biteshipPayload['waybill_id']
+                                    ?? $biteshipPayload['waybill_number']
+                                    ?? ($biteshipCourier['waybill_id'] ?? null)
+                                    ?? ($biteshipCourier['waybill_number'] ?? null)
+                                    ?? $ship->resi;
+                                $biteshipTrackingId = $biteshipPayload['courier_tracking_id']
+                                    ?? $biteshipPayload['tracking_id']
+                                    ?? $biteshipPayload['id']
+                                    ?? null;
+                                $biteshipTrackingLink = $biteshipPayload['courier_link']
+                                    ?? $biteshipPayload['link']
+                                    ?? ($biteshipTrackingId ? 'https://track.biteship.com/' . $biteshipTrackingId : null);
+                                $driverName = $biteshipPayload['courier_driver_name']
+                                    ?? ($biteshipCourier['driver_name'] ?? null);
+                                $driverPhone = $biteshipPayload['courier_driver_phone']
+                                    ?? ($biteshipCourier['driver_phone'] ?? null);
+                                $driverPlate = $biteshipPayload['courier_driver_plate_number']
+                                    ?? ($biteshipCourier['driver_plate_number'] ?? null);
+                                $driverPhoto = $biteshipPayload['courier_driver_photo_url']
+                                    ?? ($biteshipCourier['driver_photo_url'] ?? null);
+                                $biteshipPrice = $biteshipPayload['order_price']
+                                    ?? $biteshipPayload['price']
+                                    ?? $biteshipPayload['shipping_price']
+                                    ?? null;
+                                $biteshipService = $biteshipPayload['courier_type']
+                                    ?? ($biteshipCourier['type'] ?? null)
+                                    ?? $ship->service;
+                                $biteshipWeight = $biteshipPayload['weight']
+                                    ?? $biteshipPayload['total_weight']
+                                    ?? $ship->total_weight;
+                                $originAddress = $biteshipPayload['origin']['address'] ?? null;
+                                $destinationAddress = $biteshipPayload['destination']['address'] ?? null;
+                            @endphp
                             <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-5">
                                 <div>
                                     <p class="text-[10px] font-black text-gray-400 tracking-widest">KURIR</p>
@@ -523,7 +560,7 @@
                                 </div>
                                 <div>
                                     <p class="text-[10px] font-black text-gray-400 tracking-widest">BERAT</p>
-                                    <p class="font-bold text-brand-dark mt-1">{{ number_format($ship->total_weight ?? 1000, 0, ',', '.') }} gram</p>
+                                    <p class="font-bold text-brand-dark mt-1">{{ number_format($ship->total_weight ?? 10, 0, ',', '.') }} gram</p>
                                 </div>
                             </div>
 
@@ -538,6 +575,26 @@
                                         @endif
                                     </div>
                                     <div class="flex gap-2 sm:ml-auto">
+                                        <button type="button" onclick="openPrintLabelModal()"
+                                            class="px-3 py-1.5 bg-cyan-500 text-white text-[10px] font-black rounded-xl hover:bg-brand-dark transition-all">
+                                            <i class="fa-solid fa-print mr-1"></i>Cetak Resi
+                                        </button>
+                                        @if($ship->label_url)
+                                            <a href="{{ route('orders.biteship-label.download', $order->id) }}"
+                                                class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
+                                                <i class="fa-solid fa-download mr-1"></i>Download Label
+                                            </a>
+                                            <a href="{{ $ship->label_url }}" target="_blank"
+                                                class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
+                                                <i class="fa-solid fa-up-right-from-square mr-1"></i>Label Biteship
+                                            </a>
+                                        @endif
+                                        @if($biteshipTrackingLink)
+                                            <a href="{{ $biteshipTrackingLink }}" target="_blank"
+                                                class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
+                                                <i class="fa-solid fa-route mr-1"></i>Track
+                                            </a>
+                                        @endif
                                         <button onclick="copyResi('{{ $ship->resi }}')"
                                             class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
                                             <i class="fa-solid fa-copy mr-1"></i>Salin
@@ -553,9 +610,128 @@
                                 </div>
                             @endif
 
+                            @if($ship->biteship_order_id || !empty($biteshipPayload))
+                                <div class="mb-5 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-4">
+                                    <div class="rounded-3xl border border-gray-100 bg-gray-50/70 p-5">
+                                        <div class="flex items-center gap-3 mb-4">
+                                            <div class="w-9 h-9 rounded-2xl bg-white text-cyan-500 flex items-center justify-center">
+                                                <i class="fa-solid fa-clipboard-list"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-extrabold text-brand-dark">Detail Biteship</p>
+                                                <p class="text-[10px] text-gray-400 font-bold">Data dari order dan webhook Biteship</p>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div class="rounded-2xl bg-white border border-gray-100 px-4 py-3">
+                                                <p class="text-[9px] font-black text-gray-400 tracking-widest">ORDER ID Biteship</p>
+                                                <p class="mt-1 font-mono text-xs font-bold text-brand-dark break-all">{{ $ship->biteship_order_id ?? '-' }}</p>
+                                            </div>
+                                            <div class="rounded-2xl bg-white border border-gray-100 px-4 py-3">
+                                                <p class="text-[9px] font-black text-gray-400 tracking-widest">TRACKING ID</p>
+                                                <p class="mt-1 font-mono text-xs font-bold text-brand-dark break-all">{{ $biteshipTrackingId ?? '-' }}</p>
+                                            </div>
+                                            <div class="rounded-2xl bg-white border border-gray-100 px-4 py-3">
+                                                <p class="text-[9px] font-black text-gray-400 tracking-widest">WAYBILL</p>
+                                                <p class="mt-1 font-mono text-xs font-bold text-brand-dark break-all">{{ $biteshipWaybill ?? '-' }}</p>
+                                            </div>
+                                            <div class="rounded-2xl bg-white border border-gray-100 px-4 py-3">
+                                                <p class="text-[9px] font-black text-gray-400 tracking-widest">LAYANAN Biteship</p>
+                                                <p class="mt-1 text-xs font-bold text-brand-dark">{{ strtoupper($ship->courier) }} {{ strtoupper($biteshipService ?? '-') }}</p>
+                                            </div>
+                                            <div class="rounded-2xl bg-white border border-gray-100 px-4 py-3">
+                                                <p class="text-[9px] font-black text-gray-400 tracking-widest">BOBOT</p>
+                                                <p class="mt-1 text-xs font-bold text-brand-dark">{{ number_format($biteshipWeight ?? 0, 0, ',', '.') }} gram</p>
+                                            </div>
+                                            <div class="rounded-2xl bg-white border border-gray-100 px-4 py-3">
+                                                <p class="text-[9px] font-black text-gray-400 tracking-widest">BIAYA Biteship</p>
+                                                <p class="mt-1 text-xs font-bold text-brand-dark">{{ $biteshipPrice ? 'Rp ' . number_format($biteshipPrice, 0, ',', '.') : '-' }}</p>
+                                            </div>
+                                        </div>
+                                        @if($originAddress || $destinationAddress)
+                                            <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div class="rounded-2xl bg-white border border-gray-100 px-4 py-3">
+                                                    <p class="text-[9px] font-black text-gray-400 tracking-widest">ORIGIN</p>
+                                                    <p class="mt-1 text-xs font-semibold text-gray-600 leading-relaxed">{{ $originAddress ?? '-' }}</p>
+                                                </div>
+                                                <div class="rounded-2xl bg-white border border-gray-100 px-4 py-3">
+                                                    <p class="text-[9px] font-black text-gray-400 tracking-widest">DESTINATION</p>
+                                                    <p class="mt-1 text-xs font-semibold text-gray-600 leading-relaxed">{{ $destinationAddress ?? '-' }}</p>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="rounded-3xl border border-cyan-100 bg-cyan-50/60 p-5">
+                                        <div class="flex items-center gap-3 mb-4">
+                                            <div class="w-12 h-12 rounded-2xl bg-white overflow-hidden flex items-center justify-center text-cyan-500">
+                                                @if($driverPhoto)
+                                                    <img src="{{ $driverPhoto }}" alt="{{ $driverName ?? 'Kurir' }}" class="w-full h-full object-cover">
+                                                @else
+                                                    <i class="fa-solid fa-user-helmet-safety text-lg"></i>
+                                                @endif
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-extrabold text-brand-dark">Identitas Kurir</p>
+                                                <p class="text-[10px] text-cyan-600 font-bold">{{ $driverName ? 'Kurir sudah ditugaskan' : 'Belum ada data driver' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-3">
+                                            <div class="rounded-2xl bg-white border border-cyan-100 px-4 py-3">
+                                                <p class="text-[9px] font-black text-cyan-400 tracking-widest">NAMA DRIVER</p>
+                                                <p class="mt-1 text-sm font-bold text-brand-dark">{{ $driverName ?? '-' }}</p>
+                                            </div>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div class="rounded-2xl bg-white border border-cyan-100 px-4 py-3">
+                                                    <p class="text-[9px] font-black text-cyan-400 tracking-widest">TELEPON</p>
+                                                    <p class="mt-1 text-xs font-bold text-brand-dark">{{ $driverPhone ?? '-' }}</p>
+                                                </div>
+                                                <div class="rounded-2xl bg-white border border-cyan-100 px-4 py-3">
+                                                    <p class="text-[9px] font-black text-cyan-400 tracking-widest">PLAT NOMOR</p>
+                                                    <p class="mt-1 text-xs font-bold text-brand-dark">{{ $driverPlate ?? '-' }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                @if($biteshipTrackingLink)
+                                                    <a href="{{ $biteshipTrackingLink }}" target="_blank"
+                                                        class="inline-flex items-center justify-center gap-2 rounded-2xl bg-cyan-500 px-4 py-3 text-xs font-black text-white hover:bg-brand-dark transition-all">
+                                                        <i class="fa-solid fa-map-location-dot"></i>
+                                                        Buka Tracking
+                                                    </a>
+                                                @endif
+                                                @if($ship->label_url)
+                                                    <a href="{{ route('orders.biteship-label.download', $order->id) }}"
+                                                        class="inline-flex items-center justify-center gap-2 rounded-2xl bg-white border border-cyan-200 px-4 py-3 text-xs font-black text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
+                                                        <i class="fa-solid fa-download"></i>
+                                                        Download Label
+                                                    </a>
+                                                    <a href="{{ $ship->label_url }}" target="_blank"
+                                                        class="inline-flex items-center justify-center gap-2 rounded-2xl bg-white border border-cyan-200 px-4 py-3 text-xs font-black text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
+                                                        <i class="fa-solid fa-up-right-from-square"></i>
+                                                        Label Biteship
+                                                    </a>
+                                                @endif
+                                                <button type="button" onclick="openPrintLabelModal()"
+                                                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-primary px-4 py-3 text-xs font-black text-white hover:bg-brand-dark transition-all">
+                                                    <i class="fa-solid fa-print"></i>
+                                                    Cetak Resi
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             {{-- Resi input for admin --}}
                             @if(!$ship->resi && $order->status === 'processing')
-                                <div class="flex gap-3">
+                                <div class="flex flex-col gap-3 md:flex-row">
+                                    <form action="{{ route('orders.biteship-waybill', $order->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="w-full px-5 py-3 bg-cyan-500 text-white rounded-2xl text-xs font-black tracking-widest hover:bg-brand-dark transition-all">
+                                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Generate Resi Biteship
+                                        </button>
+                                    </form>
                                     <input type="text" id="resiInput" placeholder="Masukkan nomor resi..."
                                         class="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary outline-none text-sm font-semibold">
                                     <button onclick="saveResi({{ $order->id }})"
@@ -577,12 +753,25 @@
                                         <div
                                             class="relative space-y-3 before:absolute before:left-4 before:top-0 before:bottom-0 before:w-px before:bg-gray-100">
                                             @foreach($history as $track)
+                                                @php
+                                                    $statusLabel = match(strtolower($track['status'] ?? '')) {
+                                                        'confirmed' => 'Pesanan pengiriman sudah dikonfirmasi.',
+                                                        'allocated' => 'Kurir sudah dialokasikan.',
+                                                        'picked_up', 'pickup', 'picking_up' => 'Paket sedang dijemput.',
+                                                        'in_transit', 'dropping_off', 'on_delivery' => 'Paket sedang dalam perjalanan.',
+                                                        'delivered' => 'Paket sudah diterima.',
+                                                        'cancelled', 'canceled' => 'Pengiriman dibatalkan.',
+                                                        'failed' => 'Pengiriman gagal.',
+                                                        default => null,
+                                                    };
+                                                    $description = $track['manifest_description'] ?? $track['description'] ?? $track['note'] ?? $statusLabel ?? '-';
+                                                @endphp
                                                 <div class="flex items-start gap-4 pl-10 relative">
                                                     <div
                                                         class="absolute left-2.5 top-1 w-3 h-3 rounded-full bg-brand-primary border-2 border-white shadow-sm">
                                                     </div>
                                                     <div class="flex-1">
-                                                        <p class="font-bold text-sm text-brand-dark">{{ $track['manifest_description'] ?? $track['description'] ?? '-' }}</p>
+                                                        <p class="font-bold text-sm text-brand-dark">{{ $description }}</p>
                                                         <p class="text-[10px] text-gray-400 mt-0.5">{{ $track['manifest_date'] ?? $track['date'] ?? '' }}
                                                             {{ $track['manifest_time'] ?? $track['time'] ?? '' }} — {{ $track['city_name'] ?? $track['location'] ?? '' }}
                                                         </p>
@@ -811,6 +1000,71 @@
     </div>
 
     {{-- ══════════════════════════════════════
+    PRINT LABEL MODAL
+    ══════════════════════════════════════ --}}
+    <div id="printLabelModal"
+        class="fixed inset-0 hidden bg-slate-900/50 backdrop-blur-sm items-center justify-center z-[110] p-4">
+        <div class="bg-white w-full max-w-3xl rounded-[1.75rem] shadow-2xl overflow-hidden">
+            <div class="px-7 py-5 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-black text-brand-dark">Print Label</h3>
+                    <p class="text-xs text-gray-400 font-bold mt-1">{{ $order->order_number }}</p>
+                </div>
+                <button type="button" onclick="closePrintLabelModal()"
+                    class="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <form id="printLabelForm" class="p-7 space-y-7">
+                <div>
+                    <h4 class="text-xl font-black text-gray-700 mb-5">Isi Detail Resi</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4">
+                        @foreach([
+                            'insurance' => 'Nilai Asuransi',
+                            'shipping_cost' => 'Ongkos Kirim',
+                            'item_description' => 'Deskripsi Barang',
+                            'item_sku' => 'SKU Barang',
+                            'sender_phone' => 'No. Telp Pengirim',
+                            'sender_address' => 'Alamat Pengirim',
+                            'receiver_phone' => 'No. Telp Penerima',
+                            'mask_receiver_name' => 'Sensor Nama Penerima',
+                        ] as $key => $label)
+                            <label class="flex items-center gap-4 text-lg font-bold text-gray-500 cursor-pointer">
+                                <input type="checkbox" name="{{ $key }}" value="1" checked
+                                    class="h-6 w-6 rounded-md border-gray-300 text-purple-700 focus:ring-purple-600">
+                                <span>{{ $label }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xl font-black text-gray-700 mb-3">Tipe Label</label>
+                    <select name="label_type"
+                        class="w-full px-4 py-4 rounded-2xl border border-gray-200 text-sm font-bold text-gray-500 focus:outline-none focus:border-purple-600 bg-white">
+                        <option value="thermal_2">Thermal 2 (10 x 15 cm)</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-3 text-purple-800 font-black">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Atur dan Simpan Konfigurasi Label</span>
+                </div>
+
+                <div class="-mx-7 px-7 pt-6 border-t border-gray-100">
+                    <button type="submit"
+                        class="w-full py-4 rounded-2xl bg-purple-800 text-white text-lg font-black hover:bg-brand-dark transition-all">
+                        Cetak Label
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <iframe id="printLabelFrame" class="hidden" title="Print Label"></iframe>
+
+    {{-- ══════════════════════════════════════
     STATUS MODAL
     ══════════════════════════════════════ --}}
     <div id="statusModal"
@@ -935,13 +1189,29 @@
             window.closeShipModal = function () {
                 $('#shipModal').addClass('hidden').removeClass('flex');
             }
+            window.openPrintLabelModal = function () {
+                $('#printLabelModal').removeClass('hidden').addClass('flex');
+            }
+            window.closePrintLabelModal = function () {
+                $('#printLabelModal').addClass('hidden').removeClass('flex');
+            }
 
             $('#statusSelect').on('change', function () {
                 $('#resiGroup').toggleClass('hidden', this.value !== 'shipped');
             });
 
-            $('#statusModal, #shipModal').on('click', function (e) {
+            $('#statusModal, #shipModal, #printLabelModal').on('click', function (e) {
                 if (e.target === this) $(this).addClass('hidden').removeClass('flex');
+            });
+
+            $('#printLabelForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const params = new URLSearchParams(new FormData(this));
+                params.set('auto_print', '1');
+
+                $('#printLabelFrame').attr('src', "{{ route('orders.biteship-label', $order->id) }}?" + params.toString());
+                closePrintLabelModal();
             });
 
             window.quickStatus = function (id, status) {

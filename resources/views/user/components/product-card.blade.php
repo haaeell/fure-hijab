@@ -16,12 +16,11 @@
 @endphp
 
 <a href="{{ route('collections.show', $product->slug) }}" class="product-card group block h-full">
-    <div
-        class="relative flex h-full flex-col overflow-hidden border border-brand-secondary/40 bg-white transition-all duration-300 hover:border-brand-primary">
+    <div class="relative flex h-full flex-col bg-transparent">
 
         @if($isFlashSale || $hasDiscount)
             <div
-                class="absolute left-2.5 top-2.5 z-10 flex items-center gap-1 bg-brand-dark px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest text-white md:text-[10px]">
+                class="absolute left-2 top-2 z-10 flex items-center gap-1 bg-brand-dark px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest text-white md:text-[10px]">
                 <i class="fa-solid fa-tag text-[7px]"></i>
                 @if($hasDiscount)
                     Hemat {{ $diskon }}%
@@ -31,8 +30,7 @@
             </div>
         @endif
 
-        <div
-            class="relative mb-3 aspect-[3/4] overflow-hidden bg-[#eee5dc]">
+        <div class="relative mb-3 aspect-[3/4] overflow-hidden bg-[#eee5dc]">
             <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533?text=FURE' }}"
                 class="product-image w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                 alt="{{ $product->name }}">
@@ -46,36 +44,36 @@
             </div>
         </div>
 
-        <div class="flex flex-grow flex-col px-3 pb-3">
-            <div class="flex justify-between items-center mb-1 gap-1">
-                <p class="text-[8px] md:text-[10px] text-brand-primary font-bold uppercase tracking-wider truncate">
+        <div class="flex flex-grow flex-col">
+            <div class="mb-1 flex items-center justify-between gap-2">
+                <p class="truncate text-[9px] font-bold uppercase tracking-[0.16em] text-brand-primary md:text-[10px]">
                     {{ $product->category->name }}
                 </p>
-                <div class="flex items-center gap-0.5 text-yellow-400 text-[9px] flex-shrink-0">
+                <div class="flex flex-shrink-0 items-center gap-0.5 text-[9px] text-yellow-400">
                     <i class="fa-solid fa-star"></i>
-                    <span class="text-gray-400 font-medium">4.8</span>
+                    <span class="font-medium text-brand-dark/45">4.8</span>
                 </div>
             </div>
 
             <h3
-                class="font-semibold text-brand-dark text-[10px] md:text-xs line-clamp-2 mb-2 h-7 md:h-8 leading-snug group-hover:text-brand-primary transition-colors">
+                class="mb-2 line-clamp-2 h-8 text-xs font-semibold leading-snug text-brand-dark transition-colors group-hover:text-brand-primary md:text-sm md:leading-snug">
                 {{ $product->name }}
             </h3>
 
-            <div class="mt-auto flex items-center justify-between gap-1 border-t border-brand-secondary/30 pt-2">
+            <div class="mt-auto flex items-end justify-between gap-2">
                 <div class="space-y-0">
-                    <p class="text-xs md:text-sm font-extrabold text-brand-dark whitespace-nowrap">
+                    <p class="whitespace-nowrap text-sm font-bold text-brand-dark md:text-base">
                         Rp{{ number_format($displayPrice, 0, ',', '.') }}
                     </p>
                     @if($hasDiscount)
-                        <p class="text-[8px] md:text-[10px] text-gray-400 line-through">
+                        <p class="text-[10px] text-brand-dark/35 line-through md:text-xs">
                             Rp{{ number_format($displayComparePrice, 0, ',', '.') }}
                         </p>
                     @endif
                 </div>
 
                 <div
-                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-[#eee5dc] text-brand-primary transition-all duration-300 hover:bg-brand-primary hover:text-white active:scale-90">
+                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-white text-brand-primary transition-all duration-300 group-hover:bg-brand-primary group-hover:text-white active:scale-95">
                     <i class="fa-solid fa-bag-shopping text-[10px]"></i>
                 </div>
             </div>

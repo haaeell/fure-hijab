@@ -106,8 +106,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{id}', 'show')->name('orders.show');
             Route::get('/{id}/api', 'showApi')->name('orders.api');
             Route::post('/{id}/track', 'trackShipment')->name('orders.track');
+            Route::get('/{id}/biteship-label', 'printBiteshipLabel')->name('orders.biteship-label');
+            Route::get('/{id}/biteship-label/download', 'downloadBiteshipLabel')->name('orders.biteship-label.download');
             Route::patch('/{id}/status', 'updateStatus')->name('orders.status');
             Route::patch('/{id}/resi', 'updateResi')->name('orders.resi');
+            Route::post('/{id}/biteship-waybill', 'generateBiteshipWaybill')->name('orders.biteship-waybill');
         });
 
         Route::prefix('reports')->controller(ReportController::class)->group(function () {
@@ -123,9 +126,9 @@ Route::middleware(['auth'])->group(function () {
 
         Route::prefix('settings')->controller(AdminSettingController::class)->group(function () {
             Route::get('/', 'index')->name('settings.index');
+            Route::get('/biteship/areas', 'searchBiteshipAreas')->name('settings.biteship.areas');
             Route::put('/', 'update')->name('settings.update');
             Route::post('/test-email', 'testEmail')->name('settings.test-email');
-            Route::get('/rajaongkir/origins', 'searchOrigins')->name('settings.rajaongkir.origins');
         });
 
         Route::prefix('landing-content')->controller(LandingContentController::class)->name('landing-content.')->group(function () {

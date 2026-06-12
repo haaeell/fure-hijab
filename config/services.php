@@ -43,8 +43,15 @@ return [
         'is_3ds' => env('MIDTRANS_IS_3DS', true),
     ],
 
-    'rajaongkir' => [
-        'api_key' => env('RAJAONGKIR_API_KEY'),
-        'origin'  => env('RAJAONGKIR_ORIGIN'),
+    'biteship' => [
+        'api_key' => env('BITESHIP_API_KEY'),
+        'webhook_secret' => env('BITESHIP_WEBHOOK_SECRET'),
+        'origin_area_id' => env('BITESHIP_ORIGIN_AREA_ID'),
+        'origin_contact_name' => env('BITESHIP_ORIGIN_CONTACT_NAME', env('APP_NAME', 'FURE')),
+        'origin_contact_phone' => env('BITESHIP_ORIGIN_CONTACT_PHONE'),
+        'origin_address' => env('BITESHIP_ORIGIN_ADDRESS'),
+        'origin_postal_code' => env('BITESHIP_ORIGIN_POSTAL_CODE'),
+        'origin_latitude' => env('BITESHIP_ORIGIN_LATITUDE'),
+        'origin_longitude' => env('BITESHIP_ORIGIN_LONGITUDE'),
     ],
 ];

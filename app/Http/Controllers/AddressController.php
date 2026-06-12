@@ -19,6 +19,7 @@ class AddressController extends Controller
             'district' => 'required|string',
             'subdistrict' => 'required|string',
             'postal_code' => 'required|string|max:10',
+            'biteship_area_id' => 'nullable|string|max:255',
             'address' => 'required|string',
             'latitude'       => 'nullable|numeric',
             'longitude'      => 'nullable|numeric',
@@ -43,9 +44,9 @@ class AddressController extends Controller
             'district' => $request->district,
             'subdistrict' => $request->subdistrict,
             'postal_code' => $request->postal_code,
+            'biteship_area_id' => $request->biteship_area_id,
             'address' => $request->address,
             'is_default' => $isDefault,
-            'rajaongkir_destination_id' => $request->rajaongkir_destination_id ?? null,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude
         ]);
