@@ -9,9 +9,70 @@
             <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">Atur kredensial Biteship, Midtrans, dan email SMTP langsung dari panel admin.</p>
         </div>
 
-        <form action="{{ route('settings.update') }}" method="POST" class="space-y-8">
+        <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
             @csrf
             @method('PUT')
+
+            <div class="bg-white rounded-[32px] shadow-sm border border-gray-50 p-8">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-10 h-10 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-brand-dark">Profil Toko</h3>
+                        <p class="text-xs text-gray-400 font-medium">Dipakai untuk logo, nama brand, footer, kontak, dan tombol WhatsApp.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Toko</label>
+                        <input type="text" name="store_name" value="{{ old('store_name', $settings['store_name']) }}"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Logo Toko</label>
+                        <input type="file" name="store_logo" accept="image/*"
+                            class="block w-full cursor-pointer rounded-2xl border border-gray-200 bg-gray-50/50 p-1 text-xs text-gray-400 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-primary file:px-5 file:py-2.5 file:text-[10px] file:font-black file:uppercase file:text-white hover:file:bg-brand-dark">
+                        @if($settings['store_logo'])
+                            <div class="mt-2 flex items-center gap-3">
+                                <img src="{{ asset('storage/' . $settings['store_logo']) }}" class="h-10 w-10 rounded-xl object-cover border border-gray-100" alt="Logo toko">
+                                <span class="text-xs font-semibold text-gray-400">Logo aktif</span>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Email Toko</label>
+                        <input type="email" name="store_email" value="{{ old('store_email', $settings['store_email']) }}"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nomor Telepon</label>
+                        <input type="text" name="store_phone" value="{{ old('store_phone', $settings['store_phone']) }}"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nomor WhatsApp</label>
+                        <input type="text" name="store_whatsapp" value="{{ old('store_whatsapp', $settings['store_whatsapp']) }}"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Instagram</label>
+                        <input type="text" name="store_instagram" value="{{ old('store_instagram', $settings['store_instagram']) }}" placeholder="https://instagram.com/fure"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">TikTok</label>
+                        <input type="text" name="store_tiktok" value="{{ old('store_tiktok', $settings['store_tiktok']) }}" placeholder="https://tiktok.com/@fure"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                    </div>
+                    <div class="md:col-span-2 space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Alamat Toko</label>
+                        <textarea name="store_address" rows="3"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold resize-none">{{ old('store_address', $settings['store_address']) }}</textarea>
+                    </div>
+                </div>
+            </div>
 
             <div class="bg-white rounded-[32px] shadow-sm border border-gray-50 p-8">
                 <div class="flex items-center gap-4 mb-8">

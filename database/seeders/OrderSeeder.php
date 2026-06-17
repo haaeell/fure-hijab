@@ -37,10 +37,11 @@ class OrderSeeder extends Seeder
             'status'        => 'delivered',
             'subtotal'      => 85000,
             'shipping_cost' => 12000,
-            'discount'      => 8500,   // 10% dari subtotal, max 20rb
+            'discount'      => 8500,
             'total'         => 88500,
             'notes'         => 'Tolong dibungkus rapi ya kak.',
             'coupon_id'     => $coupon->id,
+            'coupon_code'   => 'DISKON10',
             'created_at'    => Carbon::now()->subDays(20),
             'updated_at'    => Carbon::now()->subDays(14),
         ]);
@@ -107,10 +108,11 @@ class OrderSeeder extends Seeder
             'service'                => 'REG',
             'service_code'           => 'JNE-REG',
             'cost'                   => 12000,
+            'total_weight'           => 500,
             'resi'                   => 'JNE1234567890ID',
             'status'                 => 'delivered',
-            'origin_city_id'         => '501',   // Jakarta Selatan
-            'destination_city_id'    => '444',   // Yogyakarta
+            'origin_city_id'         => '501',
+            'destination_city_id'    => '444',
             'estimated_days'         => '2-3',
             'tracking_history'       => json_encode([
                 [
@@ -234,6 +236,7 @@ class OrderSeeder extends Seeder
             'service'             => 'BEST',
             'service_code'        => 'SICEPAT-BEST',
             'cost'                => 15000,
+            'total_weight'        => 1000,
             'resi'                => 'SCPT009876543',
             'status'              => 'in_transit',
             'origin_city_id'      => '501',
@@ -326,6 +329,7 @@ class OrderSeeder extends Seeder
             'service'             => 'EZ',
             'service_code'        => 'JNT-EZ',
             'cost'                => 10000,
+            'total_weight'        => 300,
             'resi'                => null,
             'status'              => 'pending',
             'origin_city_id'      => '501',
@@ -343,10 +347,11 @@ class OrderSeeder extends Seeder
             'status'        => 'pending',
             'subtotal'      => 55000,
             'shipping_cost' => 12000,
-            'discount'      => 5000,   // kupon HEMAT5000
+            'discount'      => 5000,
             'total'         => 62000,
             'notes'         => null,
             'coupon_id'     => Coupon::where('code', 'HEMAT5000')->first()?->id,
+            'coupon_code'   => 'HEMAT5000',
             'created_at'    => Carbon::now()->subHours(3),
             'updated_at'    => Carbon::now()->subHours(3),
         ]);
@@ -405,17 +410,20 @@ class OrderSeeder extends Seeder
         // ORDER 5 — Cancelled
         // ══════════════════════════════════════════════════════════════════════
         $order5 = Order::create([
-            'user_id'       => $customer->id,
-            'order_number'  => 'ORD-20240320-M9N0O',
-            'status'        => 'cancelled',
-            'subtotal'      => 50000,
-            'shipping_cost' => 12000,
-            'discount'      => 0,
-            'total'         => 62000,
-            'notes'         => 'Salah pilih ukuran.',
-            'coupon_id'     => null,
-            'created_at'    => Carbon::now()->subDays(12),
-            'updated_at'    => Carbon::now()->subDays(11),
+            'user_id'              => $customer->id,
+            'order_number'         => 'ORD-20240320-M9N0O',
+            'status'               => 'cancelled',
+            'subtotal'             => 50000,
+            'shipping_cost'        => 12000,
+            'discount'             => 0,
+            'total'                => 62000,
+            'notes'                => 'Salah pilih ukuran.',
+            'coupon_id'            => null,
+            'cancellation_reason'  => 'Salah pilih ukuran, ingin order ulang.',
+            'cancelled_at'         => Carbon::now()->subDays(11),
+            'cancelled_by'         => 'customer',
+            'created_at'           => Carbon::now()->subDays(12),
+            'updated_at'           => Carbon::now()->subDays(11),
         ]);
 
         OrderItem::create([
@@ -469,6 +477,7 @@ class OrderSeeder extends Seeder
             'total'         => 105000,
             'notes'         => null,
             'coupon_id'     => $coupon->id,
+            'coupon_code'   => 'DISKON10',
             'created_at'    => Carbon::now()->subHours(8),
             'updated_at'    => Carbon::now()->subHours(1),
         ]);

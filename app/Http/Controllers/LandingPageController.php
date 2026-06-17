@@ -8,6 +8,7 @@ use App\Models\Coupon;
 use App\Models\LandingBanner;
 use App\Models\LandingSection;
 use App\Models\Order;
+use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -124,9 +125,12 @@ class LandingPageController extends Controller
             ->get();
 
         $averageRating = $product->reviews->avg('rating');
-        $totalReviews = $product->reviews->count();
+        $totalReviews  = $product->reviews->count();
+        $inWishlist    = Auth::check()
+            ? Wishlist::where('user_id', Auth::id())->where('product_id', $product->id)->exists()
+            : false;
 
-        return view('user.collections.show', compact('product', 'relatedProducts', 'averageRating', 'totalReviews'));
+        return view('user.collections.show', compact('product', 'relatedProducts', 'averageRating', 'totalReviews', 'inWishlist'));
     }
 
     public function about(Request $request)
@@ -166,12 +170,13 @@ class LandingPageController extends Controller
     private function catalog(Request $request, string $type)
     {
         $query = Product::with(['category', 'images', 'variants'])->where('is_active', true);
+        $collectionCategory = $this->resolveCollectionCategory($type);
 
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        if ($request->filled('category')) {
+        if (!$collectionCategory && $request->filled('category')) {
             $query->whereHas('category', function ($q) use ($request) {
                 $q->where('slug', $request->category);
             });
@@ -195,7 +200,9 @@ class LandingPageController extends Controller
             $query->where('price', '<=', (int) $request->max_price);
         }
 
-        if ($type === 'syari') {
+        if ($collectionCategory) {
+            $query->where('category_id', $collectionCategory->id);
+        } elseif ($type === 'syari') {
             $query->where(function ($q) {
                 $q->where('name', 'like', '%syari%')
                     ->orWhere('name', 'like', "%syar'i%")
@@ -208,7 +215,7 @@ class LandingPageController extends Controller
 
         $sort = $request->get('sort');
 
-        if ($type === 'best-seller' || $sort === 'best_seller') {
+        if (($type === 'best-seller' && !$collectionCategory) || $sort === 'best_seller') {
             $query->orderByDesc('sold_count')->latest();
         } elseif ($sort === 'price_low') {
             $query->orderBy('price');
@@ -250,8 +257,36 @@ class LandingPageController extends Controller
             'categories',
             'products',
             'catalogMeta',
+            'collectionCategory',
             'inStockCount',
             'outOfStockCount'
         ));
+    }
+
+    private function resolveCollectionCategory(string $type): ?Category
+    {
+        $aliases = [
+            'best-seller' => ['best-seller', 'best seller', 'bestseller'],
+            'hijab' => ['hijab'],
+            'syari' => ['syari', "syar'i", 'syari-collection'],
+            'new-arrived' => ['new-arrived', 'new arrival', 'new-arrival', 'new arrived'],
+        ];
+
+        $terms = $aliases[$type] ?? [];
+
+        if (empty($terms)) {
+            return null;
+        }
+
+        return Category::where('is_active', true)
+            ->where(function ($query) use ($terms) {
+                $query->where('collection_type', $terms[0]);
+                foreach ($terms as $term) {
+                    $query->orWhere('slug', $term)
+                        ->orWhere('name', 'like', '%' . $term . '%');
+                }
+            })
+            ->orderBy('sort_order')
+            ->first();
     }
 }

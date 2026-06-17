@@ -17,6 +17,8 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\Mime\Address;
@@ -35,6 +37,10 @@ Route::get('/about-us', [LandingPageController::class, 'about'])->name('about.in
 Route::get('/promo', [LandingPageController::class, 'promo'])->name('promo.index');
 Route::get('/user/profile', [LandingPageController::class, 'profile'])->name('profile.index');
 Route::view('/terms-and-conditions', 'user.terms.index')->name('terms.index');
+
+// Public search API
+Route::get('/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');
+Route::get('/search/popular', [SearchController::class, 'popular'])->name('search.popular');
 
 Route::post('/midtrans/callback', [App\Http\Controllers\MidtransController::class, 'callback']);
 Route::get('/order/{order:order_number}/payment-status', [CheckoutController::class, 'checkPaymentStatus'])->middleware('auth');
@@ -141,6 +147,10 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/sections/{section}', 'destroySection')->name('sections.destroy');
         });
     });
+
+    // Wishlist (auth required, any role)
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
     // CUSTOMER ONLY ROUTES
     Route::middleware(['customer'])->group(function () {

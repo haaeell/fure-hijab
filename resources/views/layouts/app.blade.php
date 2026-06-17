@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - FURE</title>
+    @php
+        $adminStoreName = \App\Models\Setting::getValue('store_name', 'FURE');
+        $adminStoreLogo = \App\Models\Setting::getValue('store_logo');
+    @endphp
+    <title>Admin Dashboard - {{ $adminStoreName }}</title>
 
     <link href="https://fonts.bunny.net/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -116,11 +120,14 @@
 
         <div class="p-8 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div
-                    class="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-md shadow-brand-primary/20">
-                    <i class="fa-solid fa-wand-magic-sparkles text-white"></i>
-                </div>
-                <span class="text-brand-dark font-extrabold text-xl tracking-tight">FURE</span>
+                @if($adminStoreLogo)
+                    <img src="{{ asset('storage/' . $adminStoreLogo) }}" alt="{{ $adminStoreName }}" class="w-10 h-10 rounded-xl object-cover shadow-md">
+                @else
+                    <div class="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-md shadow-brand-primary/20">
+                        <i class="fa-solid fa-wand-magic-sparkles text-white"></i>
+                    </div>
+                @endif
+                <span class="text-brand-dark font-extrabold text-xl tracking-tight">{{ $adminStoreName }}</span>
             </div>
             <button id="closeSidebar" class="lg:hidden text-gray-400 hover:text-red-500">
                 <i class="fa-solid fa-xmark text-xl"></i>

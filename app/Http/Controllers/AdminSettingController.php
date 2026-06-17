@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Throwable;
 
@@ -23,6 +24,14 @@ class AdminSettingController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'store_name' => ['required', 'string', 'max:120'],
+            'store_email' => ['required', 'email', 'max:255'],
+            'store_phone' => ['nullable', 'string', 'max:30'],
+            'store_whatsapp' => ['nullable', 'string', 'max:30'],
+            'store_address' => ['nullable', 'string', 'max:1000'],
+            'store_instagram' => ['nullable', 'string', 'max:255'],
+            'store_tiktok' => ['nullable', 'string', 'max:255'],
+            'store_logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:2048'],
             'biteship_api_key' => ['required', 'string'],
             'biteship_webhook_secret' => ['nullable', 'string', 'max:255'],
             'biteship_origin_area_id' => ['nullable', 'string', 'max:255'],
@@ -47,6 +56,14 @@ class AdminSettingController extends Controller
             'mail_from_address' => ['required', 'email', 'max:255'],
             'mail_from_name' => ['required', 'string', 'max:255'],
         ]);
+
+        if ($request->hasFile('store_logo')) {
+            $oldLogo = Setting::getValue('store_logo');
+            if ($oldLogo) {
+                Storage::disk('public')->delete($oldLogo);
+            }
+            $validated['store_logo'] = $request->file('store_logo')->store('settings', 'public');
+        }
 
         $booleanSettings = [
             'midtrans_is_production',
@@ -103,6 +120,14 @@ class AdminSettingController extends Controller
     {
         return [
             'biteship_api_key' => Setting::getValue('biteship_api_key', config('services.biteship.api_key')),
+            'store_name' => Setting::getValue('store_name', config('app.name', 'FURE')),
+            'store_email' => Setting::getValue('store_email', config('mail.from.address')),
+            'store_phone' => Setting::getValue('store_phone'),
+            'store_whatsapp' => Setting::getValue('store_whatsapp', Setting::getValue('biteship_origin_contact_phone', config('services.biteship.origin_contact_phone'))),
+            'store_address' => Setting::getValue('store_address'),
+            'store_instagram' => Setting::getValue('store_instagram'),
+            'store_tiktok' => Setting::getValue('store_tiktok'),
+            'store_logo' => Setting::getValue('store_logo'),
             'biteship_webhook_secret' => Setting::getValue('biteship_webhook_secret', config('services.biteship.webhook_secret')),
             'biteship_origin_area_id' => Setting::getValue('biteship_origin_area_id', config('services.biteship.origin_area_id')),
             'biteship_origin_area_label' => Setting::getValue('biteship_origin_area_label'),

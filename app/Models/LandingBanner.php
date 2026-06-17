@@ -14,6 +14,7 @@ class LandingBanner extends Model
         'title',
         'subtitle',
         'image',
+        'mobile_image',
         'primary_button_text',
         'primary_button_url',
         'secondary_button_text',

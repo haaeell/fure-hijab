@@ -15,10 +15,10 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            ['name' => 'Pashmina', 'slug' => 'pashmina'],
-            ['name' => 'Segi Empat', 'slug' => 'segi-empat'],
-            ['name' => 'Bergo', 'slug' => 'bergo'],
-            ['name' => 'Aksesoris', 'slug' => 'aksesoris'],
+            ['name' => 'Pashmina',   'slug' => 'pashmina',   'collection_type' => 'hijab'],
+            ['name' => 'Segi Empat', 'slug' => 'segi-empat', 'collection_type' => 'best-seller'],
+            ['name' => 'Bergo',      'slug' => 'bergo',      'collection_type' => 'syari'],
+            ['name' => 'Aksesoris',  'slug' => 'aksesoris',  'collection_type' => 'new-arrived'],
         ];
 
         foreach ($categories as $cat) {

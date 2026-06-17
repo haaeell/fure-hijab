@@ -5,7 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>FURE - @yield('title', 'Elegansi dalam Kesantunan')</title>
+    @php
+        $storeName = \App\Models\Setting::getValue('store_name', 'FURE');
+        $storeLogo = \App\Models\Setting::getValue('store_logo');
+        $storeEmail = \App\Models\Setting::getValue('store_email');
+        $storePhone = \App\Models\Setting::getValue('store_phone');
+        $storeAddress = \App\Models\Setting::getValue('store_address');
+        $storeInstagram = \App\Models\Setting::getValue('store_instagram');
+        $storeTiktok = \App\Models\Setting::getValue('store_tiktok');
+        $storeWhatsapp = \App\Models\Setting::getValue('store_whatsapp');
+    @endphp
+    <title>{{ $storeName }} - @yield('title', 'Elegansi dalam Kesantunan')</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -67,6 +77,20 @@
 
         .animate-shimmer {
             animation: shimmer 2s infinite;
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .animate-marquee {
+            animation: marquee 34s linear infinite;
         }
 
         .select2-container--default .select2-selection--single {
@@ -203,32 +227,44 @@
     <body class="bg-[#f8f3ee] font-sans text-gray-900 antialiased overflow-x-hidden">
 
     <nav class="sticky top-0 z-50 border-b border-brand-secondary/40 bg-white">
-        <div class="bg-brand-dark text-white">
-            <div
-                class="no-scrollbar mx-auto flex max-w-7xl overflow-hidden whitespace-nowrap px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] sm:px-6 lg:px-8">
-                @for ($i = 0; $i < 5; $i++)
-                    <span class="mr-10">Exclusive discount 10% off</span>
-                    <span class="mr-10 text-brand-secondary">New hijab collection ready</span>
-                    <span class="mr-10">Free gift selected item</span>
-                @endfor
+        <div class="bg-brand-dark text-white overflow-hidden">
+            <div class="flex w-max animate-marquee whitespace-nowrap px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] sm:px-6 lg:px-8">
+                <div class="flex shrink-0 items-center">
+                    @for ($i = 0; $i < 5; $i++)
+                        <span class="mr-10">Exclusive discount 10% off</span>
+                        <span class="mr-10 text-brand-secondary">New hijab collection ready</span>
+                        <span class="mr-10">Free gift selected item</span>
+                    @endfor
+                </div>
+                <div class="flex shrink-0 items-center" aria-hidden="true">
+                    @for ($i = 0; $i < 5; $i++)
+                        <span class="mr-10">Exclusive discount 10% off</span>
+                        <span class="mr-10 text-brand-secondary">New hijab collection ready</span>
+                        <span class="mr-10">Free gift selected item</span>
+                    @endfor
+                </div>
             </div>
         </div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 grid grid-cols-3 items-center lg:flex lg:justify-between">
             <div class="flex items-center gap-2 lg:hidden">
-                <button type="button" aria-label="Menu" class="p-2 text-brand-dark">
-                    <i class="fa-solid fa-bars text-lg"></i>
+                <button type="button" id="mobileMenuButton" aria-label="Menu" aria-expanded="false" aria-controls="mobileMenuPanel"
+                    class="flex h-10 w-10 items-center justify-center text-brand-dark transition hover:bg-[#f8f3ee]">
+                    <i id="mobileMenuIcon" class="fa-solid fa-bars text-lg"></i>
                 </button>
-                <a href="{{ route('collections.index') }}" aria-label="Cari produk" class="p-2 text-brand-dark">
+                <button type="button" data-search-trigger aria-label="Cari produk" class="p-2 text-brand-dark transition hover:text-brand-primary">
                     <i class="fa-solid fa-magnifying-glass text-lg"></i>
-                </a>
+                </button>
             </div>
 
             <a href="/" class="group flex items-center justify-center gap-2.5 lg:justify-start">
-                <div
-                    class="hidden w-9 h-9 bg-brand-primary items-center justify-center transition-colors group-hover:bg-brand-dark sm:flex">
-                    <i class="fa-solid fa-wand-magic-sparkles text-white text-base"></i>
-                </div>
-                <span class="text-brand-dark font-black text-xl tracking-[0.22em] uppercase">FURE</span>
+                @if($storeLogo)
+                    <img src="{{ asset('storage/' . $storeLogo) }}" alt="{{ $storeName }}" class="hidden h-9 w-9 object-cover sm:block">
+                @else
+                    <div class="hidden w-9 h-9 bg-brand-primary items-center justify-center transition-colors group-hover:bg-brand-dark sm:flex">
+                        <i class="fa-solid fa-wand-magic-sparkles text-white text-base"></i>
+                    </div>
+                @endif
+                <span class="text-brand-dark font-black text-xl tracking-[0.22em] uppercase">{{ $storeName }}</span>
             </a>
 
             <div class="hidden lg:flex items-center gap-7 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-dark/80">
@@ -262,10 +298,25 @@
                     Store Locator
                 </a>
             </div>
+            @php
+                $wishlistCount = (Auth::check() && Auth::user()->role === 'customer')
+                    ? \App\Models\Wishlist::where('user_id', Auth::id())->count()
+                    : 0;
+            @endphp
             <div class="flex items-center justify-end gap-2 lg:gap-3">
-                <a href="{{ route('collections.index') }}" class="hidden p-2 text-brand-dark transition-colors hover:text-brand-primary md:block">
+                <button type="button" data-search-trigger class="hidden p-2 text-brand-dark transition-colors hover:text-brand-primary md:block">
                     <i class="fa-solid fa-magnifying-glass text-lg"></i>
-                </a>
+                </button>
+                @if(Auth::check() && Auth::user()->role === 'customer')
+                    <a href="{{ route('wishlist.index') }}" class="relative p-2 text-brand-dark transition-colors hover:text-brand-primary">
+                        <i class="fa-regular fa-heart text-lg"></i>
+                        @if($wishlistCount > 0)
+                            <span class="absolute top-0 right-0 bg-brand-primary text-white text-[10px] w-4 h-4 flex items-center justify-center border-2 border-white shadow">
+                                {{ $wishlistCount > 9 ? '9+' : $wishlistCount }}
+                            </span>
+                        @endif
+                    </a>
+                @endif
                 <a href="/cart" class="relative p-2 text-brand-dark hover:text-brand-primary transition-colors">
                     <i class="fa-solid fa-bag-shopping text-lg"></i>
                     <span
@@ -346,13 +397,39 @@
                 @endauth
             </div>
         </div>
-        <div class="no-scrollbar flex gap-6 overflow-x-auto border-t border-brand-secondary/30 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-dark/75 lg:hidden">
-            <a href="/" class="{{ request()->is('/') ? 'text-brand-primary' : '' }} whitespace-nowrap">Home</a>
-            <a href="{{ route('best-seller.index') }}" class="{{ request()->routeIs('best-seller.*') ? 'text-brand-primary' : '' }} whitespace-nowrap">Best Seller</a>
-            <a href="{{ route('hijab.index') }}" class="{{ request()->routeIs('hijab.*') || request()->routeIs('collections.*') ? 'text-brand-primary' : '' }} whitespace-nowrap">Hijab</a>
-            <a href="{{ route('syari.index') }}" class="{{ request()->routeIs('syari.*') ? 'text-brand-primary' : '' }} whitespace-nowrap">Syar'i</a>
-            <a href="{{ route('new-arrived.index') }}" class="{{ request()->routeIs('new-arrived.*') ? 'text-brand-primary' : '' }} whitespace-nowrap">New Arrived</a>
-            <a href="{{ route('about.index') }}" class="{{ request()->routeIs('about.*') ? 'text-brand-primary' : '' }} whitespace-nowrap">Store Locator</a>
+        <div id="mobileMenuPanel" class="hidden border-t border-brand-secondary/30 bg-white px-4 py-4 shadow-[0_18px_40px_rgba(95,74,58,0.08)] lg:hidden">
+            <div class="grid gap-2 text-[12px] font-bold uppercase tracking-[0.16em] text-brand-dark/75">
+                <a href="/"
+                    class="flex items-center justify-between px-3 py-3 transition {{ request()->is('/') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    Home
+                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
+                </a>
+                <a href="{{ route('best-seller.index') }}"
+                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('best-seller.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    Best Seller
+                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
+                </a>
+                <a href="{{ route('hijab.index') }}"
+                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('hijab.*') || request()->routeIs('collections.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    Hijab
+                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
+                </a>
+                <a href="{{ route('syari.index') }}"
+                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('syari.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    Syar'i
+                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
+                </a>
+                <a href="{{ route('new-arrived.index') }}"
+                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('new-arrived.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    New Arrived
+                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
+                </a>
+                <a href="{{ route('about.index') }}"
+                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('about.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    Store Locator
+                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
+                </a>
+            </div>
         </div>
     </nav>
 
@@ -375,23 +452,30 @@
                         </div>
                         <span
                             class="text-2xl font-black tracking-widest uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-secondary/80">
-                            FURE
+                            {{ $storeName }}
                         </span>
                     </div>
                     <p class="text-brand-secondary/70 text-lg leading-relaxed max-w-sm">
                         Elegansi dalam kesantunan. Mewujudkan standar baru hijab premium untuk wanita yang menghargai
                         kualitas dan estetika.
                     </p>
+                    @if($storeAddress || $storeEmail || $storePhone)
+                        <div class="space-y-2 text-sm text-brand-secondary/60">
+                            @if($storeAddress)<p>{{ $storeAddress }}</p>@endif
+                            @if($storeEmail)<p>{{ $storeEmail }}</p>@endif
+                            @if($storePhone)<p>{{ $storePhone }}</p>@endif
+                        </div>
+                    @endif
                     <div class="flex gap-4">
-                        <a href="#"
+                        <a href="{{ $storeInstagram ?: '#' }}"
                             class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-primary hover:scale-110 transition-all duration-300 group">
                             <i class="fa-brands fa-instagram text-xl group-hover:text-white"></i>
                         </a>
-                        <a href="#"
+                        <a href="{{ $storeTiktok ?: '#' }}"
                             class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-primary hover:scale-110 transition-all duration-300 group">
                             <i class="fa-brands fa-tiktok text-xl group-hover:text-white"></i>
                         </a>
-                        <a href="#"
+                        <a href="{{ $storeWhatsapp ? 'https://api.whatsapp.com/send?phone=' . preg_replace('/\D+/', '', str_starts_with($storeWhatsapp, '0') ? '62' . substr($storeWhatsapp, 1) : $storeWhatsapp) : '#' }}"
                             class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-primary hover:scale-110 transition-all duration-300 group">
                             <i class="fa-brands fa-whatsapp text-xl group-hover:text-white"></i>
                         </a>
@@ -426,7 +510,7 @@
 
             <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
                 <p class="text-brand-secondary/40 text-xs tracking-widest uppercase">
-                    &copy; 2026 FURE. Crafted with Grace.
+                    &copy; 2026 {{ $storeName }}. Crafted with Grace.
                 </p>
                 <div class="flex gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-secondary/30">
                     <a href="#" class="hover:text-brand-secondary transition-colors">Privacy Policy</a>
@@ -435,6 +519,66 @@
             </div>
         </div>
     </footer>
+
+    {{-- ─── Search Overlay ──────────────────────────────────────────────── --}}
+    <div id="searchOverlay" class="fixed inset-0 z-[300] flex flex-col" style="display:none;">
+        <div id="searchPanel" class="bg-white shadow-2xl border-b border-brand-secondary/20"
+             style="transform:translateY(-100%); transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);">
+            <div class="mx-auto max-w-3xl px-4 py-5 sm:px-6">
+                <div class="flex items-center gap-4 border-b border-brand-secondary/20 pb-4">
+                    <i class="fa-solid fa-magnifying-glass flex-shrink-0 text-lg text-brand-primary"></i>
+                    <input type="text" id="searchInput" placeholder="Cari produk hijab…"
+                        autocomplete="off"
+                        class="flex-1 bg-transparent text-lg font-medium text-brand-dark outline-none placeholder-brand-dark/30">
+                    <button id="searchClose" class="flex-shrink-0 p-1 text-xl text-brand-dark/40 transition hover:text-brand-dark">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="py-5" id="searchContent">
+                    {{-- Recent --}}
+                    <div id="recentSection" class="mb-5 hidden">
+                        <div class="mb-3 flex items-center justify-between">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/40">Pencarian Terakhir</p>
+                            <button id="clearHistory" class="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-primary transition hover:text-brand-dark">Hapus Semua</button>
+                        </div>
+                        <div id="recentList" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                    {{-- Popular --}}
+                    <div id="popularSection">
+                        <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/40">Produk Populer</p>
+                        <div id="popularList" class="flex flex-wrap gap-2">
+                            <span class="animate-pulse h-7 w-24 bg-brand-secondary/20 rounded"></span>
+                            <span class="animate-pulse h-7 w-32 bg-brand-secondary/20 rounded"></span>
+                            <span class="animate-pulse h-7 w-20 bg-brand-secondary/20 rounded"></span>
+                        </div>
+                    </div>
+
+                    {{-- Loading --}}
+                    <div id="searchLoading" class="hidden py-6 text-center">
+                        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-brand-primary"></i>
+                    </div>
+
+                    {{-- Results --}}
+                    <div id="searchResults" class="hidden"></div>
+
+                    {{-- No results --}}
+                    <div id="searchNoResults" class="hidden py-6 text-center">
+                        <i class="fa-regular fa-face-sad-tear mb-3 text-3xl text-brand-secondary"></i>
+                        <p class="text-sm font-semibold text-brand-dark/60">Tidak ada produk untuk "<span id="noResultQuery" class="text-brand-dark"></span>"</p>
+                        <p id="didYouMeanWrap" class="mt-2 hidden text-sm text-brand-dark/45">
+                            Maksud Anda:
+                            <button id="didYouMean" class="font-bold text-brand-primary transition hover:underline"></button>?
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="searchBackdrop" class="flex-1 cursor-pointer bg-black/50"
+             style="opacity:0; transition:opacity 0.3s ease; backdrop-filter:blur(2px);"></div>
+    </div>
+    {{-- ─────────────────────────────────────────────────────────────────── --}}
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
@@ -543,6 +687,16 @@
             const btn = $('#userDropdownBtn');
             const menu = $('#userDropdownMenu');
             const arrow = $('#dropdownArrow');
+            const mobileMenuButton = $('#mobileMenuButton');
+            const mobileMenuPanel = $('#mobileMenuPanel');
+            const mobileMenuIcon = $('#mobileMenuIcon');
+
+            mobileMenuButton.on('click', function (e) {
+                e.stopPropagation();
+                const isOpen = mobileMenuPanel.toggleClass('hidden').is(':visible');
+                mobileMenuButton.attr('aria-expanded', isOpen ? 'true' : 'false');
+                mobileMenuIcon.toggleClass('fa-bars', !isOpen).toggleClass('fa-xmark', isOpen);
+            });
 
             btn.on('click', function (e) {
                 e.stopPropagation();
@@ -551,12 +705,214 @@
             });
 
             $(document).on('click', function (e) {
+                if (!$(e.target).closest('#mobileMenuPanel, #mobileMenuButton').length) {
+                    mobileMenuPanel.addClass('hidden');
+                    mobileMenuButton.attr('aria-expanded', 'false');
+                    mobileMenuIcon.addClass('fa-bars').removeClass('fa-xmark');
+                }
+
                 if (!$(e.target).closest('#userDropdownContainer').length) {
                     menu.addClass('hidden');
                     arrow.removeClass('rotate-180');
                 }
             });
         });
+    </script>
+
+    <script>
+    // ─── Search Overlay ───────────────────────────────────────────────────
+    (function () {
+        const overlay  = document.getElementById('searchOverlay');
+        const panel    = document.getElementById('searchPanel');
+        const backdrop = document.getElementById('searchBackdrop');
+        const input    = document.getElementById('searchInput');
+        const closeBtn = document.getElementById('searchClose');
+
+        function esc(str) {
+            return String(str ?? '')
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+        function fmtPrice(n) {
+            return new Intl.NumberFormat('id-ID').format(n);
+        }
+
+        // ── Open / Close ─────────────────────────────────────────────────
+        function openSearch() {
+            overlay.style.display = 'flex';
+            requestAnimationFrame(() => {
+                panel.style.transform = 'translateY(0)';
+                backdrop.style.opacity = '1';
+            });
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => input.focus(), 320);
+            renderRecentSearches();
+            loadPopular();
+        }
+
+        function closeSearch() {
+            panel.style.transform = 'translateY(-100%)';
+            backdrop.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                document.body.style.overflow = '';
+            }, 350);
+        }
+
+        document.querySelectorAll('[data-search-trigger]').forEach(el =>
+            el.addEventListener('click', openSearch)
+        );
+        backdrop?.addEventListener('click', closeSearch);
+        closeBtn?.addEventListener('click', closeSearch);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSearch(); });
+
+        // ── Sections ────────────────────────────────────────────────────
+        function showIdle() {
+            document.getElementById('searchLoading').classList.add('hidden');
+            document.getElementById('searchResults').classList.add('hidden');
+            document.getElementById('searchNoResults').classList.add('hidden');
+            document.getElementById('popularSection').classList.remove('hidden');
+            renderRecentSearches();
+        }
+        function showLoading() {
+            document.getElementById('recentSection').classList.add('hidden');
+            document.getElementById('popularSection').classList.add('hidden');
+            document.getElementById('searchResults').classList.add('hidden');
+            document.getElementById('searchNoResults').classList.add('hidden');
+            document.getElementById('searchLoading').classList.remove('hidden');
+        }
+
+        // ── Popular ──────────────────────────────────────────────────────
+        async function loadPopular() {
+            try {
+                const res  = await fetch('/search/popular');
+                const data = await res.json();
+                const list = document.getElementById('popularList');
+                list.innerHTML = data.terms.map(t => `
+                    <button onclick="document.getElementById('searchInput').value=${JSON.stringify(t)};document.getElementById('searchInput').dispatchEvent(new Event('input'))"
+                        class="flex items-center gap-2 border border-brand-secondary/60 bg-white px-3 py-1.5 text-xs font-semibold text-brand-dark transition hover:border-brand-primary hover:text-brand-primary">
+                        <i class="fa-solid fa-fire text-[10px] text-brand-primary/60"></i>${esc(t)}
+                    </button>`).join('');
+            } catch (_) {
+                document.getElementById('popularSection').classList.add('hidden');
+            }
+        }
+
+        // ── Recent Searches (localStorage) ──────────────────────────────
+        function getHistory() {
+            try { return JSON.parse(localStorage.getItem('fure_search') || '[]'); }
+            catch (_) { return []; }
+        }
+        function saveSearch(q) {
+            if (!q.trim()) return;
+            let h = getHistory();
+            h = [q, ...h.filter(x => x !== q)].slice(0, 5);
+            localStorage.setItem('fure_search', JSON.stringify(h));
+        }
+        function renderRecentSearches() {
+            const h       = getHistory();
+            const section = document.getElementById('recentSection');
+            const list    = document.getElementById('recentList');
+            if (h.length === 0) { section.classList.add('hidden'); return; }
+            section.classList.remove('hidden');
+            list.innerHTML = h.map(t => `
+                <button onclick="document.getElementById('searchInput').value=${JSON.stringify(t)};document.getElementById('searchInput').dispatchEvent(new Event('input'))"
+                    class="flex items-center gap-2 border border-brand-secondary/50 bg-[#f8f3ee] px-3 py-1.5 text-xs font-semibold text-brand-dark transition hover:border-brand-primary hover:text-brand-primary">
+                    <i class="fa-solid fa-clock-rotate-left text-[10px] text-brand-dark/30"></i>${esc(t)}
+                </button>`).join('');
+        }
+        document.getElementById('clearHistory')?.addEventListener('click', () => {
+            localStorage.removeItem('fure_search');
+            document.getElementById('recentSection').classList.add('hidden');
+        });
+
+        // ── Live Search ──────────────────────────────────────────────────
+        let debounceTimer;
+        input?.addEventListener('input', function () {
+            const q = this.value.trim();
+            clearTimeout(debounceTimer);
+            if (q.length < 2) { showIdle(); return; }
+            showLoading();
+            debounceTimer = setTimeout(() => fetchSuggestions(q), 350);
+        });
+
+        async function fetchSuggestions(q) {
+            try {
+                const res  = await fetch('/search/suggestions?q=' + encodeURIComponent(q));
+                const data = await res.json();
+                document.getElementById('searchLoading').classList.add('hidden');
+                if (data.products.length > 0) {
+                    renderResults(data.products, q);
+                } else {
+                    renderNoResults(q, data.did_you_mean);
+                }
+            } catch (_) {
+                document.getElementById('searchLoading').classList.add('hidden');
+            }
+        }
+
+        function renderResults(products, q) {
+            document.getElementById('searchNoResults').classList.add('hidden');
+            const el = document.getElementById('searchResults');
+            el.classList.remove('hidden');
+            el.innerHTML = `
+                <p class="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/40">Hasil Pencarian</p>
+                <div class="grid gap-1 sm:grid-cols-2">
+                    ${products.map(p => `
+                        <a href="/collections/${esc(p.slug)}" onclick="saveSearchAndGo(${JSON.stringify(q)})"
+                            class="flex items-center gap-4 p-3 transition hover:bg-[#f8f3ee] group">
+                            <div class="h-14 w-10 flex-shrink-0 overflow-hidden bg-[#eee5dc]">
+                                ${p.image
+                                    ? `<img src="/storage/${esc(p.image)}" class="h-full w-full object-cover" alt="${esc(p.name)}">`
+                                    : `<div class="flex h-full w-full items-center justify-center"><i class="fa-solid fa-image text-brand-secondary"></i></div>`}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-[9px] font-bold uppercase tracking-[0.14em] text-brand-primary">${esc(p.category ?? '')}</p>
+                                <p class="truncate text-sm font-semibold text-brand-dark transition group-hover:text-brand-primary">${esc(p.name)}</p>
+                                <p class="text-sm font-bold text-brand-dark">Rp${fmtPrice(p.price)}</p>
+                            </div>
+                        </a>`).join('')}
+                </div>
+                <a href="/collections?search=${encodeURIComponent(q)}" onclick="saveSearchAndGo(${JSON.stringify(q)})"
+                    class="mt-4 flex w-full items-center justify-center gap-2 border border-brand-secondary/60 py-3 text-xs font-bold uppercase tracking-[0.16em] text-brand-dark transition hover:border-brand-primary hover:bg-[#f8f3ee]">
+                    <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                    Lihat semua hasil untuk "${esc(q)}"
+                </a>`;
+        }
+
+        function renderNoResults(q, didYouMean) {
+            document.getElementById('searchResults').classList.add('hidden');
+            const el = document.getElementById('searchNoResults');
+            el.classList.remove('hidden');
+            document.getElementById('noResultQuery').textContent = q;
+            const dym = document.getElementById('didYouMeanWrap');
+            if (didYouMean) {
+                dym.classList.remove('hidden');
+                const btn = document.getElementById('didYouMean');
+                btn.textContent = didYouMean;
+                btn.onclick = () => {
+                    input.value = didYouMean;
+                    input.dispatchEvent(new Event('input'));
+                };
+            } else {
+                dym.classList.add('hidden');
+            }
+        }
+
+        // ── Submit on Enter ──────────────────────────────────────────────
+        input?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const q = input.value.trim();
+                if (!q) return;
+                saveSearch(q);
+                closeSearch();
+                window.location.href = '/collections?search=' + encodeURIComponent(q);
+            }
+        });
+
+        // Exposed so inline onclick handlers can call it
+        window.saveSearchAndGo = function (q) { saveSearch(q); closeSearch(); };
+    })();
     </script>
 </body>
 

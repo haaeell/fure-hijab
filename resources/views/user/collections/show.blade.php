@@ -162,10 +162,16 @@
                                 </button>
                             </div>
 
-                            <button type="button"
-                                class="inline-flex w-full items-center justify-center gap-3 border border-brand-secondary/60 bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-dark transition hover:border-brand-primary">
-                                <i class="fa-regular fa-heart"></i>
-                                Wishlist
+                            <button type="button" id="wishlistBtn"
+                                data-product-id="{{ $product->id }}"
+                                data-in-wishlist="{{ $inWishlist ? '1' : '0' }}"
+                                data-auth="{{ Auth::check() ? '1' : '0' }}"
+                                class="inline-flex w-full items-center justify-center gap-3 border px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] transition
+                                    {{ $inWishlist
+                                        ? 'border-brand-primary bg-[#f8f3ee] text-brand-primary'
+                                        : 'border-brand-secondary/60 bg-white text-brand-dark hover:border-brand-primary' }}">
+                                <i id="wishlistIcon" class="{{ $inWishlist ? 'fa-solid' : 'fa-regular' }} fa-heart"></i>
+                                <span id="wishlistLabel">{{ $inWishlist ? 'Tersimpan' : 'Wishlist' }}</span>
                             </button>
                         </form>
 
@@ -328,6 +334,43 @@
         }
 
         $(document).ready(function () {
+            // Wishlist toggle
+            $('#wishlistBtn').on('click', function () {
+                if ($(this).data('auth') == 0) {
+                    window.location.href = "{{ route('login') }}";
+                    return;
+                }
+                const $btn = $(this);
+                $btn.prop('disabled', true);
+                $.post("{{ route('wishlist.toggle') }}", {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    product_id: $btn.data('product-id'),
+                })
+                .done(function (res) {
+                    if (res.in_wishlist) {
+                        $btn.removeClass('border-brand-secondary/60 bg-white text-brand-dark hover:border-brand-primary')
+                            .addClass('border-brand-primary bg-[#f8f3ee] text-brand-primary');
+                        $('#wishlistIcon').removeClass('fa-regular').addClass('fa-solid');
+                        $('#wishlistLabel').text('Tersimpan');
+                    } else {
+                        $btn.removeClass('border-brand-primary bg-[#f8f3ee] text-brand-primary')
+                            .addClass('border-brand-secondary/60 bg-white text-brand-dark hover:border-brand-primary');
+                        $('#wishlistIcon').removeClass('fa-solid').addClass('fa-regular');
+                        $('#wishlistLabel').text('Wishlist');
+                    }
+                    Swal.fire({
+                        icon: res.in_wishlist ? 'success' : 'info',
+                        title: res.message,
+                        toast: true, position: 'top-end',
+                        showConfirmButton: false, timer: 2000, timerProgressBar: true,
+                    });
+                })
+                .fail(function () {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan.', confirmButtonColor: '#A78B6F' });
+                })
+                .always(function () { $btn.prop('disabled', false); });
+            });
+
             $('.variant-btn').on('click', function () {
                 const type = $(this).data('type');
                 const value = $(this).data('value');

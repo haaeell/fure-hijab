@@ -25,6 +25,10 @@ class LandingContentController extends Controller
             $data['image'] = $request->file('image')->store('landing/banners', 'public');
         }
 
+        if ($request->hasFile('mobile_image')) {
+            $data['mobile_image'] = $request->file('mobile_image')->store('landing/banners', 'public');
+        }
+
         $data['is_active'] = $request->has('is_active');
 
         LandingBanner::create($data);
@@ -41,6 +45,11 @@ class LandingContentController extends Controller
             $data['image'] = $request->file('image')->store('landing/banners', 'public');
         }
 
+        if ($request->hasFile('mobile_image')) {
+            $this->deletePublicFile($banner->mobile_image);
+            $data['mobile_image'] = $request->file('mobile_image')->store('landing/banners', 'public');
+        }
+
         $data['is_active'] = $request->has('is_active');
 
         $banner->update($data);
@@ -51,6 +60,7 @@ class LandingContentController extends Controller
     public function destroyBanner(LandingBanner $banner)
     {
         $this->deletePublicFile($banner->image);
+        $this->deletePublicFile($banner->mobile_image);
         $banner->delete();
 
         return redirect()->back()->with('success', 'Banner berhasil dihapus.');
@@ -99,9 +109,10 @@ class LandingContentController extends Controller
     {
         return $request->validate([
             'eyebrow' => 'nullable|string|max:120',
-            'title' => 'required|string|max:160',
+            'title' => 'nullable|string|max:160',
             'subtitle' => 'nullable|string|max:500',
             'image' => ($isUpdate ? 'nullable' : 'nullable') . '|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'mobile_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
             'primary_button_text' => 'nullable|string|max:60',
             'primary_button_url' => 'nullable|string|max:255',
             'secondary_button_text' => 'nullable|string|max:60',

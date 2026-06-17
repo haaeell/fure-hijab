@@ -5,7 +5,6 @@
 @php
     $fallbackHero = 'https://images.unsplash.com/photo-1585435465945-bef5a93f8849?auto=format&fit=crop&q=85&w=1800';
     $fallbackEditorial = 'https://images.unsplash.com/photo-1618232118117-98d49b20e2f5?auto=format&fit=crop&q=85&w=1400';
-    $categoryBlocks = $categories->take(5);
     $defaultBanners = collect([
         (object) [
             'eyebrow' => 'New Collection',
@@ -59,59 +58,153 @@
     $shopLookImage = $shopLookHero && $shopLookHero->images->first()
         ? asset('storage/' . $shopLookHero->images->first()->image_url)
         : $fallbackEditorial;
+    $chatPhoneRaw = \App\Models\Setting::getValue('store_whatsapp', \App\Models\Setting::getValue('biteship_origin_contact_phone', config('services.biteship.origin_contact_phone', '081297536686')));
+    $chatPhone = preg_replace('/\D+/', '', (string) $chatPhoneRaw);
+    $chatPhone = str_starts_with($chatPhone, '0') ? '62' . substr($chatPhone, 1) : $chatPhone;
+    $chatMessage = rawurlencode('Halo FURE, saya mau tanya koleksi dan pesanan.');
+    $chatUrl = $chatPhone ? "https://api.whatsapp.com/send?phone={$chatPhone}&text={$chatMessage}" : '#';
+    $featureBanners = collect([
+        (object) [
+            'eyebrow' => 'FURE Signature',
+            'title' => 'Clean Layers for Every Day',
+            'subtitle' => 'Hijab premium dengan warna lembut, mudah dipadukan, dan nyaman dipakai sepanjang hari.',
+            'button_text' => 'Explore Collection',
+            'button_url' => route('collections.index'),
+            'image' => $fallbackEditorial,
+            'align' => 'left',
+        ],
+        (object) [
+            'eyebrow' => 'Daily Essential',
+            'title' => 'Soft Colors, Effortless Fit',
+            'subtitle' => 'Temukan pilihan bahan ringan untuk aktivitas harian sampai momen spesial.',
+            'button_text' => 'Shop New Arrival',
+            'button_url' => route('new-arrived.index'),
+            'image' => $fallbackHero,
+            'align' => 'right',
+        ],
+        (object) [
+            'eyebrow' => 'Limited Deals',
+            'title' => 'Special Picks This Week',
+            'subtitle' => 'Koleksi favorit dengan penawaran khusus untuk tampilan modest yang rapi.',
+            'button_text' => 'Claim Promo',
+            'button_url' => route('promo.index'),
+            'image' => 'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?auto=format&fit=crop&q=85&w=1600',
+            'align' => 'left',
+        ],
+        (object) [
+            'eyebrow' => 'Style Edit',
+            'title' => 'One Look, Many Moments',
+            'subtitle' => 'Padukan hijab, atasan, dan warna netral untuk tampilan santun yang tetap modern.',
+            'button_text' => 'Shop The Look',
+            'button_url' => route('collections.index'),
+            'image' => $shopLookImage,
+            'align' => 'right',
+        ],
+    ]);
 @endphp
 
 @section('content')
     <div class="bg-[#f8f3ee] text-brand-dark">
-        <section id="landingHero" class="relative min-h-[calc(100vh-7.25rem)] overflow-hidden bg-brand-dark md:min-h-[calc(100vh-5rem)]">
+        <div class="fixed bottom-5 right-5 z-[70] flex flex-col items-end gap-3 md:bottom-7 md:right-7">
+            <div id="landingChatPopup"
+                class="hidden w-[min(calc(100vw-2.5rem),21rem)] overflow-hidden border border-brand-secondary/60 bg-white shadow-[0_22px_60px_rgba(95,74,58,0.22)]">
+                <div class="flex items-center justify-between bg-[#8A7664] px-4 py-3 text-white">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
+                            <i class="fa-solid fa-headset text-sm"></i>
+                        </span>
+                        <div>
+                            <p class="text-sm font-bold leading-tight">FURE Assistant</p>
+                            <p class="text-[11px] text-white/75">Online via WhatsApp</p>
+                        </div>
+                    </div>
+                    <button type="button" id="landingChatClose"
+                        class="inline-flex h-8 w-8 items-center justify-center text-white/80 transition hover:bg-white/10 hover:text-white"
+                        aria-label="Tutup chat">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="space-y-4 bg-[#f8f3ee] p-4">
+                    <div class="max-w-[15rem] bg-white px-4 py-3 text-sm leading-6 text-brand-dark shadow-sm">
+                        Halo, ada yang bisa FURE bantu? Klik tombol di bawah untuk lanjut chat lewat WhatsApp.
+                    </div>
+                    <a href="{{ $chatUrl }}" target="_blank" rel="noopener"
+                        class="flex w-full items-center justify-center gap-2 bg-[#8A7664] px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-dark">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        Lanjut ke WhatsApp
+                    </a>
+                </div>
+            </div>
+
+            <button type="button" id="landingChatButton"
+                class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#8A7664] text-white shadow-[0_18px_40px_rgba(95,74,58,0.30)] transition hover:-translate-y-1 hover:bg-brand-dark md:h-16 md:w-16"
+                aria-label="Buka chat FURE" aria-expanded="false" aria-controls="landingChatPopup">
+                <i class="fa-brands fa-whatsapp text-3xl md:text-4xl"></i>
+            </button>
+        </div>
+
+        <section id="landingHero" class="relative h-[58vh] min-h-[360px] max-h-[640px] overflow-hidden bg-brand-dark sm:h-[64vh] md:h-auto md:min-h-[calc(100vh-5rem)] md:max-h-none">
             @foreach($heroBanners as $index => $banner)
                 @php
                     $bannerImage = $banner->image ? asset('storage/' . $banner->image) : $fallbackHero;
+                    $bannerMobileImage = $banner->mobile_image ? asset('storage/' . $banner->mobile_image) : $bannerImage;
+                    $hasHeroText = filled($banner->eyebrow)
+                        || filled($banner->title)
+                        || filled($banner->subtitle)
+                        || (filled($banner->primary_button_text) && filled($banner->primary_button_url))
+                        || (filled($banner->secondary_button_text) && filled($banner->secondary_button_url));
                 @endphp
                 <div class="landing-slide absolute inset-0 transition-opacity duration-700 {{ $index === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none' }}"
                     data-slide="{{ $index }}">
-                    <img src="{{ $bannerImage }}" alt="{{ $banner->title }}"
-                        class="absolute inset-0 h-full w-full object-cover opacity-80">
-                    <div class="absolute inset-0 bg-gradient-to-r from-brand-dark/90 via-brand-dark/38 to-transparent"></div>
-                    <div class="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#f8f3ee] to-transparent"></div>
-
-                    <div class="relative mx-auto flex min-h-[calc(100vh-7.25rem)] max-w-7xl items-center px-4 py-16 sm:px-6 md:min-h-[calc(100vh-5rem)] lg:px-8">
-                        <div class="max-w-2xl text-white">
-                            @if($banner->eyebrow)
-                                <p class="mb-5 inline-flex border border-white/45 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.28em]">
-                                    {{ $banner->eyebrow }}
-                                </p>
-                            @endif
-                            <h1 class="text-5xl font-semibold leading-[0.96] tracking-normal sm:text-6xl lg:text-7xl">
-                                {{ $banner->title }}
-                            </h1>
-                            @if($banner->subtitle)
-                                <p class="mt-6 max-w-lg text-sm leading-7 text-white/85 md:text-base">
-                                    {{ $banner->subtitle }}
-                                </p>
-                            @endif
-                            <div class="mt-8 flex flex-wrap gap-3">
-                                @if($banner->primary_button_text && $banner->primary_button_url)
-                                    <a href="{{ $banner->primary_button_url }}"
-                                        class="inline-flex items-center gap-3 bg-white px-7 py-3 text-sm font-bold text-brand-dark transition hover:bg-brand-secondary">
-                                        {{ $banner->primary_button_text }}
-                                        <i class="fa-solid fa-arrow-right text-xs"></i>
-                                    </a>
+                    <picture>
+                        <source media="(max-width: 767px)" srcset="{{ $bannerMobileImage }}">
+                        <img src="{{ $bannerImage }}" alt="{{ $banner->title ?: 'Banner FURE' }}"
+                            class="absolute inset-0 h-full w-full object-cover object-center {{ $hasHeroText ? 'opacity-85 md:opacity-80' : 'opacity-100' }}">
+                    </picture>
+                    @if($hasHeroText)
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/88 via-brand-dark/25 to-transparent md:bg-gradient-to-r md:from-brand-dark/90 md:via-brand-dark/38 md:to-transparent"></div>
+                    @endif
+                    @if($hasHeroText)
+                        <div class="relative mx-auto flex h-full max-w-7xl items-end px-4 pb-10 pt-16 sm:px-6 md:min-h-[calc(100vh-5rem)] md:items-center md:py-16 lg:px-8">
+                            <div class="max-w-xl text-white md:max-w-2xl">
+                                @if($banner->eyebrow)
+                                    <p class="mb-4 inline-flex border border-white/45 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] md:mb-5 md:px-4 md:py-2 md:text-[11px] md:tracking-[0.28em]">
+                                        {{ $banner->eyebrow }}
+                                    </p>
                                 @endif
-                                @if($banner->secondary_button_text && $banner->secondary_button_url)
-                                    <a href="{{ $banner->secondary_button_url }}"
-                                        class="inline-flex items-center gap-3 border border-white/60 px-7 py-3 text-sm font-bold text-white transition hover:bg-white hover:text-brand-dark">
-                                        {{ $banner->secondary_button_text }}
-                                    </a>
+                                @if($banner->title)
+                                    <h1 class="text-3xl font-semibold leading-tight tracking-normal sm:text-4xl md:text-6xl md:leading-[0.96] lg:text-7xl">
+                                        {{ $banner->title }}
+                                    </h1>
                                 @endif
+                                @if($banner->subtitle)
+                                    <p class="mt-4 max-w-md text-xs leading-6 text-white/85 sm:text-sm md:mt-6 md:max-w-lg md:text-base md:leading-7">
+                                        {{ $banner->subtitle }}
+                                    </p>
+                                @endif
+                                <div class="mt-6 flex flex-wrap gap-2 md:mt-8 md:gap-3">
+                                    @if($banner->primary_button_text && $banner->primary_button_url)
+                                        <a href="{{ $banner->primary_button_url }}"
+                                            class="inline-flex items-center gap-2 bg-white px-4 py-2.5 text-xs font-bold text-brand-dark transition hover:bg-brand-secondary md:gap-3 md:px-7 md:py-3 md:text-sm">
+                                            {{ $banner->primary_button_text }}
+                                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                                        </a>
+                                    @endif
+                                    @if($banner->secondary_button_text && $banner->secondary_button_url)
+                                        <a href="{{ $banner->secondary_button_url }}"
+                                            class="inline-flex items-center gap-2 border border-white/60 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white hover:text-brand-dark md:gap-3 md:px-7 md:py-3 md:text-sm">
+                                            {{ $banner->secondary_button_text }}
+                                        </a>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
             @endforeach
 
             @if($heroBanners->count() > 1)
-                <div class="absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+                <div class="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2 md:bottom-8">
                     @foreach($heroBanners as $index => $banner)
                         <button type="button" aria-label="Banner {{ $index + 1 }}"
                             class="landing-dot h-2.5 w-2.5 border border-white transition {{ $index === 0 ? 'bg-white' : 'bg-white/20' }}"
@@ -119,16 +212,6 @@
                     @endforeach
                 </div>
             @endif
-        </section>
-
-        <section class="border-y border-brand-secondary/50 bg-brand-primary text-white">
-            <div class="no-scrollbar flex overflow-hidden whitespace-nowrap py-3 text-[11px] font-bold uppercase tracking-[0.22em]">
-                @for ($i = 0; $i < 8; $i++)
-                    <span class="mx-8">Free Shipping</span>
-                    <span class="mx-8">Free Returns</span>
-                    <span class="mx-8">Premium Daily Hijab</span>
-                @endfor
-            </div>
         </section>
 
         <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -164,34 +247,7 @@
             </div>
         </section>
 
-        <section class="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-            <div class="mb-7 flex items-end justify-between gap-4">
-                <div>
-                    <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Shop by Category</p>
-                    <h2 class="mt-2 text-3xl font-semibold">Pilih Kategori</h2>
-                </div>
-                <a href="{{ route('collections.index') }}" class="hidden text-sm font-bold text-brand-primary hover:text-brand-dark md:inline-flex">
-                    View all
-                </a>
-            </div>
-
-            <div class="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 md:mx-0 md:grid md:grid-cols-5 md:px-0">
-                @foreach($categoryBlocks as $category)
-                    <a href="{{ route('collections.index', ['category' => $category->slug]) }}"
-                        class="group min-w-[180px] border border-brand-secondary/60 bg-white/70 p-3 transition hover:border-brand-primary hover:bg-white md:min-w-0">
-                        <div class="aspect-[4/5] overflow-hidden bg-[#eee5dc]">
-                            <img src="{{ $category->image ? asset('storage/' . $category->image) : 'https://images.unsplash.com/photo-1590159983013-d4ff5fc71c55?auto=format&fit=crop&q=80&w=600' }}"
-                                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                                alt="{{ $category->name }}">
-                        </div>
-                        <div class="mt-3">
-                            <h3 class="text-sm font-bold leading-tight">{{ $category->name }}</h3>
-                            <p class="mt-1 text-xs text-brand-dark/55">{{ $category->products_count }} produk</p>
-                        </div>
-                    </a>
-                @endforeach
-            </div>
-        </section>
+        @include('user.components.landing-feature-banner', ['banner' => $featureBanners->get(0)])
 
         @if($bestSellerProducts->count() > 0)
             <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -211,6 +267,8 @@
                     @endforeach
                 </div>
             </section>
+
+            @include('user.components.landing-feature-banner', ['banner' => $featureBanners->get(2)])
         @endif
 
         @foreach($featuredCategorySections as $category)
@@ -232,6 +290,8 @@
                     @endforeach
                 </div>
             </section>
+
+            @include('user.components.landing-feature-banner', ['banner' => $featureBanners->get(($loop->index + 3) % $featureBanners->count())])
         @endforeach
 
         <section id="new-arrival" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -252,6 +312,8 @@
                 @endforeach
             </div>
         </section>
+
+        @include('user.components.landing-feature-banner', ['banner' => $featureBanners->get(3)])
 
         @if($flashSaleProducts->count() > 0)
             <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -365,6 +427,25 @@
         document.addEventListener('DOMContentLoaded', function () {
             const slides = Array.from(document.querySelectorAll('.landing-slide'));
             const dots = Array.from(document.querySelectorAll('.landing-dot'));
+            const chatButton = document.getElementById('landingChatButton');
+            const chatPopup = document.getElementById('landingChatPopup');
+            const chatClose = document.getElementById('landingChatClose');
+
+            if (chatButton && chatPopup) {
+                const setChatOpen = function (isOpen) {
+                    chatPopup.classList.toggle('hidden', !isOpen);
+                    chatButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                };
+
+                chatButton.addEventListener('click', function () {
+                    setChatOpen(chatPopup.classList.contains('hidden'));
+                });
+
+                chatClose?.addEventListener('click', function () {
+                    setChatOpen(false);
+                });
+            }
+
             if (slides.length <= 1) return;
 
             let active = 0;

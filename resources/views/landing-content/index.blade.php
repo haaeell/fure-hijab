@@ -42,8 +42,8 @@
                             class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary">
                     </div>
                     <div class="space-y-1.5 md:col-span-2">
-                        <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Judul</label>
-                        <input name="title" required placeholder="FURE"
+                        <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Judul <span class="font-bold normal-case tracking-normal text-gray-300">(opsional untuk banner foto saja)</span></label>
+                        <input name="title" placeholder="FURE"
                             class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary">
                     </div>
                     <div class="space-y-1.5 md:col-span-2">
@@ -51,9 +51,14 @@
                         <textarea name="subtitle" rows="3"
                             class="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary"></textarea>
                     </div>
-                    <div class="space-y-1.5 md:col-span-2">
-                        <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Foto Banner</label>
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Foto Banner Desktop</label>
                         <input type="file" name="image" accept="image/*"
+                            class="block w-full cursor-pointer rounded-2xl border border-gray-200 bg-gray-50/50 p-1 text-xs text-gray-400 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-primary file:px-5 file:py-2.5 file:text-[10px] file:font-black file:uppercase file:text-white hover:file:bg-brand-dark">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Foto Banner Mobile</label>
+                        <input type="file" name="mobile_image" accept="image/*"
                             class="block w-full cursor-pointer rounded-2xl border border-gray-200 bg-gray-50/50 p-1 text-xs text-gray-400 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-primary file:px-5 file:py-2.5 file:text-[10px] file:font-black file:uppercase file:text-white hover:file:bg-brand-dark">
                     </div>
                     <div class="space-y-1.5">
@@ -170,15 +175,18 @@
                     @forelse($banners as $banner)
                         <div class="flex gap-4 rounded-3xl border border-gray-100 p-4">
                             <div class="h-20 w-28 flex-shrink-0 overflow-hidden rounded-2xl bg-gray-100">
-                                @if($banner->image)
-                                    <img src="{{ asset('storage/' . $banner->image) }}" class="h-full w-full object-cover" alt="{{ $banner->title }}">
+                                @if($banner->mobile_image || $banner->image)
+                                    <img src="{{ asset('storage/' . ($banner->image ?: $banner->mobile_image)) }}" class="h-full w-full object-cover" alt="{{ $banner->title }}">
                                 @endif
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-start justify-between gap-3">
-                                    <div>
+                                    <div class="min-w-0">
                                         <p class="text-[10px] font-black uppercase tracking-widest text-brand-primary">{{ $banner->eyebrow ?: 'Banner' }}</p>
-                                        <h3 class="truncate text-sm font-extrabold text-brand-dark">{{ $banner->title }}</h3>
+                                        <h3 class="truncate text-sm font-extrabold text-brand-dark">{{ $banner->title ?: 'Banner foto saja' }}</h3>
+                                        @if($banner->mobile_image)
+                                            <p class="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-green-600">Mobile image aktif</p>
+                                        @endif
                                     </div>
                                     <span class="rounded-full px-3 py-1 text-[10px] font-black uppercase {{ $banner->is_active ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }}">
                                         {{ $banner->is_active ? 'Aktif' : 'Off' }}
@@ -268,7 +276,7 @@
                 </div>
                 <div class="space-y-1.5 md:col-span-2">
                     <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Judul</label>
-                    <input name="title" id="editMainTitle" required class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
+                    <input name="title" id="editMainTitle" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
                 </div>
                 <div class="space-y-1.5 md:col-span-2">
                     <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Deskripsi</label>
@@ -317,8 +325,12 @@
                     </div>
                 </div>
                 <div class="space-y-1.5 md:col-span-2">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Ganti Foto</label>
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Ganti Foto Desktop</label>
                     <input type="file" name="image" accept="image/*" class="block w-full cursor-pointer rounded-2xl border border-gray-200 bg-gray-50/50 p-1 text-xs text-gray-400 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-primary file:px-5 file:py-2.5 file:text-[10px] file:font-black file:uppercase file:text-white hover:file:bg-brand-dark">
+                </div>
+                <div id="bannerMobileImageField" class="space-y-1.5 md:col-span-2">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Ganti Foto Mobile</label>
+                    <input type="file" name="mobile_image" accept="image/*" class="block w-full cursor-pointer rounded-2xl border border-gray-200 bg-gray-50/50 p-1 text-xs text-gray-400 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-primary file:px-5 file:py-2.5 file:text-[10px] file:font-black file:uppercase file:text-white hover:file:bg-brand-dark">
                 </div>
                 <label class="flex items-center gap-3 px-1">
                     <input type="checkbox" name="is_active" id="editActive" value="1" class="h-4 w-4 rounded border-gray-300 text-brand-primary">
@@ -348,8 +360,10 @@
         function showEditModal(type) {
             document.getElementById('editType').value = type;
             document.getElementById('editTitle').textContent = type === 'banner' ? 'Edit Banner Slider' : 'Edit Section';
+            document.getElementById('editMainTitle').required = type === 'section';
             bannerFields.classList.toggle('hidden', type !== 'banner');
             sectionFields.classList.toggle('hidden', type !== 'section');
+            document.getElementById('bannerMobileImageField').classList.toggle('hidden', type !== 'banner');
             editModal.classList.remove('hidden');
             editModal.classList.add('flex');
         }

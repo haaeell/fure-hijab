@@ -4,7 +4,7 @@
 
 @php
     $activeRoute = $catalogMeta['route'];
-    $activeCategory = request('category');
+    $activeCategory = isset($collectionCategory) && $collectionCategory ? null : request('category');
     $activeAvailability = request('availability');
     $activeSort = request('sort');
     $collectionTabs = [
@@ -14,28 +14,35 @@
         ['label' => 'New Arrived', 'route' => 'new-arrived.index'],
         ['label' => 'All Collections', 'route' => 'collections.index'],
     ];
+    $catalogDescriptions = [
+        'best-seller.index' => 'Koleksi favorit pelanggan FURE, dipilih dari produk yang paling sering dibeli dan mudah dipadukan.',
+        'hijab.index' => 'Pilihan hijab premium dengan warna lembut, bahan nyaman, dan tampilan rapi untuk aktivitas harian.',
+        'syari.index' => 'Siluet santun dan clean untuk tampilan modest yang tetap ringan, modern, dan elegan.',
+        'new-arrived.index' => 'Drop terbaru FURE untuk melengkapi wardrobe modest kamu dengan warna dan bahan pilihan.',
+        'collections.index' => 'Semua koleksi FURE dalam satu katalog, dari hijab harian sampai pilihan spesial.',
+    ];
 @endphp
 
 @section('content')
     <section class="bg-[#f8f3ee] text-brand-dark">
-        <div class="border-b border-brand-secondary/50 bg-white">
-            <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <nav class="mb-6 flex text-[10px] font-bold uppercase tracking-[0.24em] text-brand-dark/45">
+        <div class="bg-white">
+            <div class="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
+                <nav class="mb-5 flex text-[10px] font-bold uppercase tracking-[0.22em] text-brand-dark/45">
                     <a href="/" class="transition hover:text-brand-primary">Home</a>
                     <span class="mx-2 text-brand-secondary">/</span>
                     <span class="text-brand-dark">{{ $catalogMeta['title'] }}</span>
                 </nav>
 
-                <div class="grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
+                <div class="grid gap-7 lg:grid-cols-[1fr_380px] lg:items-end">
                     <div>
-                        <p class="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">
+                        <p class="mb-3 text-[11px] font-bold uppercase tracking-[0.26em] text-brand-primary">
                             FURE Collection
                         </p>
-                        <h1 class="max-w-3xl text-4xl font-semibold leading-none tracking-normal sm:text-5xl lg:text-6xl">
+                        <h1 class="max-w-3xl text-3xl font-semibold leading-tight tracking-normal sm:text-4xl lg:text-5xl">
                             {{ $catalogMeta['title'] }}
                         </h1>
                         <p class="mt-4 max-w-xl text-sm leading-7 text-brand-dark/60">
-                            {{ $products->total() }} produk hijab dan modest wear pilihan untuk tampilan harian yang rapi, nyaman, dan elegan.
+                            {{ $catalogDescriptions[$activeRoute] ?? $catalogDescriptions['collections.index'] }}
                         </p>
                     </div>
 
@@ -57,33 +64,35 @@
                     </form>
                 </div>
             </div>
-        </div>
 
-        <div class="border-b border-brand-secondary/50 bg-brand-dark text-white">
-            <div class="no-scrollbar mx-auto flex max-w-7xl gap-8 overflow-x-auto px-4 py-4 text-[11px] font-bold uppercase tracking-[0.18em] sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
+                <div class="no-scrollbar flex gap-2 overflow-x-auto border-t border-brand-secondary/40 pt-5 text-[11px] font-bold uppercase tracking-[0.16em]">
                 @foreach($collectionTabs as $tab)
                     <a href="{{ route($tab['route']) }}"
-                        class="flex-none transition {{ $activeRoute === $tab['route'] ? 'text-brand-secondary' : 'text-white/55 hover:text-white' }}">
+                        class="flex-none border px-4 py-2.5 transition {{ $activeRoute === $tab['route'] ? 'border-brand-primary bg-brand-primary text-white' : 'border-brand-secondary/60 bg-white text-brand-dark/60 hover:border-brand-primary hover:text-brand-primary' }}">
                         {{ $tab['label'] }}
                     </a>
                 @endforeach
+                </div>
             </div>
         </div>
 
-        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <div class="mb-6 grid gap-3 lg:hidden">
-                <div class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
-                    <a href="{{ route($activeRoute, request()->except('category', 'page')) }}"
-                        class="flex-none border px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition {{ !$activeCategory ? 'border-brand-primary bg-brand-primary text-white' : 'border-brand-secondary/70 bg-white text-brand-dark/65' }}">
-                        Semua
-                    </a>
-                    @foreach($categories as $cat)
-                        <a href="{{ route($activeRoute, array_merge(request()->except('page'), ['category' => $cat->slug])) }}"
-                            class="flex-none border px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition {{ $activeCategory === $cat->slug ? 'border-brand-primary bg-brand-primary text-white' : 'border-brand-secondary/70 bg-white text-brand-dark/65' }}">
-                            {{ $cat->name }}
+                @unless(isset($collectionCategory) && $collectionCategory)
+                    <div class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
+                        <a href="{{ route($activeRoute, request()->except('category', 'page')) }}"
+                            class="flex-none border px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition {{ !$activeCategory ? 'border-brand-primary bg-brand-primary text-white' : 'border-brand-secondary/70 bg-white text-brand-dark/65' }}">
+                            Semua
                         </a>
-                    @endforeach
-                </div>
+                        @foreach($categories as $cat)
+                            <a href="{{ route($activeRoute, array_merge(request()->except('page'), ['category' => $cat->slug])) }}"
+                                class="flex-none border px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition {{ $activeCategory === $cat->slug ? 'border-brand-primary bg-brand-primary text-white' : 'border-brand-secondary/70 bg-white text-brand-dark/65' }}">
+                                {{ $cat->name }}
+                            </a>
+                        @endforeach
+                    </div>
+                @endunless
 
                 <form action="{{ route($activeRoute) }}" method="GET" class="grid grid-cols-2 gap-2">
                     @foreach(request()->except('sort', 'page') as $key => $value)
@@ -105,15 +114,15 @@
                 </form>
             </div>
 
-            <div class="grid gap-8 lg:grid-cols-[250px_1fr]">
+            <div class="grid gap-8 lg:grid-cols-[270px_1fr]">
                 <aside class="hidden lg:block">
-                    <div class="sticky top-36 space-y-8">
-                        <div>
+                    <div class="sticky top-36 space-y-5">
+                        <div class="bg-white p-5 shadow-sm">
                             <h2 class="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Collections</h2>
-                            <div class="border-y border-brand-secondary/50">
+                            <div class="space-y-1">
                                 @foreach($collectionTabs as $tab)
                                     <a href="{{ route($tab['route']) }}"
-                                        class="flex items-center justify-between border-b border-brand-secondary/40 py-3 text-sm font-semibold transition last:border-b-0 {{ $activeRoute === $tab['route'] ? 'text-brand-primary' : 'text-brand-dark/65 hover:text-brand-primary' }}">
+                                        class="flex items-center justify-between px-3 py-2.5 text-sm font-semibold transition {{ $activeRoute === $tab['route'] ? 'bg-[#f8f3ee] text-brand-primary' : 'text-brand-dark/65 hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                                         {{ $tab['label'] }}
                                         <i class="fa-solid fa-chevron-right text-[10px]"></i>
                                     </a>
@@ -121,24 +130,26 @@
                             </div>
                         </div>
 
-                        <div>
-                            <h2 class="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Category</h2>
-                            <div class="space-y-1">
-                                <a href="{{ route($activeRoute, request()->except('category', 'page')) }}"
-                                    class="flex items-center justify-between py-2 text-sm font-semibold transition {{ !$activeCategory ? 'text-brand-primary' : 'text-brand-dark/60 hover:text-brand-primary' }}">
-                                    <span>All Products</span>
-                                </a>
-                                @foreach($categories as $cat)
-                                    <a href="{{ route($activeRoute, array_merge(request()->except('page'), ['category' => $cat->slug])) }}"
-                                        class="flex items-center justify-between py-2 text-sm font-semibold transition {{ $activeCategory === $cat->slug ? 'text-brand-primary' : 'text-brand-dark/60 hover:text-brand-primary' }}">
-                                        <span>{{ $cat->name }}</span>
-                                        <span class="text-xs font-medium text-brand-dark/35">{{ $cat->products_count }}</span>
+                        @unless(isset($collectionCategory) && $collectionCategory)
+                            <div class="bg-white p-5 shadow-sm">
+                                <h2 class="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Category</h2>
+                                <div class="space-y-1">
+                                    <a href="{{ route($activeRoute, request()->except('category', 'page')) }}"
+                                        class="flex items-center justify-between px-3 py-2.5 text-sm font-semibold transition {{ !$activeCategory ? 'bg-[#f8f3ee] text-brand-primary' : 'text-brand-dark/60 hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                                        <span>All Products</span>
                                     </a>
-                                @endforeach
+                                    @foreach($categories as $cat)
+                                        <a href="{{ route($activeRoute, array_merge(request()->except('page'), ['category' => $cat->slug])) }}"
+                                            class="flex items-center justify-between px-3 py-2.5 text-sm font-semibold transition {{ $activeCategory === $cat->slug ? 'bg-[#f8f3ee] text-brand-primary' : 'text-brand-dark/60 hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                                            <span>{{ $cat->name }}</span>
+                                            <span class="text-xs font-medium text-brand-dark/35">{{ $cat->products_count }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
+                        @endunless
 
-                        <form action="{{ route($activeRoute) }}" method="GET" class="space-y-5 border-t border-brand-secondary/50 pt-6">
+                        <form action="{{ route($activeRoute) }}" method="GET" class="space-y-5 bg-white p-5 shadow-sm">
                             @if(request('search'))
                                 <input type="hidden" name="search" value="{{ request('search') }}">
                             @endif
@@ -148,12 +159,12 @@
 
                             <div>
                                 <h2 class="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Availability</h2>
-                                <label class="mb-3 flex items-center justify-between gap-3 text-sm font-semibold text-brand-dark/65">
+                                <label class="mb-3 flex items-center justify-between gap-3 bg-[#f8f3ee] px-3 py-2.5 text-sm font-semibold text-brand-dark/65">
                                     <span>Ready Stock</span>
                                     <input type="radio" name="availability" value="in_stock" onchange="this.form.submit()"
                                         class="text-brand-primary focus:ring-brand-primary" @checked($activeAvailability === 'in_stock')>
                                 </label>
-                                <label class="flex items-center justify-between gap-3 text-sm font-semibold text-brand-dark/65">
+                                <label class="flex items-center justify-between gap-3 bg-[#f8f3ee] px-3 py-2.5 text-sm font-semibold text-brand-dark/65">
                                     <span>Sold Out</span>
                                     <input type="radio" name="availability" value="out_of_stock" onchange="this.form.submit()"
                                         class="text-brand-primary focus:ring-brand-primary" @checked($activeAvailability === 'out_of_stock')>
@@ -164,9 +175,9 @@
                                 <h2 class="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Price</h2>
                                 <div class="grid grid-cols-2 gap-2">
                                     <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min"
-                                        class="w-full border border-brand-secondary/70 bg-white px-3 py-3 text-xs font-semibold outline-none focus:border-brand-primary">
+                                        class="w-full border border-brand-secondary/70 bg-[#f8f3ee] px-3 py-3 text-xs font-semibold outline-none focus:border-brand-primary focus:bg-white">
                                     <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max"
-                                        class="w-full border border-brand-secondary/70 bg-white px-3 py-3 text-xs font-semibold outline-none focus:border-brand-primary">
+                                        class="w-full border border-brand-secondary/70 bg-[#f8f3ee] px-3 py-3 text-xs font-semibold outline-none focus:border-brand-primary focus:bg-white">
                                 </div>
                             </div>
 
@@ -183,10 +194,17 @@
                 </aside>
 
                 <div>
-                    <div class="mb-5 flex flex-col gap-3 border-b border-brand-secondary/50 pb-4 sm:flex-row sm:items-center sm:justify-between">
-                        <p class="text-xs font-bold uppercase tracking-[0.18em] text-brand-dark/50">
-                            Showing {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} of {{ $products->total() }} products
-                        </p>
+                    <div class="mb-5 flex flex-col gap-4 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-[0.18em] text-brand-dark/50">
+                                Showing {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} of {{ $products->total() }} products
+                            </p>
+                            @if(request()->hasAny(['search', 'category', 'availability', 'min_price', 'max_price']))
+                                <a href="{{ route($activeRoute) }}" class="mt-2 inline-flex text-xs font-bold uppercase tracking-[0.16em] text-brand-primary hover:text-brand-dark">
+                                    Clear active filters
+                                </a>
+                            @endif
+                        </div>
                         <form action="{{ route($activeRoute) }}" method="GET" class="hidden items-center gap-3 lg:flex">
                             @foreach(request()->except('sort', 'page') as $key => $value)
                                 @if(is_scalar($value))
@@ -195,7 +213,7 @@
                             @endforeach
                             <label class="text-xs font-bold uppercase tracking-[0.18em] text-brand-dark/45">Sort</label>
                             <select name="sort" onchange="this.form.submit()"
-                                class="border border-brand-secondary/70 bg-white px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-brand-dark outline-none focus:border-brand-primary">
+                                class="border border-brand-secondary/70 bg-[#f8f3ee] px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-brand-dark outline-none focus:border-brand-primary">
                                 <option value="">Terbaru</option>
                                 <option value="best_seller" @selected($activeSort === 'best_seller')>Best Seller</option>
                                 <option value="price_low" @selected($activeSort === 'price_low')>Harga Rendah</option>
@@ -205,9 +223,11 @@
                     </div>
 
                     @if($products->count() > 0)
-                        <div class="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-4">
                             @foreach($products as $product)
-                                @include('user.components.product-card', ['product' => $product, 'isFlashSale' => $product->compare_price > $product->price])
+                                <div class="bg-white p-2 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3">
+                                    @include('user.components.product-card', ['product' => $product, 'isFlashSale' => $product->compare_price > $product->price])
+                                </div>
                             @endforeach
                         </div>
 
