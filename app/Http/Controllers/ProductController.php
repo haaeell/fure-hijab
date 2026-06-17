@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Collection;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
@@ -20,18 +21,21 @@ class ProductController extends Controller
         $products = Product::with(['category', 'brand', 'images' => fn($q) => $q->where('is_primary', true)])
             ->latest()
             ->get();
-        $categories = Category::where('is_active', true)->get();
+        $categories  = Category::where('is_active', true)->get();
         $brands      = Brand::where('is_active', true)->get();
+        $collections = Collection::where('is_active', true)->orderBy('sort_order')->get();
 
-        return view('master.products.index', compact('products', 'categories', 'brands'));
+        return view('master.products.index', compact('products', 'categories', 'brands', 'collections'));
     }
 
     public function show($id)
     {
-        $product = Product::with(['category', 'brand', 'images', 'variants.attributes'])
+        $product = Product::with(['category', 'brand', 'images', 'variants.attributes', 'collections'])
             ->findOrFail($id);
 
-        return response()->json($product);
+        return response()->json(array_merge($product->toArray(), [
+            'collection_ids' => $product->collections->pluck('id'),
+        ]));
     }
 
     public function store(Request $request)
@@ -51,6 +55,8 @@ class ProductController extends Controller
             'is_active'         => 'nullable',
             'has_variant'       => 'nullable|boolean',
             'images.*'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'collection_ids'    => 'nullable|array',
+            'collection_ids.*'  => 'exists:collections,id',
         ], [
             'name.required'     => 'Nama produk wajib diisi',
             'name.unique'       => 'Nama produk sudah terdaftar',
@@ -98,6 +104,9 @@ class ProductController extends Controller
                 $this->syncVariants($product, $request->input('variants', []));
             }
 
+            // Sync collections
+            $product->collections()->sync($request->input('collection_ids', []));
+
             DB::commit();
             return redirect()->back()->with('success', 'Produk berhasil ditambahkan');
         } catch (\Exception $e) {
@@ -125,6 +134,8 @@ class ProductController extends Controller
             'is_active'         => 'nullable',
             'has_variant'       => 'nullable|boolean',
             'images.*'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'collection_ids'    => 'nullable|array',
+            'collection_ids.*'  => 'exists:collections,id',
         ], [
             'name.required'     => 'Nama produk wajib diisi',
             'name.unique'       => 'Nama produk sudah terdaftar',
@@ -184,6 +195,9 @@ class ProductController extends Controller
                 }
                 $product->variants()->delete();
             }
+
+            // Sync collections
+            $product->collections()->sync($request->input('collection_ids', []));
 
             DB::commit();
             return redirect()->back()->with('success', 'Produk berhasil diperbarui');

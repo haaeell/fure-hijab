@@ -315,6 +315,25 @@
                                 <textarea name="description" id="productDesc"></textarea>
                             </div>
 
+                            {{-- Koleksi --}}
+                            <div class="md:col-span-2 space-y-2">
+                                <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">KOLEKSI <span class="text-gray-300">(Opsional, bisa lebih dari satu)</span></label>
+                                @if($collections->isEmpty())
+                                    <p class="text-xs text-gray-400 px-1">Belum ada koleksi. <a href="{{ route('koleksi.index') }}" class="text-brand-primary font-semibold hover:underline">Buat koleksi</a> terlebih dahulu.</p>
+                                @else
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        @foreach($collections as $col)
+                                            <label class="collection-label flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-2xl cursor-pointer transition-all hover:border-brand-primary has-[input:checked]:border-brand-primary has-[input:checked]:bg-brand-primary/5">
+                                                <input type="checkbox" name="collection_ids[]" value="{{ $col->id }}"
+                                                    data-collection-id="{{ $col->id }}"
+                                                    class="h-4 w-4 rounded border-gray-300 text-brand-primary focus:ring-brand-primary collection-checkbox">
+                                                <span class="text-sm font-semibold text-gray-600 leading-tight">{{ $col->name }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+
                             {{-- Toggle Varian --}}
                             <div class="md:col-span-2 flex items-center gap-4 px-5 py-4 bg-blue-50/50 rounded-2xl border border-blue-100">
                                 <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
@@ -433,26 +452,30 @@
                     </div>
 
                     {{-- ═══════ TAB: GAMBAR ═══════ --}}
-                    <div id="panel-images" class="tab-panel hidden space-y-5">
+                    <div id="panel-images" class="tab-panel hidden space-y-4">
 
-                        {{-- Drop zone --}}
-                        <div id="dropZone"
-                            class="border-2 border-dashed border-gray-200 rounded-3xl p-10 text-center hover:border-brand-primary transition-all cursor-pointer bg-gray-50/50 hover:bg-brand-primary/5"
-                            onclick="document.getElementById('productImages').click()"
-                            ondragover="event.preventDefault(); this.classList.add('border-brand-primary','bg-brand-primary/5')"
-                            ondragleave="this.classList.remove('border-brand-primary','bg-brand-primary/5')"
-                            ondrop="handleDrop(event)">
-                            <i class="fa-solid fa-cloud-arrow-up text-4xl text-gray-300 mb-3"></i>
-                            <p class="text-sm font-bold text-gray-400">Klik atau seret gambar ke sini</p>
-                            <p class="text-[10px] text-gray-300 mt-1">JPG, PNG, WEBP — maks 2MB per gambar. Gambar pertama jadi thumbnail utama.</p>
-                            <input type="file" name="images[]" id="productImages" accept="image/*" multiple class="hidden">
+                        {{-- Header bar --}}
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-black text-gray-400 tracking-widest">FOTO PRODUK</p>
+                                <p class="text-[11px] text-gray-400 mt-0.5">JPG, PNG, WEBP — maks 2 MB per foto. Foto pertama otomatis jadi foto utama.</p>
+                            </div>
+                            <button type="button" onclick="addImageSlot()"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 text-[11px] font-black tracking-widest bg-brand-primary text-white rounded-xl hover:bg-brand-dark transition-all shadow-sm shadow-brand-primary/20">
+                                <i class="fa-solid fa-plus text-xs"></i> Tambah Foto
+                            </button>
                         </div>
 
-                        {{-- Existing images (edit mode) --}}
-                        <div id="existingImages" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3"></div>
+                        {{-- Image list --}}
+                        <div id="imageList" class="space-y-2.5"></div>
 
-                        {{-- New image preview --}}
-                        <div id="imagePreviewGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3"></div>
+                        {{-- Empty state --}}
+                        <div id="imageEmpty"
+                            class="py-14 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50/50">
+                            <i class="fa-solid fa-images text-5xl text-gray-200 mb-4 block"></i>
+                            <p class="text-sm font-semibold text-gray-400">Belum ada foto produk</p>
+                            <p class="text-xs text-gray-300 mt-1">Klik "+ Tambah Foto" untuk menambahkan</p>
+                        </div>
                     </div>
 
                     {{-- ═══════ TAB: VARIAN ═══════ --}}
@@ -665,8 +688,6 @@
                 if (e.target === this) closeModal();
             });
 
-            // Drop zone
-            $('#productImages').on('change', function () { previewImages(this.files); });
         });
 
         function setHiddenPrice(inputId, fieldName) {
@@ -732,8 +753,10 @@
 
         function resetModal() {
             $('#productForm')[0].reset();
-            $('#existingImages').empty();
-            $('#imagePreviewGrid').empty();
+            $('.collection-checkbox').prop('checked', false);
+            $('#imageList').empty();
+            $('#imageEmpty').removeClass('hidden');
+            pendingCounter = 0;
             $('#variantList').empty();
             $('#attributeTypes').empty();
             variantRows = []; attrTypes = []; attrCounter = 0; varCounter = 0;
@@ -776,6 +799,14 @@
             // Images
             if (data.images?.length) renderExistingImages(data.id, data.images);
 
+            // Collections
+            $('.collection-checkbox').prop('checked', false);
+            if (data.collection_ids?.length) {
+                data.collection_ids.forEach(id => {
+                    $(`.collection-checkbox[data-collection-id="${id}"]`).prop('checked', true);
+                });
+            }
+
             // Variants
             if (data.has_variant && data.variants?.length) {
                 data.variants.forEach(v => addManualVariant(v));
@@ -811,49 +842,127 @@
         // ══════════════════════════════════════════════════════
         // IMAGE HANDLING
         // ══════════════════════════════════════════════════════
-        function previewImages(files) {
-            $('#imagePreviewGrid').empty();
-            Array.from(files).forEach((file, i) => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    $('#imagePreviewGrid').append(`
-                        <div class="relative group">
-                            <img src="${e.target.result}" class="w-full aspect-square object-cover rounded-2xl border border-gray-100 shadow-sm">
-                            ${i === 0 ? '<span class="absolute top-1 left-1 px-2 py-0.5 bg-brand-primary text-white text-[9px] font-black rounded-lg shadow">UTAMA</span>' : ''}
-                        </div>`);
-                };
-                reader.readAsDataURL(file);
-            });
+        let pendingCounter = 0;
+
+        function updateImageEmpty() {
+            const hasRows = $('#imageList').children().length > 0;
+            $('#imageEmpty').toggleClass('hidden', hasRows);
         }
 
-        function handleDrop(e) {
-            e.preventDefault();
-            document.getElementById('productImages').files = e.dataTransfer.files;
-            previewImages(e.dataTransfer.files);
+        // ── Pending slot (new image to upload) ──────────────
+        window.addImageSlot = function () {
+            const n = ++pendingCounter;
+            $('#imageList').append(`
+                <div id="pending-slot-${n}" class="img-pending-row flex items-center gap-4 p-3 bg-white border border-gray-200 rounded-2xl transition-all hover:border-brand-primary/40">
+                    <div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer"
+                         onclick="document.getElementById('pending-file-${n}').click()">
+                        <img id="pending-preview-${n}" class="w-full h-full object-cover hidden" alt="">
+                        <i class="fa-solid fa-image text-2xl text-gray-200" id="pending-icon-${n}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p id="pending-name-${n}" class="text-sm font-semibold text-gray-400 truncate">Belum ada foto dipilih</p>
+                        <label for="pending-file-${n}"
+                            class="mt-1 inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary cursor-pointer hover:underline">
+                            <i class="fa-solid fa-folder-open text-xs"></i> Pilih Foto
+                        </label>
+                        <input type="file" name="images[]" id="pending-file-${n}"
+                            accept="image/jpeg,image/png,image/jpg,image/webp" class="sr-only"
+                            onchange="previewPending(this, ${n})">
+                    </div>
+                    <button type="button" onclick="removePendingSlot(${n})"
+                        class="w-9 h-9 flex-shrink-0 flex items-center justify-center bg-red-50 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all" title="Batalkan">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>`);
+            updateImageEmpty();
         }
 
+        window.previewPending = function (input, n) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                $(`#pending-preview-${n}`).attr('src', e.target.result).removeClass('hidden');
+                $(`#pending-icon-${n}`).addClass('hidden');
+                $(`#pending-name-${n}`).text(file.name).removeClass('text-gray-400').addClass('text-gray-700');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.removePendingSlot = function (n) {
+            $(`#pending-slot-${n}`).fadeOut(200, function () { $(this).remove(); updateImageEmpty(); });
+        }
+
+        // ── Saved images (edit mode) ─────────────────────────
         function renderExistingImages(productId, images) {
-            const grid = $('#existingImages');
-            grid.empty();
-            images.forEach(img => {
-                grid.append(`
-                    <div class="relative group" id="img-${img.id}">
-                        <img src="/storage/${img.image_url}" class="w-full aspect-square object-cover rounded-2xl border border-gray-100 shadow-sm">
-                        ${img.is_primary ? '<span class="absolute top-1 left-1 px-2 py-0.5 bg-brand-primary text-white text-[9px] font-black rounded-lg shadow">UTAMA</span>' : ''}
-                        <div class="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
-                            ${!img.is_primary ? `<button type="button" onclick="setPrimaryImg(${productId}, ${img.id})" class="w-8 h-8 bg-white rounded-xl text-xs text-brand-primary font-black hover:bg-brand-primary hover:text-white transition-all" title="Jadikan Utama"><i class="fa-solid fa-star"></i></button>` : ''}
-                            <button type="button" onclick="deleteImg(${productId}, ${img.id})" class="w-8 h-8 bg-white rounded-xl text-xs text-red-500 font-black hover:bg-red-500 hover:text-white transition-all" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+            $('#imageList').find('.img-saved-row').remove();
+
+            images.forEach((img, i) => {
+                const isPrimary = !!img.is_primary;
+                const row = `
+                    <div id="img-row-${img.id}" class="img-saved-row flex items-center gap-4 p-3 rounded-2xl border transition-all
+                        ${isPrimary ? 'bg-brand-primary/5 border-brand-primary/30' : 'bg-white border-gray-100 shadow-sm'}">
+
+                        <div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-50 border border-gray-100">
+                            <img src="/storage/${img.image_url}" class="w-full h-full object-cover" alt="">
                         </div>
-                    </div>`);
+
+                        <div class="flex-1 min-w-0">
+                            ${isPrimary
+                                ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-black tracking-widest rounded-full bg-brand-primary text-white">
+                                       <i class="fa-solid fa-star text-[8px]"></i> FOTO UTAMA
+                                   </span>`
+                                : `<span class="text-xs font-semibold text-gray-400">Foto ${i + 1}</span>`
+                            }
+                        </div>
+
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            ${!isPrimary ? `
+                            <button type="button" onclick="setPrimaryImg(${productId}, ${img.id})"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-black tracking-widest rounded-xl border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-400 hover:text-white hover:border-amber-400 transition-all">
+                                <i class="fa-solid fa-star text-[9px]"></i>
+                                <span class="hidden sm:inline">Utama</span>
+                            </button>` : ''}
+
+                            <label class="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-black tracking-widest rounded-xl border border-blue-100 bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all cursor-pointer">
+                                <i class="fa-solid fa-arrow-rotate-right text-[9px]"></i>
+                                <span class="hidden sm:inline">Ganti</span>
+                                <input type="file" accept="image/jpeg,image/png,image/jpg,image/webp" class="sr-only"
+                                    onchange="replaceImg(${productId}, ${img.id}, this, 'img-row-${img.id}')">
+                            </label>
+
+                            <button type="button" onclick="deleteImg(${productId}, ${img.id}, 'img-row-${img.id}')"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-black tracking-widest rounded-xl border border-red-100 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all">
+                                <i class="fa-solid fa-trash text-[9px]"></i>
+                                <span class="hidden sm:inline">Hapus</span>
+                            </button>
+                        </div>
+                    </div>`;
+                $('#imageList').prepend(row);
             });
+
+            updateImageEmpty();
         }
 
-        window.deleteImg = async function (productId, imgId) {
+        window.deleteImg = async function (productId, imgId, rowId) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'Hapus foto ini?',
+                text: 'Foto akan dihapus permanen.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#ef4444',
+            });
+            if (!isConfirmed) return;
+
             const res = await fetch(`/products/${productId}/images/${imgId}`, {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
             });
-            if (res.ok) $(`#img-${imgId}`).remove();
+            if (res.ok) {
+                $(`#${rowId}`).fadeOut(250, function () { $(this).remove(); updateImageEmpty(); });
+            }
         }
 
         window.setPrimaryImg = async function (productId, imgId) {
@@ -861,7 +970,58 @@
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
             });
-            location.reload();
+            // Re-fetch and re-render images without reloading the page
+            const res  = await fetch(`/products/${productId}`);
+            const data = await res.json();
+            renderExistingImages(productId, data.images);
+        }
+
+        window.replaceImg = async function (productId, oldImgId, fileInput, rowId) {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Delete old image
+            await fetch(`/products/${productId}/images/${oldImgId}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            });
+
+            // Remove old row
+            $(`#${rowId}`).remove();
+
+            // Build a pending slot pre-loaded with the chosen file
+            const n = ++pendingCounter;
+            const dt = new DataTransfer();
+            dt.items.add(file);
+
+            $('#imageList').append(`
+                <div id="pending-slot-${n}" class="img-pending-row flex items-center gap-4 p-3 bg-blue-50/40 border border-blue-200 rounded-2xl">
+                    <div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-100">
+                        <img id="pending-preview-${n}" class="w-full h-full object-cover" alt="">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[9px] font-black tracking-widest text-blue-500 mb-1">FOTO BARU (PENGGANTI)</p>
+                        <p id="pending-name-${n}" class="text-sm font-semibold text-gray-700 truncate">${file.name}</p>
+                        <label for="pending-file-${n}" class="mt-0.5 inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary cursor-pointer hover:underline">
+                            <i class="fa-solid fa-folder-open text-xs"></i> Ganti pilihan
+                        </label>
+                        <input type="file" name="images[]" id="pending-file-${n}"
+                            accept="image/jpeg,image/png,image/jpg,image/webp" class="sr-only"
+                            onchange="previewPending(this, ${n})">
+                    </div>
+                    <button type="button" onclick="removePendingSlot(${n})"
+                        class="w-9 h-9 flex-shrink-0 flex items-center justify-center bg-red-50 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>`);
+
+            // Inject the file into the new input and show preview
+            document.getElementById(`pending-file-${n}`).files = dt.files;
+            const reader = new FileReader();
+            reader.onload = e => $(`#pending-preview-${n}`).attr('src', e.target.result);
+            reader.readAsDataURL(file);
+
+            updateImageEmpty();
         }
 
         // ══════════════════════════════════════════════════════

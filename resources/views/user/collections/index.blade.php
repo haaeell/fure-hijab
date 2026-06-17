@@ -4,7 +4,7 @@
 
 @php
     $activeRoute = $catalogMeta['route'];
-    $activeCategory = isset($collectionCategory) && $collectionCategory ? null : request('category');
+    $activeCategory = $collection ?? false ? null : request('category');
     $activeAvailability = request('availability');
     $activeSort = request('sort');
     $collectionTabs = [
@@ -79,7 +79,7 @@
 
         <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <div class="mb-6 grid gap-3 lg:hidden">
-                @unless(isset($collectionCategory) && $collectionCategory)
+                @unless($collection ?? false)
                     <div class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
                         <a href="{{ route($activeRoute, request()->except('category', 'page')) }}"
                             class="flex-none border px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition {{ !$activeCategory ? 'border-brand-primary bg-brand-primary text-white' : 'border-brand-secondary/70 bg-white text-brand-dark/65' }}">
@@ -130,7 +130,7 @@
                             </div>
                         </div>
 
-                        @unless(isset($collectionCategory) && $collectionCategory)
+                        @unless($collection ?? false)
                             <div class="bg-white p-5 shadow-sm">
                                 <h2 class="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Category</h2>
                                 <div class="space-y-1">

@@ -17,6 +17,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Auth;
@@ -90,6 +91,14 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', 'destroy');
         });
         Route::post('/reviews/{id}/verify', [OrderController::class, 'verify'])->name('reviews.verify');
+
+        // Collections (product collections, not catalog)
+        Route::prefix('koleksi')->controller(CollectionController::class)->group(function () {
+            Route::get('/', 'index')->name('koleksi.index');
+            Route::post('/', 'store')->name('koleksi.store');
+            Route::put('/{id}', 'update')->name('koleksi.update');
+            Route::delete('/{id}', 'destroy')->name('koleksi.destroy');
+        });
 
         // Products
         Route::prefix('products')->controller(ProductController::class)->group(function () {

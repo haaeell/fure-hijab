@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Collection;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Coupon;
@@ -169,24 +170,21 @@ class LandingPageController extends Controller
 
     private function catalog(Request $request, string $type)
     {
-        $query = Product::with(['category', 'images', 'variants'])->where('is_active', true);
-        $collectionCategory = $this->resolveCollectionCategory($type);
+        $query      = Product::with(['category', 'images', 'variants'])->where('is_active', true);
+        $collection = $type !== 'all' ? Collection::where('slug', $type)->where('is_active', true)->first() : null;
 
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        if (!$collectionCategory && $request->filled('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
-            });
+        if (!$collection && $request->filled('category')) {
+            $query->whereHas('category', fn($q) => $q->where('slug', $request->category));
         }
 
         if ($request->filled('availability')) {
             if ($request->availability === 'in_stock') {
                 $query->where('stock', '>', 0);
             }
-
             if ($request->availability === 'out_of_stock') {
                 $query->where('stock', '<=', 0);
             }
@@ -200,8 +198,8 @@ class LandingPageController extends Controller
             $query->where('price', '<=', (int) $request->max_price);
         }
 
-        if ($collectionCategory) {
-            $query->where('category_id', $collectionCategory->id);
+        if ($collection) {
+            $query->whereHas('collections', fn($q) => $q->where('collections.id', $collection->id));
         } elseif ($type === 'syari') {
             $query->where(function ($q) {
                 $q->where('name', 'like', '%syari%')
@@ -215,7 +213,7 @@ class LandingPageController extends Controller
 
         $sort = $request->get('sort');
 
-        if (($type === 'best-seller' && !$collectionCategory) || $sort === 'best_seller') {
+        if (($type === 'best-seller' && !$collection) || $sort === 'best_seller') {
             $query->orderByDesc('sold_count')->latest();
         } elseif ($sort === 'price_low') {
             $query->orderBy('price');
@@ -254,39 +252,7 @@ class LandingPageController extends Controller
         };
 
         return view('user.collections.index', compact(
-            'categories',
-            'products',
-            'catalogMeta',
-            'collectionCategory',
-            'inStockCount',
-            'outOfStockCount'
+            'categories', 'products', 'catalogMeta', 'collection', 'inStockCount', 'outOfStockCount'
         ));
-    }
-
-    private function resolveCollectionCategory(string $type): ?Category
-    {
-        $aliases = [
-            'best-seller' => ['best-seller', 'best seller', 'bestseller'],
-            'hijab' => ['hijab'],
-            'syari' => ['syari', "syar'i", 'syari-collection'],
-            'new-arrived' => ['new-arrived', 'new arrival', 'new-arrival', 'new arrived'],
-        ];
-
-        $terms = $aliases[$type] ?? [];
-
-        if (empty($terms)) {
-            return null;
-        }
-
-        return Category::where('is_active', true)
-            ->where(function ($query) use ($terms) {
-                $query->where('collection_type', $terms[0]);
-                foreach ($terms as $term) {
-                    $query->orWhere('slug', $term)
-                        ->orWhere('name', 'like', '%' . $term . '%');
-                }
-            })
-            ->orderBy('sort_order')
-            ->first();
     }
 }

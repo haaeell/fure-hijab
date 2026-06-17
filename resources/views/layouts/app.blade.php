@@ -163,6 +163,12 @@
                 <i class="fa-solid fa-box w-5"></i> Produk
             </a>
 
+            <a href="{{ route('koleksi.index') }}"
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
+                {{ request()->is('koleksi*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
+                <i class="fa-solid fa-swatchbook w-5"></i> Koleksi
+            </a>
+
             <a href="{{ route('landing-content.index') }}"
                 class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('landing-content*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">

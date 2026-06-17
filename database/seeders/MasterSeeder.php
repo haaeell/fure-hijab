@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
+use App\Models\Collection;
 use App\Models\User;
 use App\Models\Coupon;
 use App\Models\Setting;
@@ -33,6 +34,22 @@ class MasterSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'customer',
         ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | COLLECTIONS
+        |--------------------------------------------------------------------------
+        */
+        $collectionsData = [
+            ['name' => 'Best Seller',  'slug' => 'best-seller',  'description' => 'Produk terlaris pilihan pelanggan.',          'sort_order' => 0],
+            ['name' => 'Hijab',        'slug' => 'hijab',        'description' => 'Koleksi hijab premium untuk berbagai gaya.',   'sort_order' => 1],
+            ['name' => "Syar'i",       'slug' => 'syari',        'description' => 'Pilihan modest wear dengan siluet santun.',    'sort_order' => 2],
+            ['name' => 'New Arrived',  'slug' => 'new-arrived',  'description' => 'Koleksi terbaru yang baru saja masuk.',        'sort_order' => 3],
+        ];
+
+        foreach ($collectionsData as $c) {
+            Collection::create(array_merge($c, ['is_active' => true]));
+        }
 
         /*
         |--------------------------------------------------------------------------
