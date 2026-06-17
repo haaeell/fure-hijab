@@ -21,6 +21,52 @@ class AdminSettingController extends Controller
         ]);
     }
 
+    public function storeIndex(): View
+    {
+        return view('settings.store', [
+            'settings' => [
+                'store_name'      => Setting::getValue('store_name', config('app.name', 'FURE')),
+                'store_email'     => Setting::getValue('store_email', config('mail.from.address')),
+                'store_phone'     => Setting::getValue('store_phone'),
+                'store_whatsapp'  => Setting::getValue('store_whatsapp'),
+                'store_address'   => Setting::getValue('store_address'),
+                'store_instagram' => Setting::getValue('store_instagram'),
+                'store_tiktok'    => Setting::getValue('store_tiktok'),
+                'store_logo'      => Setting::getValue('store_logo'),
+            ],
+        ]);
+    }
+
+    public function updateStore(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'store_name'      => ['required', 'string', 'max:120'],
+            'store_email'     => ['nullable', 'email', 'max:255'],
+            'store_phone'     => ['nullable', 'string', 'max:30'],
+            'store_whatsapp'  => ['nullable', 'string', 'max:30'],
+            'store_address'   => ['nullable', 'string', 'max:1000'],
+            'store_instagram' => ['nullable', 'string', 'max:255'],
+            'store_tiktok'    => ['nullable', 'string', 'max:255'],
+            'store_logo'      => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:2048'],
+        ]);
+
+        if ($request->hasFile('store_logo')) {
+            $oldLogo = Setting::getValue('store_logo');
+            if ($oldLogo) {
+                Storage::disk('public')->delete($oldLogo);
+            }
+            $validated['store_logo'] = $request->file('store_logo')->store('settings', 'public');
+        } else {
+            unset($validated['store_logo']);
+        }
+
+        foreach ($validated as $key => $value) {
+            Setting::setValue($key, $value ?? '');
+        }
+
+        return back()->with('success', 'Profil toko berhasil diperbarui.');
+    }
+
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([

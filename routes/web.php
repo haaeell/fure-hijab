@@ -132,6 +132,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::prefix('settings')->controller(AdminSettingController::class)->group(function () {
             Route::get('/', 'index')->name('settings.index');
+            Route::get('/store', 'storeIndex')->name('settings.store');
+            Route::put('/store', 'updateStore')->name('settings.store.update');
             Route::get('/biteship/areas', 'searchBiteshipAreas')->name('settings.biteship.areas');
             Route::put('/', 'update')->name('settings.update');
             Route::post('/test-email', 'testEmail')->name('settings.test-email');
