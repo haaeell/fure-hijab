@@ -13,7 +13,8 @@ class Setting extends Model
 
     public static function getValue(string $key, mixed $default = null): mixed
     {
-        return static::query()->where('key', $key)->value('value') ?? $default;
+        $value = static::query()->where('key', $key)->value('value');
+        return filled($value) ? $value : $default;
     }
 
     public static function setValue(string $key, mixed $value): void

@@ -662,21 +662,26 @@
             // Toggle varian
             $('#hasVariant').on('change', toggleVariantMode);
 
-            // Submit: inject data
+            // Submit: inject raw numeric values for all price + description fields
             $('#productForm').on('submit', function (e) {
-                // Inject CKEditor value ke textarea
+                // CKEditor — remove stale hidden then inject fresh value
+                $('[name="description"][type="hidden"]').remove();
                 $('<input>').attr({ type: 'hidden', name: 'description', value: getCKData() }).appendTo('#productForm');
-                // Inject rupiah fields sebagai angka murni
-                ['productModalPrice','productPrice','productComparePrice'].forEach(id => {
-                    const $el = $('#' + id);
-                    const raw = parseRupiah($el.val());
-                    $el.attr('name', ''); // disable original
-                    $('<input>').attr({ type: 'hidden', name: $el.attr('name') || id.replace('product','').toLowerCase(), value: raw }).appendTo('#productForm');
+
+                // Price fields — disable formatted input, inject clean integer
+                const priceMap = {
+                    productModalPrice:   'modal_price',
+                    productPrice:        'price',
+                    productComparePrice: 'compare_price',
+                };
+                Object.entries(priceMap).forEach(([elId, fieldName]) => {
+                    const $el  = $('#' + elId);
+                    const raw  = parseRupiah($el.val());
+                    $el.prop('name', ''); // stop original from submitting
+                    $('[name="' + fieldName + '"][type="hidden"]').remove(); // idempotent
+                    // Always inject even if 0 so the backend can clear/zero the field
+                    $('<input>').attr({ type: 'hidden', name: fieldName, value: raw }).appendTo('#productForm');
                 });
-                // Fix: pakai name yg benar
-                setHiddenPrice('productModalPrice', 'modal_price');
-                setHiddenPrice('productPrice', 'price');
-                setHiddenPrice('productComparePrice', 'compare_price');
 
                 buildVariantsHidden();
                 $('#submitBtn').prop('disabled', true).addClass('opacity-70');
@@ -689,12 +694,6 @@
             });
 
         });
-
-        function setHiddenPrice(inputId, fieldName) {
-            $(`[name="${fieldName}"]`).remove();
-            const raw = parseRupiah($('#' + inputId).val());
-            if (raw > 0) $('<input>').attr({ type: 'hidden', name: fieldName, value: raw }).appendTo('#productForm');
-        }
 
         // ══════════════════════════════════════════════════════
         // TAB SWITCHING
@@ -1075,7 +1074,8 @@
             variantRows.forEach(row => {
                 const $r = $(`#variant-row-${row.id}`);
                 existingMap[$r.find('.variant-name').val()] = {
-                    price: $r.find('.variant-price').val(),
+                    // Store as raw integer so addManualVariant re-formats correctly
+                    price: parseRupiah($r.find('.variant-price').val()),
                     stock: $r.find('.variant-stock').val(),
                     sku:   $r.find('.variant-sku').val(),
                 };

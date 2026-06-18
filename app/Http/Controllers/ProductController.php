@@ -40,6 +40,8 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        $this->normalizePrices($request);
+
         $data = $request->validate([
             'name'              => 'required|string|max:255|unique:products,name',
             'category_id'       => 'required|exists:categories,id',
@@ -118,6 +120,7 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         $product = Product::findOrFail($id);
+        $this->normalizePrices($request);
 
         $data = $request->validate([
             'name'              => 'required|string|max:255|unique:products,name,' . $id,
@@ -361,6 +364,30 @@ class ProductController extends Controller
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Strip Indonesian thousands separators (dots) from price fields so
+     * "155.000" is treated as 155000, not 155. Runs before validation.
+     */
+    private function normalizePrices(Request $request): void
+    {
+        foreach (['price', 'modal_price', 'compare_price'] as $field) {
+            $val = $request->input($field);
+            if ($val === null || $val === '') {
+                $request->merge([$field => null]);
+                continue;
+            }
+            $val = (string) $val;
+            // "155.000" (Indonesian thousands) → strip dots → 155000
+            // "155000"  (plain integer)         → unchanged → 155000
+            // "100000.00" (DB decimal)          → use intval first → 100000
+            if (str_contains($val, '.') && !str_ends_with($val, '.00') && strlen(explode('.', $val)[1] ?? '') === 3) {
+                // Indonesian formatted: last segment after dot is 3 digits (thousands separator)
+                $val = str_replace('.', '', $val);
+            }
+            $request->merge([$field => (int) $val]);
+        }
+    }
 
     private function syncVariants(Product $product, array $variants): void
     {
