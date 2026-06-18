@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Courier;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderAddress;
@@ -21,16 +22,13 @@ class CheckoutController extends Controller
 {
     private const PAYMENT_WINDOW_MINUTES = 1440;
 
-    const SUPPORTED_COURIERS = [
-        'jne' => 'JNE',
-        'sicepat' => 'SiCepat',
-        'jnt' => 'J&T Express',
-        // 'anteraja' => 'Anteraja',
-        // 'ninja' => 'Ninja Xpress',
-        // 'lion' => 'Lion Parcel',
-        // 'tiki' => 'TIKI',
-        // 'pos' => 'POS Indonesia',
-    ];
+    private function activeCouriers(): array
+    {
+        return Courier::where('is_active', true)
+            ->orderBy('sort_order')
+            ->pluck('name', 'code')
+            ->toArray();
+    }
 
     public function index()
     {
@@ -74,7 +72,7 @@ class CheckoutController extends Controller
             }
         }
 
-        $couriers = self::SUPPORTED_COURIERS;
+        $couriers = $this->activeCouriers();
 
         return view('user.checkout.index', compact(
             'carts',

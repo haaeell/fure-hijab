@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 use App\Models\Collection;
+use App\Models\Courier;
 use App\Models\User;
 use App\Models\Coupon;
 use App\Models\Setting;
@@ -34,6 +35,28 @@ class MasterSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'customer',
         ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | COURIERS
+        |--------------------------------------------------------------------------
+        */
+        $couriersData = [
+            ['code' => 'jne',      'name' => 'JNE',           'sort_order' => 0],
+            ['code' => 'sicepat',  'name' => 'SiCepat',       'sort_order' => 1],
+            ['code' => 'jnt',      'name' => 'J&T Express',   'sort_order' => 2],
+            ['code' => 'anteraja', 'name' => 'Anteraja',      'sort_order' => 3, 'is_active' => false],
+            ['code' => 'tiki',     'name' => 'TIKI',          'sort_order' => 4, 'is_active' => false],
+            ['code' => 'pos',      'name' => 'POS Indonesia',  'sort_order' => 5, 'is_active' => false],
+            ['code' => 'ninja',    'name' => 'Ninja Xpress',   'sort_order' => 6, 'is_active' => false],
+            ['code' => 'lion',     'name' => 'Lion Parcel',    'sort_order' => 7, 'is_active' => false],
+            ['code' => 'gosend',   'name' => 'GoSend',         'sort_order' => 8, 'is_active' => false],
+            ['code' => 'grab',     'name' => 'Grab Express',   'sort_order' => 9, 'is_active' => false],
+        ];
+
+        foreach ($couriersData as $c) {
+            Courier::create(array_merge(['is_active' => true], $c));
+        }
 
         /*
         |--------------------------------------------------------------------------

@@ -18,6 +18,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\CourierController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Auth;
@@ -92,6 +93,14 @@ Route::middleware(['auth'])->group(function () {
         });
         Route::post('/reviews/{id}/verify', [OrderController::class, 'verify'])->name('reviews.verify');
 
+        // Couriers — admin can only toggle active + manage logo
+        Route::prefix('couriers')->controller(CourierController::class)->group(function () {
+            Route::get('/',               'index')->name('couriers.index');
+            Route::patch('/{id}/toggle',  'toggle')->name('couriers.toggle');
+            Route::post('/{id}/logo',     'uploadLogo')->name('couriers.upload-logo');
+            Route::delete('/{id}/logo',   'destroyLogo')->name('couriers.destroy-logo');
+        });
+
         // Collections (product collections, not catalog)
         Route::prefix('koleksi')->controller(CollectionController::class)->group(function () {
             Route::get('/', 'index')->name('koleksi.index');
@@ -123,6 +132,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{id}/track', 'trackShipment')->name('orders.track');
             Route::get('/{id}/biteship-label', 'printBiteshipLabel')->name('orders.biteship-label');
             Route::get('/{id}/biteship-label/download', 'downloadBiteshipLabel')->name('orders.biteship-label.download');
+            Route::get('/{id}/label/pdf', 'downloadLabelPdf')->name('orders.label.pdf');
             Route::patch('/{id}/status', 'updateStatus')->name('orders.status');
             Route::patch('/{id}/resi', 'updateResi')->name('orders.resi');
             Route::post('/{id}/biteship-waybill', 'generateBiteshipWaybill')->name('orders.biteship-waybill');

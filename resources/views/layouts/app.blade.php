@@ -169,6 +169,12 @@
                 <i class="fa-solid fa-swatchbook w-5"></i> Koleksi
             </a>
 
+            <a href="{{ route('couriers.index') }}"
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
+                {{ request()->is('couriers*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
+                <i class="fa-solid fa-truck w-5"></i> Kurir
+            </a>
+
             <a href="{{ route('landing-content.index') }}"
                 class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
                 {{ request()->is('landing-content*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
@@ -264,68 +270,107 @@
                     <button id="notifDropdownBtn"
                         class="w-12 h-12 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-brand-primary transition-all relative">
                         <i class="fa-regular fa-bell"></i>
-                        <span
-                            class="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                        @php
+                            $hasNotif = \App\Models\Order::whereIn('status', ['pending','confirmed'])->exists()
+                                     || \App\Models\Product::where('is_active',true)->where('stock','>'  ,0)->where('stock','<=',5)->exists()
+                                     || \App\Models\Review::where('is_verified',false)->exists();
+                        @endphp
+                        @if($hasNotif)
+                            <span class="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                        @endif
                     </button>
 
+                    @php
+                        $notifPendingOrders = \App\Models\Order::whereIn('status', ['pending', 'confirmed'])
+                            ->with('user')->latest()->take(3)->get();
+                        $notifLowStock = \App\Models\Product::where('is_active', true)
+                            ->where('stock', '>', 0)->where('stock', '<=', 5)
+                            ->orderBy('stock')->take(3)->get();
+                        $notifNewReviews = \App\Models\Review::where('is_verified', false)
+                            ->with(['product', 'user'])->latest()->take(3)->get();
+                        $notifTotal = $notifPendingOrders->count() + $notifLowStock->count() + $notifNewReviews->count();
+                    @endphp
                     <div id="notifDropdown"
                         class="absolute right-0 mt-3 w-80 md:w-96 bg-white rounded-[2rem] shadow-2xl border border-gray-50 overflow-hidden hidden z-50">
                         <div class="p-5 border-b border-gray-50 flex justify-between items-center bg-soft-bg/50">
-                            <h3 class="font-extrabold text-brand-dark text-sm">Notifikasi Baru</h3>
-                            <span
-                                class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded-lg">3
-                                Belum Dibaca</span>
+                            <h3 class="font-extrabold text-brand-dark text-sm">Perlu Perhatian</h3>
+                            @if($notifTotal > 0)
+                                <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded-lg">
+                                    {{ $notifTotal }} item
+                                </span>
+                            @endif
                         </div>
 
                         <div class="max-h-[400px] overflow-y-auto">
-                            <a href="#"
-                                class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
-                                <div
-                                    class="w-11 h-11 rounded-xl bg-orange-100 text-orange-600 flex-shrink-0 flex items-center justify-center">
-                                    <i class="fa-solid fa-cart-shopping text-sm"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[11px] font-bold text-brand-dark leading-tight mb-1">Pesanan Baru
-                                        Masuk!</p>
-                                    <p class="text-[10px] text-gray-500 line-clamp-2">Pelanggan Siska Amelia telah
-                                        memesan "Pashmina Silk" senilai Rp 150.000.</p>
-                                    <p class="text-[9px] text-gray-400 mt-2 font-medium">2 menit yang lalu</p>
-                                </div>
-                            </a>
+                            {{-- Pending / confirmed orders --}}
+                            @forelse($notifPendingOrders as $notifOrder)
+                                <a href="{{ route('orders.show', $notifOrder->id) }}"
+                                    class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
+                                    <div class="w-11 h-11 rounded-xl bg-orange-100 text-orange-600 flex-shrink-0 flex items-center justify-center">
+                                        <i class="fa-solid fa-cart-shopping text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold text-brand-dark leading-tight mb-1">
+                                            Order {{ $notifOrder->status === 'pending' ? 'Menunggu Pembayaran' : 'Perlu Dikonfirmasi' }}
+                                        </p>
+                                        <p class="text-[10px] text-gray-500 line-clamp-2">
+                                            {{ $notifOrder->user->name }} — #{{ $notifOrder->order_number }}
+                                            · Rp{{ number_format($notifOrder->total, 0, ',', '.') }}
+                                        </p>
+                                        <p class="text-[9px] text-gray-400 mt-1 font-medium">{{ $notifOrder->created_at->diffForHumans() }}</p>
+                                    </div>
+                                </a>
+                            @empty
+                            @endforelse
 
-                            <a href="#"
-                                class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
-                                <div
-                                    class="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center">
-                                    <i class="fa-solid fa-star text-sm"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[11px] font-bold text-brand-dark leading-tight mb-1">Ulasan Bintang 5
-                                    </p>
-                                    <p class="text-[10px] text-gray-500 line-clamp-2">"Bahannya adem banget, suka!" -
-                                        Sarah di produk Bergo Instan.</p>
-                                    <p class="text-[9px] text-gray-400 mt-2 font-medium">1 jam yang lalu</p>
-                                </div>
-                            </a>
+                            {{-- Low stock --}}
+                            @forelse($notifLowStock as $lowProd)
+                                <a href="/products"
+                                    class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
+                                    <div class="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex-shrink-0 flex items-center justify-center">
+                                        <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold text-brand-dark leading-tight mb-1">Stok Menipis</p>
+                                        <p class="text-[10px] text-gray-500 line-clamp-2">
+                                            {{ $lowProd->name }} — sisa {{ $lowProd->stock }} pcs
+                                        </p>
+                                    </div>
+                                </a>
+                            @empty
+                            @endforelse
 
-                            <a href="#" class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all">
-                                <div
-                                    class="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex-shrink-0 flex items-center justify-center">
-                                    <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                            {{-- Unverified reviews --}}
+                            @forelse($notifNewReviews as $rev)
+                                <a href="/reviews"
+                                    class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
+                                    <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center">
+                                        <i class="fa-solid fa-star text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold text-brand-dark leading-tight mb-1">
+                                            Ulasan Baru ({{ $rev->rating }}★)
+                                        </p>
+                                        <p class="text-[10px] text-gray-500 line-clamp-2">
+                                            {{ $rev->user->name }} — {{ $rev->product->name }}
+                                        </p>
+                                        <p class="text-[9px] text-gray-400 mt-1 font-medium">{{ $rev->created_at->diffForHumans() }}</p>
+                                    </div>
+                                </a>
+                            @empty
+                            @endforelse
+
+                            @if($notifTotal === 0)
+                                <div class="py-10 text-center text-gray-400">
+                                    <i class="fa-solid fa-check-circle text-2xl text-green-300 mb-2 block"></i>
+                                    <p class="text-xs font-semibold">Semua beres!</p>
                                 </div>
-                                <div>
-                                    <p class="text-[11px] font-bold text-brand-dark leading-tight mb-1">Peringatan Stok
-                                    </p>
-                                    <p class="text-[10px] text-gray-500 line-clamp-2">Hijab Bella Square warna Khaki
-                                        sisa 2 pcs lagi!</p>
-                                    <p class="text-[9px] text-gray-400 mt-2 font-medium">5 jam yang lalu</p>
-                                </div>
-                            </a>
+                            @endif
                         </div>
 
-                        <a href="/notifications"
+                        <a href="{{ route('orders.index') }}"
                             class="block py-4 text-center text-[11px] font-bold text-brand-primary border-t border-gray-50 hover:bg-gray-50 tracking-wider uppercase">
-                            Lihat Semua Notifikasi
+                            Lihat Semua Pesanan
                         </a>
                     </div>
                 </div>

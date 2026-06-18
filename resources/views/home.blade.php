@@ -64,8 +64,14 @@
                 @foreach($topProducts as $top)
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
-                            <img src="{{ $top->image_url ?? 'https://via.placeholder.com/100' }}"
-                                class="w-full h-full object-cover">
+                            @php $topImg = $top->images->first(); @endphp
+                            @if($topImg)
+                                <img src="{{ asset('storage/' . $topImg->image_url) }}" class="w-full h-full object-cover" alt="{{ $top->name }}">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-gray-300">
+                                    <i class="fa-solid fa-box text-lg"></i>
+                                </div>
+                            @endif
                         </div>
                         <div class="flex-1">
                             <p class="text-sm font-bold text-brand-dark truncate w-32">{{ $top->name }}</p>
@@ -78,16 +84,16 @@
                     </div>
                 @endforeach
             </div>
-            <button
-                class="w-full mt-8 py-3 bg-gray-50 text-gray-500 text-xs font-bold rounded-2xl hover:bg-soft-mint hover:text-brand-primary transition-all">Lihat
-                Semua Produk</button>
+            <a href="/products"
+                class="block w-full mt-8 py-3 bg-gray-50 text-gray-500 text-xs font-bold rounded-2xl hover:bg-soft-mint hover:text-brand-primary transition-all text-center">Lihat
+                Semua Produk</a>
         </div>
     </div>
 
     <div class="bg-white rounded-[40px] shadow-sm border border-gray-50 overflow-hidden">
         <div class="p-8 border-b border-gray-50 flex justify-between items-center">
             <h2 class="text-lg font-extrabold text-brand-dark">Transaksi Terbaru</h2>
-            <button class="text-sm font-bold text-brand-primary">Lihat Semua</button>
+            <a href="{{ route('orders.index') }}" class="text-sm font-bold text-brand-primary hover:underline">Lihat Semua</a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left">
@@ -116,10 +122,20 @@
                             <td class="px-8 py-5 text-sm font-extrabold text-brand-dark">Rp
                                 {{ number_format($order->total, 0, ',', '.') }}</td>
                             <td class="px-8 py-5">
-                                <span
-                                    class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase 
-                                    {{ $order->status == 'delivered' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600' }}">
-                                    {{ $order->status }}
+                                @php
+                                    $badge = match($order->status) {
+                                        'pending'    => 'bg-yellow-100 text-yellow-700',
+                                        'confirmed'  => 'bg-blue-100 text-blue-700',
+                                        'processing' => 'bg-indigo-100 text-indigo-700',
+                                        'shipped'    => 'bg-orange-100 text-orange-700',
+                                        'delivered'  => 'bg-green-100 text-green-700',
+                                        'cancelled'  => 'bg-red-100 text-red-700',
+                                        'refunded'   => 'bg-gray-100 text-gray-600',
+                                        default      => 'bg-gray-100 text-gray-500',
+                                    };
+                                @endphp
+                                <span class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase {{ $badge }}">
+                                    {{ $order->status_label }}
                                 </span>
                             </td>
                             <td class="px-8 py-5 text-xs text-gray-400">{{ $order->created_at->diffForHumans() }}</td>

@@ -14,32 +14,46 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $totalSales = Order::whereIn('status', ['confirmed', 'processing', 'shipped', 'delivered'])->sum('total');
-        $totalOrders = Order::count();
-        $totalCustomers = User::where('role', 'customer')->count();
-        $avgRating = Review::avg('rating') ?: 0;
+        $paidStatuses = ['confirmed', 'processing', 'shipped', 'delivered'];
 
-        $lastMonthSales = Order::whereIn('status', ['confirmed', 'processing', 'shipped', 'delivered'])
-            ->whereMonth('created_at', Carbon::now()->subMonth()->month)
+        $totalSales     = Order::whereIn('status', $paidStatuses)->sum('total');
+        $totalOrders    = Order::count();
+        $totalCustomers = User::where('role', 'customer')->count();
+        $avgRating      = Review::avg('rating') ?: 0;
+
+        $thisMonthSales = Order::whereIn('status', $paidStatuses)
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
             ->sum('total');
-        $salesGrowth = $lastMonthSales > 0 ? (($totalSales - $lastMonthSales) / $lastMonthSales) * 100 : 100;
+
+        $lastMonthSales = Order::whereIn('status', $paidStatuses)
+            ->whereMonth('created_at', Carbon::now()->subMonth()->month)
+            ->whereYear('created_at', Carbon::now()->subMonth()->year)
+            ->sum('total');
+
+        $salesGrowth = $lastMonthSales > 0
+            ? (($thisMonthSales - $lastMonthSales) / $lastMonthSales) * 100
+            : ($thisMonthSales > 0 ? 100 : 0);
 
         $salesData = Order::select(
             DB::raw('SUM(total) as sum'),
             DB::raw("DATE_FORMAT(created_at, '%M') as month")
         )
-            ->whereIn('status', ['confirmed', 'processing', 'shipped', 'delivered'])
+            ->whereIn('status', $paidStatuses)
             ->where('created_at', '>=', Carbon::now()->subMonths(6))
             ->groupBy('month')
-            ->orderBy(DB::raw('MIN(created_at)'), 'ASC') // Perbaikan di sini
+            ->orderBy(DB::raw('MIN(created_at)'), 'ASC')
             ->get();
 
         $recentTransactions = Order::with(['user', 'items.product'])
             ->latest()
-            ->take(8)->get();
+            ->take(8)
+            ->get();
 
-        $topProducts = Product::orderBy('sold_count', 'desc')
-            ->take(5)->get();
+        $topProducts = Product::with(['images' => fn ($q) => $q->where('is_primary', true)])
+            ->orderBy('sold_count', 'desc')
+            ->take(5)
+            ->get();
 
         return view('home', compact(
             'totalSales',
@@ -47,6 +61,7 @@ class HomeController extends Controller
             'totalCustomers',
             'avgRating',
             'salesGrowth',
+            'thisMonthSales',
             'salesData',
             'recentTransactions',
             'topProducts'

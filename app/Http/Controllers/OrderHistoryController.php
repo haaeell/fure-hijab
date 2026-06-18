@@ -70,12 +70,12 @@ class OrderHistoryController extends Controller
             return back()->with('error', 'Tracking Biteship gagal: ' . $e->getMessage());
         }
 
+        $biteshipStatus = $trackingService->statusCode($tracking);
+
         $order->shipment->update([
             'tracking_history' => $tracking,
-            'tracked_at' => now(),
-            'status' => str_contains(strtolower((string) $trackingService->latestStatus($tracking)), 'delivered')
-                ? 'delivered'
-                : 'in_transit',
+            'tracked_at'       => now(),
+            'status'           => $biteshipStatus ?? $order->shipment->status,
         ]);
 
         return back()->with('success', 'Tracking resi berhasil diperbarui.');

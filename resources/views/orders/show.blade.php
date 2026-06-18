@@ -497,9 +497,8 @@
                             </div>
                             <h2 class="font-extrabold text-brand-dark">Informasi Pengiriman</h2>
                             @php $ship = $order->shipment; @endphp
-                            <span
-                                class="ml-auto px-3 py-1 rounded-full text-[10px] font-black tracking-wider bg-cyan-50 text-cyan-600">
-                                {{ ucfirst($ship->status) }}
+                            <span id="shipmentStatusBadge" class="ml-auto px-3 py-1 rounded-full text-[10px] font-black tracking-wider {{ $ship->status_badge_class }}">
+                                {{ $ship->status_label }}
                             </span>
                         </div>
                         <div class="px-6 py-5">
@@ -570,42 +569,32 @@
                                     <div class="flex-1">
                                         <p class="text-[9px] font-black text-cyan-400 tracking-widest">NOMOR RESI</p>
                                         <p class="font-extrabold text-cyan-700 font-mono text-sm">{{ $ship->resi }}</p>
-                                        @if($ship->tracked_at)
-                                            <p class="text-[10px] text-cyan-500 mt-1">Update {{ $ship->tracked_at->format('d M Y H:i') }}</p>
-                                        @endif
+                                        <p id="trackedAt" class="text-[10px] text-cyan-500 mt-1">
+                                            @if($ship->tracked_at) Update {{ $ship->tracked_at->format('d M Y H:i') }} @endif
+                                        </p>
                                     </div>
-                                    <div class="flex gap-2 sm:ml-auto">
+                                    <div class="flex flex-wrap gap-2 sm:ml-auto">
+                                        {{-- Print label popup --}}
                                         <button type="button" onclick="openPrintLabelModal()"
-                                            class="px-3 py-1.5 bg-cyan-500 text-white text-[10px] font-black rounded-xl hover:bg-brand-dark transition-all">
+                                            class="px-3 py-1.5 bg-brand-primary text-white text-[10px] font-black rounded-xl hover:bg-brand-dark transition-all flex items-center gap-1">
                                             <i class="fa-solid fa-print mr-1"></i>Cetak Resi
                                         </button>
                                         @if($ship->label_url)
+                                            {{-- Official Biteship label --}}
                                             <a href="{{ route('orders.biteship-label.download', $order->id) }}"
-                                                class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
-                                                <i class="fa-solid fa-download mr-1"></i>Download Label
-                                            </a>
-                                            <a href="{{ $ship->label_url }}" target="_blank"
-                                                class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
-                                                <i class="fa-solid fa-up-right-from-square mr-1"></i>Label Biteship
-                                            </a>
-                                        @endif
-                                        @if($biteshipTrackingLink)
-                                            <a href="{{ $biteshipTrackingLink }}" target="_blank"
-                                                class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
-                                                <i class="fa-solid fa-route mr-1"></i>Track
+                                                class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all flex items-center gap-1">
+                                                <i class="fa-solid fa-download mr-1"></i>Label Biteship
                                             </a>
                                         @endif
                                         <button onclick="copyResi('{{ $ship->resi }}')"
                                             class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
                                             <i class="fa-solid fa-copy mr-1"></i>Salin
                                         </button>
-                                        <form action="{{ route('orders.track', $order->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit"
-                                                class="px-3 py-1.5 bg-cyan-500 text-white text-[10px] font-black rounded-xl hover:bg-brand-dark transition-all">
-                                                <i class="fa-solid fa-location-crosshairs mr-1"></i>Lacak
-                                            </button>
-                                        </form>
+                                        <button id="btnLacak" type="button"
+                                            onclick="lacakResi({{ $order->id }})"
+                                            class="px-3 py-1.5 bg-cyan-500 text-white text-[10px] font-black rounded-xl hover:bg-brand-dark transition-all">
+                                            <i class="fa-solid fa-location-crosshairs mr-1"></i>Lacak
+                                        </button>
                                     </div>
                                 </div>
                             @endif
@@ -692,13 +681,7 @@
                                                 </div>
                                             </div>
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                @if($biteshipTrackingLink)
-                                                    <a href="{{ $biteshipTrackingLink }}" target="_blank"
-                                                        class="inline-flex items-center justify-center gap-2 rounded-2xl bg-cyan-500 px-4 py-3 text-xs font-black text-white hover:bg-brand-dark transition-all">
-                                                        <i class="fa-solid fa-map-location-dot"></i>
-                                                        Buka Tracking
-                                                    </a>
-                                                @endif
+
                                                 @if($ship->label_url)
                                                     <a href="{{ route('orders.biteship-label.download', $order->id) }}"
                                                         class="inline-flex items-center justify-center gap-2 rounded-2xl bg-white border border-cyan-200 px-4 py-3 text-xs font-black text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
@@ -742,6 +725,7 @@
                             @endif
 
                             {{-- Tracking History --}}
+                            <div id="trackingSection">
                             @if($ship->tracking_history)
                                 @php
                                     $trackingPayload = is_string($ship->tracking_history) ? json_decode($ship->tracking_history, true) : $ship->tracking_history;
@@ -750,30 +734,34 @@
                                 @if(count($history) > 0)
                                     <div class="mt-4">
                                         <p class="text-[10px] font-black text-gray-400 tracking-widest mb-3">RIWAYAT TRACKING</p>
-                                        <div
-                                            class="relative space-y-3 before:absolute before:left-4 before:top-0 before:bottom-0 before:w-px before:bg-gray-100">
-                                            @foreach($history as $track)
+                                        <div class="relative space-y-3 before:absolute before:left-4 before:top-0 before:bottom-0 before:w-px before:bg-gray-100">
+                                            @foreach($history as $i => $track)
                                                 @php
                                                     $statusLabel = match(strtolower($track['status'] ?? '')) {
-                                                        'confirmed' => 'Pesanan pengiriman sudah dikonfirmasi.',
-                                                        'allocated' => 'Kurir sudah dialokasikan.',
-                                                        'picked_up', 'pickup', 'picking_up' => 'Paket sedang dijemput.',
-                                                        'in_transit', 'dropping_off', 'on_delivery' => 'Paket sedang dalam perjalanan.',
-                                                        'delivered' => 'Paket sudah diterima.',
-                                                        'cancelled', 'canceled' => 'Pengiriman dibatalkan.',
-                                                        'failed' => 'Pengiriman gagal.',
-                                                        default => null,
+                                                        'confirmed'                          => 'Pesanan dikonfirmasi, kurir akan dijadwalkan.',
+                                                        'allocated'                          => 'Kurir sudah dialokasikan dan siap menjemput.',
+                                                        'picking_up'                         => 'Kurir sedang menuju lokasi pengambilan.',
+                                                        'picked', 'picked_up', 'pickup'      => 'Barang sudah diambil oleh kurir.',
+                                                        'dropping_off', 'in_transit', 'on_delivery', 'on_the_way' => 'Kurir sedang menuju lokasi tujuan.',
+                                                        'delivered'                          => 'Pesanan berhasil diterima oleh penerima.',
+                                                        'cancelled', 'canceled'              => 'Pengiriman dibatalkan.',
+                                                        'on_hold'                            => 'Pengiriman ditahan sementara karena kendala.',
+                                                        'return_in_transit'                  => 'Paket sedang dalam proses retur ke pengirim.',
+                                                        'returned'                           => 'Paket berhasil diretur ke pengirim.',
+                                                        'disposed'                           => 'Paket dimusnahkan.',
+                                                        'failed'                             => 'Pengiriman gagal.',
+                                                        default                              => null,
                                                     };
                                                     $description = $track['manifest_description'] ?? $track['description'] ?? $track['note'] ?? $statusLabel ?? '-';
                                                 @endphp
                                                 <div class="flex items-start gap-4 pl-10 relative">
-                                                    <div
-                                                        class="absolute left-2.5 top-1 w-3 h-3 rounded-full bg-brand-primary border-2 border-white shadow-sm">
-                                                    </div>
+                                                    <div class="absolute left-2.5 top-1 w-3 h-3 rounded-full {{ $i === 0 ? 'bg-brand-primary' : 'bg-gray-300' }} border-2 border-white shadow-sm"></div>
                                                     <div class="flex-1">
-                                                        <p class="font-bold text-sm text-brand-dark">{{ $description }}</p>
-                                                        <p class="text-[10px] text-gray-400 mt-0.5">{{ $track['manifest_date'] ?? $track['date'] ?? '' }}
-                                                            {{ $track['manifest_time'] ?? $track['time'] ?? '' }} — {{ $track['city_name'] ?? $track['location'] ?? '' }}
+                                                        <p class="font-bold text-sm {{ $i === 0 ? 'text-brand-dark' : 'text-gray-600' }}">{{ $description }}</p>
+                                                        <p class="text-[10px] text-gray-400 mt-0.5">
+                                                            {{ $track['manifest_date'] ?? $track['date'] ?? '' }}
+                                                            {{ $track['manifest_time'] ?? $track['time'] ?? '' }}
+                                                            @if(!empty($track['city_name'] ?? $track['location'] ?? '')) — {{ $track['city_name'] ?? $track['location'] }} @endif
                                                         </p>
                                                     </div>
                                                 </div>
@@ -782,6 +770,7 @@
                                     </div>
                                 @endif
                             @endif
+                            </div>
                         </div>
                     </div>
                 @endif
@@ -1177,6 +1166,113 @@
 
     @push('scripts')
         <script>
+        // ── Lacak Resi (AJAX + shimmer) ───────────────────────────────────────
+        const TRACKING_STATUS_LABELS = {
+            confirmed: 'Pesanan dikonfirmasi, kurir akan dijadwalkan.',
+            allocated: 'Kurir sudah dialokasikan dan siap menjemput.',
+            picking_up: 'Kurir sedang menuju lokasi pengambilan.',
+            picked: 'Barang sudah diambil oleh kurir.',
+            picked_up: 'Barang sudah diambil oleh kurir.',
+            pickup: 'Barang sudah diambil oleh kurir.',
+            dropping_off: 'Kurir sedang menuju lokasi tujuan.',
+            in_transit: 'Kurir sedang menuju lokasi tujuan.',
+            on_delivery: 'Kurir sedang menuju lokasi tujuan.',
+            on_the_way: 'Kurir sedang menuju lokasi tujuan.',
+            delivered: 'Pesanan berhasil diterima oleh penerima.',
+            cancelled: 'Pengiriman dibatalkan.',
+            canceled: 'Pengiriman dibatalkan.',
+            on_hold: 'Pengiriman ditahan sementara karena kendala.',
+            return_in_transit: 'Paket sedang dalam proses retur ke pengirim.',
+            returned: 'Paket berhasil diretur ke pengirim.',
+            disposed: 'Paket dimusnahkan.',
+            failed: 'Pengiriman gagal.',
+        };
+
+        function escHtml(str) {
+            return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function shimmerTracking() {
+            const rows = [1,2,3].map((_, i) => `
+                <div class="flex items-start gap-4 pl-10 relative">
+                    <div class="absolute left-2.5 top-1 w-3 h-3 rounded-full bg-gray-200 border-2 border-white"></div>
+                    <div class="flex-1 space-y-1.5 py-0.5">
+                        <div class="h-3 bg-gray-200 rounded-lg animate-pulse" style="width:${70 - i*10}%"></div>
+                        <div class="h-2.5 bg-gray-100 rounded-lg animate-pulse" style="width:${45 - i*5}%"></div>
+                    </div>
+                </div>`).join('');
+            return `<div class="mt-4">
+                <div class="h-2.5 bg-gray-200 rounded animate-pulse w-32 mb-4"></div>
+                <div class="relative space-y-4 before:absolute before:left-4 before:top-0 before:bottom-0 before:w-px before:bg-gray-100">
+                    ${rows}
+                </div>
+            </div>`;
+        }
+
+        function renderTrackingTimeline(manifest) {
+            if (!manifest || manifest.length === 0) {
+                return '';
+            }
+            const items = manifest.map((track, i) => {
+                const status      = (track.status || '').toLowerCase();
+                const fallback    = TRACKING_STATUS_LABELS[status] || null;
+                const description = track.manifest_description || track.description || track.note || fallback || '-';
+                const date        = track.manifest_date || track.date || '';
+                const time        = track.manifest_time || track.time || '';
+                const city        = track.city_name || track.location || '';
+                const dotCls      = i === 0 ? 'bg-brand-primary' : 'bg-gray-300';
+                const textCls     = i === 0 ? 'text-brand-dark font-bold' : 'text-gray-600 font-semibold';
+                return `<div class="flex items-start gap-4 pl-10 relative">
+                    <div class="absolute left-2.5 top-1 w-3 h-3 rounded-full ${dotCls} border-2 border-white shadow-sm"></div>
+                    <div class="flex-1">
+                        <p class="text-sm ${textCls}">${escHtml(description)}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">${escHtml(date)} ${escHtml(time)}${city ? ' &mdash; ' + escHtml(city) : ''}</p>
+                    </div>
+                </div>`;
+            }).join('');
+            return `<div class="mt-4">
+                <p class="text-[10px] font-black text-gray-400 tracking-widest mb-3">RIWAYAT TRACKING</p>
+                <div class="relative space-y-3 before:absolute before:left-4 before:top-0 before:bottom-0 before:w-px before:bg-gray-100">
+                    ${items}
+                </div>
+            </div>`;
+        }
+
+        window.lacakResi = function (orderId) {
+            const $btn = $('#btnLacak');
+            $btn.prop('disabled', true).html('<i class="fa-solid fa-circle-notch fa-spin mr-1"></i>Melacak...');
+            $('#trackingSection').html(shimmerTracking());
+
+            $.ajax({
+                url: `/orders/${orderId}/track`,
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                success: function (data) {
+                    // Update status badge
+                    $('#shipmentStatusBadge')
+                        .attr('class', 'ml-auto px-3 py-1 rounded-full text-[10px] font-black tracking-wider ' + data.status_badge_class)
+                        .text(data.status_label);
+
+                    // Update tracked_at
+                    $('#trackedAt').text('Update ' + data.tracked_at);
+
+                    // Render timeline
+                    $('#trackingSection').html(renderTrackingTimeline(data.manifest));
+
+                    Swal.fire({ icon: 'success', title: data.message, toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true });
+                },
+                error: function (xhr) {
+                    const msg = xhr.responseJSON?.message || 'Gagal memperbarui tracking.';
+                    $('#trackingSection').html(`<div class="mt-4 p-4 bg-red-50 rounded-2xl text-sm text-red-600 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-2"></i>${escHtml(msg)}</div>`);
+                    Swal.fire({ icon: 'error', title: msg, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                },
+                complete: function () {
+                    $btn.prop('disabled', false).html('<i class="fa-solid fa-location-crosshairs mr-1"></i>Lacak');
+                },
+            });
+        };
+        // ─────────────────────────────────────────────────────────────────────
+
             window.openStatusModal = function () {
                 $('#statusModal').removeClass('hidden').addClass('flex');
             }

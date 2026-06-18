@@ -236,14 +236,19 @@
                                     @foreach (array_reverse($tracking['manifest']) as $log)
                                         @php
                                             $statusLabel = match(strtolower($log['status'] ?? '')) {
-                                                'confirmed' => 'Pesanan pengiriman sudah dikonfirmasi.',
-                                                'allocated' => 'Kurir sudah dialokasikan.',
-                                                'picked_up', 'pickup', 'picking_up' => 'Paket sedang dijemput.',
-                                                'in_transit', 'dropping_off', 'on_delivery' => 'Paket sedang dalam perjalanan.',
-                                                'delivered' => 'Paket sudah diterima.',
-                                                'cancelled', 'canceled' => 'Pengiriman dibatalkan.',
-                                                'failed' => 'Pengiriman gagal.',
-                                                default => null,
+                                                'confirmed'                                       => 'Pesanan dikonfirmasi, kurir akan dijadwalkan.',
+                                                'allocated'                                       => 'Kurir sudah dialokasikan dan siap menjemput.',
+                                                'picking_up'                                      => 'Kurir sedang menuju lokasi pengambilan.',
+                                                'picked', 'picked_up', 'pickup'                   => 'Barang sudah diambil oleh kurir.',
+                                                'dropping_off', 'in_transit', 'on_delivery', 'on_the_way' => 'Kurir sedang menuju lokasi tujuan.',
+                                                'delivered'                                       => 'Pesanan berhasil diterima oleh penerima.',
+                                                'cancelled', 'canceled'                           => 'Pengiriman dibatalkan.',
+                                                'on_hold'                                         => 'Pengiriman ditahan sementara karena kendala.',
+                                                'return_in_transit'                               => 'Paket sedang dalam proses retur ke pengirim.',
+                                                'returned'                                        => 'Paket berhasil diretur ke pengirim.',
+                                                'disposed'                                        => 'Paket dimusnahkan.',
+                                                'failed'                                          => 'Pengiriman gagal.',
+                                                default                                           => null,
                                             };
                                             $description = $log['manifest_description'] ?? $log['description'] ?? $log['note'] ?? $statusLabel ?? '-';
                                         @endphp

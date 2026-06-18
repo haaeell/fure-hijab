@@ -1,172 +1,286 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Label {{ $label['waybill'] ?? $order->order_number }}</title>
+    <title>Resi {{ $label['waybill'] ?? $order->order_number }}</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <style>
-        @page { size: 100mm 150mm; margin: 3mm; }
+        @page { size: 100mm auto; margin: 0; }
         * { box-sizing: border-box; }
-        body { margin: 0; background: #f3f4f6; color: #000; font-family: Arial, Helvetica, sans-serif; }
-        .toolbar { width: 100mm; margin: 18px auto 10px; display: flex; gap: 8px; justify-content: space-between; }
-        .toolbar a, .toolbar button { border: 1px solid #ddd; background: #fff; border-radius: 10px; padding: 9px 14px; font-weight: 700; font-size: 12px; cursor: pointer; color: #333; text-decoration: none; }
-        .toolbar button { background: #55249b; color: #fff; border-color: #55249b; }
-        .label { width: 100mm; height: 150mm; margin: 0 auto 18px; background: #fff; border: 3px solid #000; overflow: hidden; }
-        .row { border-top: 3px solid #000; }
-        .grid { display: grid; }
-        .col { border-right: 3px solid #000; }
-        .col:last-child { border-right: 0; }
-        .pad { padding: 8px 10px; }
+
+        body {
+            margin: 0;
+            background: #f0f0f0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #000;
+        }
+
+        /* ── Toolbar (hidden on print) ── */
+        .toolbar {
+            width: 100mm;
+            margin: 14px auto 10px;
+            display: flex;
+            gap: 8px;
+        }
+        .toolbar a {
+            flex: 1;
+            border: 1px solid #ddd;
+            background: #fff;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            color: #333;
+            text-decoration: none;
+            text-align: center;
+        }
+        .toolbar button {
+            flex: 1;
+            border: none;
+            background: #A78B6F;
+            color: #fff;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-weight: 900;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .toolbar button:hover { background: #5F4A3A; }
+
+        /* ── Label wrapper ── */
+        .label {
+            width: 100mm;
+            min-height: 150mm;        /* no fixed height — grows with content */
+            margin: 0 auto 18px;
+            background: #fff;
+            border: 2px solid #000;
+        }
+
+        /* ── Rows / grid ── */
+        .row { border-top: 2px solid #000; }
+        .row:first-child { border-top: none; }
+        .grid-2 { display: table; width: 100%; }
+        .col-l, .col-r { display: table-cell; vertical-align: top; }
+        .col-l { border-right: 2px solid #000; width: 50%; }
+        .pad { padding: 6px 9px; }
+
+        /* ── Typography ── */
+        .label-title { font-size: 8px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #777; margin-bottom: 3px; }
+        .bold  { font-weight: 800; }
         .small { font-size: 10px; }
-        .xs { font-size: 9px; }
-        .muted { color: #333; }
-        .bold { font-weight: 800; }
-        .black { font-weight: 900; }
+        .xs    { font-size: 9px; }
         .center { text-align: center; }
-        .break { word-break: break-word; }
-        .courier-logo { font-size: 28px; font-style: italic; color: #1d3f9f; letter-spacing: -2px; }
-        .brand-logo { font-size: 34px; letter-spacing: -2px; }
-        .brand-mark { display: inline-block; width: 34px; height: 34px; margin-right: 6px; vertical-align: -5px; border-radius: 8px 8px 8px 20px; background: linear-gradient(135deg, #6d35c5 0 48%, #57c6b7 49% 100%); }
-        .barcode-wrap svg { max-width: 100%; }
+        .break { word-break: break-all; }
+
+        /* ── Courier branding ── */
+        .courier-area { font-size: 22px; font-weight: 900; letter-spacing: 1px; color: #1a3a8f; }
+        .courier-logo-img { max-height: 28px; max-width: 60mm; object-fit: contain; }
+
+        /* ── Barcode ── */
+        .barcode-cell { text-align: center; padding: 6px 9px 4px; }
+        .barcode-cell svg { max-width: 88mm; width: 100%; display: block; margin: 0 auto; }
+        .resi-number { font-size: 13px; font-weight: 900; font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; margin-top: 2px; }
+        .ref-barcode-cell svg { max-width: 42mm; display: block; margin: 0 auto; }
+
+        /* ── Address ── */
+        .addr-name { font-size: 12px; font-weight: 900; margin-bottom: 2px; }
+        .addr-phone { font-size: 10px; font-weight: 700; margin-bottom: 2px; }
+        .addr-text  { font-size: 9px; line-height: 1.45; }
+
+        /* ── Separator ── */
+        .divider { border-top: 1px dashed #bbb; margin: 3px 0; }
+
         @media print {
-            body { background: #fff; }
-            .toolbar { display: none; }
-            .label { margin: 0; width: auto; height: auto; min-height: 144mm; border: 3px solid #000; }
+            html, body { background: #fff; }
+            .toolbar { display: none !important; }
+            .label {
+                width: 100%;
+                min-height: 0;
+                margin: 0;
+                border: 2px solid #000;
+            }
         }
     </style>
 </head>
 
 @php
-    $options = $labelOptions ?? [];
-    $showInsurance = $options['insurance'] ?? true;
-    $showShippingCost = $options['shipping_cost'] ?? true;
-    $showItems = $options['item_description'] ?? true;
-    $showSku = $options['item_sku'] ?? true;
-    $showSenderPhone = $options['sender_phone'] ?? true;
-    $showSenderAddress = $options['sender_address'] ?? true;
-    $showReceiverPhone = $options['receiver_phone'] ?? true;
-    $autoPrint = $options['auto_print'] ?? false;
-    $quantity = $order->items->sum('qty');
-    $weightKg = max(1, ceil(($label['weight'] ?? 10) / 1000));
-    $itemsText = $order->items->map(fn ($item) => $item->qty . 'x ' . $item->product_name . ($item->variant_name ? ' - ' . $item->variant_name : ''))->implode(', ');
+    $opts             = $labelOptions ?? [];
+    $showInsurance    = $opts['insurance']         ?? true;
+    $showCost         = $opts['shipping_cost']     ?? true;
+    $showItems        = $opts['item_description']  ?? true;
+    $showSku          = $opts['item_sku']          ?? false;
+    $showSenderPhone  = $opts['sender_phone']      ?? true;
+    $showSenderAddr   = $opts['sender_address']    ?? true;
+    $showRcvPhone     = $opts['receiver_phone']    ?? true;
+    $autoPrint        = $opts['auto_print']        ?? false;
+
+    $quantity   = $order->items->sum('qty');
+    $weightKg   = number_format(max(1, ($label['weight'] ?? 1000)) / 1000, 1);
+    $itemsText  = $order->items->map(fn($i) => $i->qty . 'x ' . $i->product_name . ($i->variant_name ? ' (' . $i->variant_name . ')' : ''))->implode(', ');
+    $waybill    = $label['waybill'] ?? null;
+    $reference  = $order->shipment->biteship_order_id ?? $order->order_number;
+
+    // Courier logo from Courier model
+    $courierModel = \App\Models\Courier::where('code', $order->shipment->courier ?? '')->first();
 @endphp
 
 <body>
-    <div class="toolbar">
-        <a href="{{ route('orders.show', $order->id) }}">Kembali</a>
-        <button onclick="window.print()">Cetak Label</button>
+
+{{-- Toolbar --}}
+<div class="toolbar">
+    <a href="{{ route('orders.show', $order->id) }}">← Kembali</a>
+    <button onclick="doPrint()">🖨 Cetak Label</button>
+</div>
+
+{{-- Label --}}
+<main class="label">
+
+    {{-- Row 1: Kurir + Nomor Resi --}}
+    <div class="pad grid-2">
+        <div class="col-l center" style="padding:8px 6px;">
+            @if($courierModel?->logo)
+                <img src="{{ asset('storage/' . $courierModel->logo) }}" class="courier-logo-img" alt="{{ $courierModel->name }}">
+            @else
+                <div class="courier-area">{{ strtoupper($order->shipment->courier ?? '-') }}</div>
+            @endif
+            <div class="xs bold" style="margin-top:3px; letter-spacing:0.5px;">{{ strtoupper($label['service'] ?? '') }}</div>
+        </div>
+        <div class="col-r center" style="padding:8px 6px;">
+            <div style="font-size:9px; color:#777; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Estimasi</div>
+            <div class="bold" style="font-size:13px;">{{ $label['estimated_days'] ?? '-' }} hari</div>
+            @if($showCost)
+                <div class="xs" style="margin-top:3px;">Ongkir: <span class="bold">Rp {{ number_format($label['cost'] ?? 0, 0, ',', '.') }}</span></div>
+            @endif
+        </div>
     </div>
 
-    <main class="label">
-        <section class="pad grid" style="grid-template-columns: 1fr 2.1fr; align-items:center; min-height:25mm;">
-            <div class="center">
-                <div class="courier-logo">{{ strtoupper($order->shipment->courier) }}</div>
-                <div class="xs bold">EXPRESS ACROSS NATIONS</div>
-            </div>
-            <div class="center">
-                <div class="brand-logo black"><span class="brand-mark"></span>biteship</div>
-                <div class="bold" style="font-size:16px;">biteship.com</div>
-            </div>
-        </section>
-
-        <section class="row pad center barcode-wrap">
+    {{-- Row 2: Waybill barcode --}}
+    <div class="row barcode-cell">
+        @if($waybill)
             <svg id="waybillBarcode"></svg>
-            <div style="font-size:18px; margin-top:2px;">Nomor Resi - <span class="bold">{{ $label['waybill'] ?? '-' }}</span></div>
-        </section>
+            <div class="resi-number">{{ $waybill }}</div>
+        @else
+            <div style="padding:10px 0; font-size:11px; color:#aaa;">Nomor resi belum tersedia</div>
+        @endif
+    </div>
 
-        <section class="row pad center">
-            @if($showShippingCost)
-                <div style="font-size:16px;">Ongkos Kirim: <span class="bold">Rp. {{ number_format($label['price'] ?? 0, 0, ',', '.') }}</span></div>
-            @endif
-            <div style="font-size:15px;">Jenis Layanan - <span class="bold">{{ strtoupper($label['service'] ?? '-') }}</span>. Kode Rute - {{ $label['route_code'] ?? 'ROUTEC123' }}</div>
+    {{-- Row 3: Reference + Qty/Weight --}}
+    <div class="row grid-2">
+        <div class="col-l pad ref-barcode-cell">
+            <div class="label-title">Referensi</div>
+            <svg id="referenceBarcode"></svg>
+            <div class="xs bold break">{{ $reference }}</div>
+        </div>
+        <div class="col-r pad" style="font-size:11px; line-height:2;">
+            <div class="label-title">Paket</div>
+            <div><span class="bold">Qty:</span> {{ $quantity }} pcs</div>
+            <div><span class="bold">Berat:</span> {{ $weightKg }} kg</div>
             @if($showInsurance)
-                <div class="small bold">Nilai Asuransi: Tidak Ada</div>
+                <div class="xs" style="color:#555;">Asuransi: Tidak Ada</div>
             @endif
-        </section>
+        </div>
+    </div>
 
-        <section class="row grid" style="grid-template-columns: 1fr 1fr; min-height:25mm;">
-            <div class="col pad">
-                <div style="font-size:15px;">Reference Number</div>
-                <svg id="referenceBarcode"></svg>
-                <div class="small bold break">{{ $order->shipment->biteship_order_id ?? $order->order_number }}</div>
-            </div>
-            <div class="pad" style="font-size:15px; line-height:1.8;">
-                <div><span class="bold">Quantity:</span> {{ $quantity }} Pcs</div>
-                <div><span class="bold">Weight:</span> {{ $weightKg }} Kg</div>
-            </div>
-        </section>
+    {{-- Row 4: Receiver / Sender --}}
+    <div class="row grid-2">
+        <div class="col-l pad">
+            <div class="label-title">Penerima</div>
+            <div class="addr-name">{{ $label['destination_name'] ?? '-' }}</div>
+            @if($showRcvPhone && ($label['destination_phone'] ?? false))
+                <div class="addr-phone">{{ $label['destination_phone'] }}</div>
+            @endif
+            <div class="addr-text">{{ $label['destination_address'] ?? '-' }}</div>
+        </div>
+        <div class="col-r pad">
+            <div class="label-title">Pengirim</div>
+            <div class="addr-name">{{ $label['origin_name'] ?? 'FURE' }}</div>
+            @if($showSenderPhone && ($label['origin_phone'] ?? false))
+                <div class="addr-phone">{{ $label['origin_phone'] }}</div>
+            @endif
+            @if($showSenderAddr && ($label['origin_address'] ?? false))
+                <div class="addr-text">{{ $label['origin_address'] }}</div>
+            @endif
+        </div>
+    </div>
 
-        <section class="row grid" style="grid-template-columns: 1fr 1fr; min-height:29mm;">
-            <div class="col pad">
-                <div class="bold">Alamat Penerima:</div>
-                <div class="bold">{{ $label['destination_name'] ?? '-' }}</div>
-                @if($showReceiverPhone)
-                    <div>{{ $label['destination_phone'] ?? '-' }}</div>
-                @endif
-                <div class="break">{{ $label['destination_address'] ?? '-' }}</div>
-            </div>
-            <div class="pad">
-                <div class="bold">Alamat Pengirim:</div>
-                <div class="bold">{{ $label['origin_name'] ?? 'FURE' }}</div>
-                @if($showSenderPhone)
-                    <div>{{ $label['origin_phone'] ?? '-' }}</div>
-                @endif
-                @if($showSenderAddress)
-                    <div class="break">{{ $label['origin_address'] ?? '-' }}</div>
-                @endif
-            </div>
-        </section>
+    {{-- Row 5: Items --}}
+    @if($showItems && $itemsText)
+        <div class="row pad">
+            <div class="label-title">Isi Paket</div>
+            <div class="small">{{ $itemsText }}</div>
+        </div>
+    @endif
 
-        @if($showItems)
-            <section class="row pad" style="min-height:16mm;">
-                <span class="bold">Jenis Barang :</span>
-                <span style="margin-left:14px;">{{ $itemsText ?: '-' }}</span>
-            </section>
-        @endif
+    {{-- Row 6: SKU --}}
+    @if($showSku)
+        <div class="row pad">
+            <div class="label-title">SKU</div>
+            <div class="small break">{{ $order->items->pluck('product_id')->implode(', ') ?: '-' }}</div>
+        </div>
+    @endif
 
-        @if($showSku)
-            <section class="row pad" style="min-height:10mm;">
-                <span class="bold">SKU Barang :</span>
-                <span style="margin-left:14px;">{{ $order->items->pluck('product_id')->implode(', ') ?: '-' }}</span>
-            </section>
-        @endif
+    {{-- Row 7: Notes --}}
+    @if($order->notes)
+        <div class="row pad">
+            <div class="label-title">Catatan</div>
+            <div class="small">{{ $order->notes }}</div>
+        </div>
+    @endif
 
-        <section class="row pad" style="min-height:12mm;">
-            <span class="bold">Catatan :</span>
-            <span style="margin-left:38px;">{{ $order->notes ?: 'Tidak Ada' }}</span>
-        </section>
+    {{-- Row 8: Footer --}}
+    <div class="row pad center xs" style="color:#666;">
+        {{ $order->order_number }} · Dicetak {{ now()->format('d/m/Y H:i') }}
+    </div>
 
-        <section class="row pad center" style="font-size:13px;">
-            <div>Pengiriman melalui platform Biteship</div>
-            <div>biteship.com</div>
-        </section>
-    </main>
+</main>
 
-    <script>
-        const waybill = @json($label['waybill']);
-        const reference = @json($order->shipment->biteship_order_id ?? $order->order_number);
-        const autoPrint = @json($autoPrint);
+<script>
+    const waybill   = @json($waybill);
+    const reference = @json($reference);
+    const autoPrint = @json($autoPrint);
 
-        if (window.JsBarcode) {
-            if (waybill) {
-                JsBarcode('#waybillBarcode', waybill, { format: 'CODE128', width: 1.7, height: 45, displayValue: false, margin: 0 });
-            }
+    function renderBarcodes() {
+        if (!window.JsBarcode) return;
 
-            if (reference) {
-                JsBarcode('#referenceBarcode', reference, { format: 'CODE128', width: 1.05, height: 30, displayValue: false, margin: 0 });
-            }
+        if (waybill) {
+            try {
+                JsBarcode('#waybillBarcode', String(waybill), {
+                    format: 'CODE128',
+                    width: 1.6,
+                    height: 48,
+                    displayValue: false,
+                    margin: 2,
+                });
+            } catch(e) { console.warn('waybill barcode error', e); }
         }
 
+        if (reference) {
+            try {
+                JsBarcode('#referenceBarcode', String(reference), {
+                    format: 'CODE128',
+                    width: 1.1,
+                    height: 32,
+                    displayValue: false,
+                    margin: 2,
+                });
+            } catch(e) { console.warn('reference barcode error', e); }
+        }
+    }
+
+    function doPrint() {
+        renderBarcodes(); // ensure rendered before print
+        setTimeout(() => window.print(), 100);
+    }
+
+    // Render barcodes once DOM is ready
+    document.addEventListener('DOMContentLoaded', function () {
+        renderBarcodes();
         if (autoPrint) {
-            window.addEventListener('load', function () {
-                setTimeout(function () {
-                    window.print();
-                }, 350);
-            });
+            setTimeout(() => window.print(), 400);
         }
-    </script>
+    });
+</script>
 </body>
-
 </html>

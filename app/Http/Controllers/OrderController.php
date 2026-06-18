@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Courier;
 use App\Models\Order;
 use App\Models\Shipment;
+use App\Models\Setting;
 use App\Services\BiteshipService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ShipmentTrackingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -211,27 +214,47 @@ class OrderController extends Controller
         }
     }
 
-    public function trackShipment($id, ShipmentTrackingService $trackingService)
+    public function trackShipment(Request $request, $id, ShipmentTrackingService $trackingService)
     {
         $order = Order::with('shipment')->findOrFail($id);
 
         if (!$order->shipment || blank($order->shipment->resi)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Nomor resi belum tersedia.'], 422);
+            }
             return redirect()->back()->with('error', 'Nomor resi belum tersedia.');
         }
 
         try {
             $tracking = $trackingService->trackShipment($order->shipment);
         } catch (\Throwable $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Tracking gagal: ' . $e->getMessage()], 422);
+            }
             return redirect()->back()->with('error', 'Tracking Biteship gagal: ' . $e->getMessage());
         }
 
+        $biteshipStatus = $trackingService->statusCode($tracking);
+
         $order->shipment->update([
             'tracking_history' => $tracking,
-            'tracked_at' => now(),
-            'status' => str_contains(strtolower((string) $trackingService->latestStatus($tracking)), 'delivered')
-                ? 'delivered'
-                : 'in_transit',
+            'tracked_at'       => now(),
+            'status'           => $biteshipStatus ?? $order->shipment->status,
         ]);
+
+        if ($request->wantsJson()) {
+            $fresh   = $order->shipment->fresh();
+            $manifest = $tracking['manifest'] ?? $tracking['history'] ?? [];
+            return response()->json([
+                'success'           => true,
+                'message'           => 'Tracking berhasil diperbarui.',
+                'manifest'          => array_values($manifest),
+                'status'            => $fresh->status,
+                'status_label'      => $fresh->status_label,
+                'status_badge_class'=> $fresh->status_badge_class,
+                'tracked_at'        => now()->format('d M Y H:i'),
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Tracking resi berhasil diperbarui.');
     }
@@ -351,6 +374,59 @@ class OrderController extends Controller
             'Content-Type' => $contentType,
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+
+    public function downloadLabelPdf($id)
+    {
+        $order = Order::with(['user', 'items.product', 'shipment', 'address'])->findOrFail($id);
+
+        if (!$order->shipment) {
+            return redirect()->back()->with('error', 'Data shipment belum tersedia.');
+        }
+
+        $shipment = $order->shipment;
+        $payload  = is_array($shipment->biteship_payload) ? $shipment->biteship_payload : [];
+        $courierObj = Courier::where('code', $shipment->courier)->first();
+
+        $label = [
+            'waybill'             => Arr::get($payload, 'courier_waybill_id')
+                ?: Arr::get($payload, 'waybill_id')
+                ?: $shipment->resi,
+            'courier_name'        => $courierObj?->name ?? strtoupper((string) $shipment->courier),
+            'courier_logo_url'    => $courierObj?->logo_url,
+            'service'             => $shipment->service ?? Arr::get($payload, 'courier_type'),
+            'weight'              => $shipment->total_weight ?? Arr::get($payload, 'weight') ?? 0,
+            'cost'                => $shipment->cost,
+            'estimated_days'      => $shipment->estimated_days,
+            'origin_name'         => Arr::get($payload, 'origin.contact_name')
+                ?: Setting::getValue('store_name', config('app.name')),
+            'origin_phone'        => Arr::get($payload, 'origin.contact_phone')
+                ?: Setting::getValue('biteship_origin_contact_phone'),
+            'origin_address'      => Arr::get($payload, 'origin.address')
+                ?: Setting::getValue('biteship_origin_address'),
+            'destination_name'    => Arr::get($payload, 'destination.contact_name')
+                ?: $order->address?->receiver_name
+                ?: $order->user?->name,
+            'destination_phone'   => Arr::get($payload, 'destination.contact_phone')
+                ?: $order->address?->phone,
+            'destination_address' => Arr::get($payload, 'destination.address')
+                ?: collect([
+                    $order->address?->address,
+                    $order->address?->subdistrict,
+                    $order->address?->district,
+                    $order->address?->city,
+                    $order->address?->province,
+                    $order->address?->postal_code,
+                ])->filter()->implode(', '),
+        ];
+
+        $storeLogo = Setting::getValue('store_logo');
+        $storeLogoUrl = $storeLogo ? asset('storage/' . $storeLogo) : null;
+
+        $pdf = Pdf::loadView('orders.label-pdf', compact('order', 'label', 'storeLogoUrl'))
+            ->setPaper([0, 0, 420, 595], 'portrait'); // A5-ish: ~148mm × 210mm
+
+        return $pdf->download('resi-' . $order->order_number . '.pdf');
     }
 
     // ─── API: show (for fetch) ─────────────────────────────────────────────────

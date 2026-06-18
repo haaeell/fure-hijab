@@ -88,6 +88,20 @@ class ShipmentTrackingService
         return null;
     }
 
+    /**
+     * Returns the machine-readable Biteship status code from a tracking payload,
+     * e.g. "picking_up", "delivered". Use this when storing to the database.
+     */
+    public function statusCode(?array $tracking): ?string
+    {
+        if (!$tracking) return null;
+        return $tracking['summary']['status'] ?? $tracking['status'] ?? null;
+    }
+
+    /**
+     * Returns the latest human-readable description from the tracking manifest.
+     * Used only for display purposes.
+     */
     public function latestStatus(?array $tracking): ?string
     {
         $manifest = $tracking['manifest'] ?? $tracking['history'] ?? [];
