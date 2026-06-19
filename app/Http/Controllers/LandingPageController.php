@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
 use App\Models\Collection;
 use App\Models\Product;
 use App\Models\Category;
@@ -84,6 +85,11 @@ class LandingPageController extends Controller
         $landingSections = LandingSection::where('is_active', true)->orderBy('sort_order')->latest()->get();
         $viewData = $landingViewData->homeData($landingBanners, $landingSections, $shopLookProducts);
 
+        $journalArticles = Article::published()
+            ->orderByDesc('published_at')
+            ->limit(3)
+            ->get();
+
         return view('welcome', array_merge(compact(
             'categories',
             'flashSaleProducts',
@@ -92,7 +98,8 @@ class LandingPageController extends Controller
             'featuredCategorySections',
             'shopLookProducts',
             'landingBanners',
-            'landingSections'
+            'landingSections',
+            'journalArticles'
         ), $viewData));
     }
 

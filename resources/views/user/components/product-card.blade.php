@@ -19,8 +19,7 @@
     <div class="relative flex h-full flex-col bg-transparent">
 
         @if($isFlashSale || $hasDiscount)
-            <div
-                class="absolute left-2 top-2 z-10 flex items-center gap-1 bg-brand-dark px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest text-white md:text-[10px]">
+            <div class="absolute left-2 top-2 z-10 flex items-center gap-1 bg-brand-dark px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest text-white md:text-[10px]">
                 <i class="fa-solid fa-tag text-[7px]"></i>
                 @if($hasDiscount)
                     Hemat {{ $diskon }}%
@@ -33,13 +32,11 @@
         <div class="relative mb-3 aspect-[3/4] overflow-hidden bg-[#eee5dc]">
             <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533?text=FURE' }}"
                 loading="lazy"
-                class="product-image w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                class="product-image w-full h-full object-cover"
                 alt="{{ $product->name }}">
 
-            <div
-                class="absolute inset-0 flex items-center justify-center bg-brand-dark/20 opacity-0 transition-opacity group-hover:opacity-100">
-                <div
-                    class="flex h-9 w-9 scale-75 items-center justify-center bg-white/95 text-sm text-brand-dark transition-transform group-hover:scale-100">
+            <div class="card-overlay absolute inset-0 flex items-center justify-center bg-brand-dark/18">
+                <div class="card-zoom-icon flex h-9 w-9 items-center justify-center bg-white/95 text-sm text-brand-dark">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </div>
             </div>
@@ -56,8 +53,7 @@
                 </div>
             </div>
 
-            <h3
-                class="mb-2 line-clamp-2 h-8 text-xs font-semibold leading-snug text-brand-dark transition-colors group-hover:text-brand-primary md:text-sm md:leading-snug">
+            <h3 class="mb-2 line-clamp-2 h-8 text-xs font-semibold leading-snug text-brand-dark transition-colors duration-300 group-hover:text-brand-primary md:text-sm md:leading-snug">
                 {{ $product->name }}
             </h3>
 
@@ -73,8 +69,7 @@
                     @endif
                 </div>
 
-                <div
-                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-white text-brand-primary transition-all duration-300 group-hover:bg-brand-primary group-hover:text-white active:scale-95">
+                <div class="card-bag-icon flex h-8 w-8 flex-shrink-0 items-center justify-center bg-white text-brand-primary">
                     <i class="fa-solid fa-bag-shopping text-[10px]"></i>
                 </div>
             </div>

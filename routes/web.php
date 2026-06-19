@@ -19,6 +19,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\CourierController;
+use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\AdminArticleController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\WishlistController;
 use App\Models\Category;
@@ -117,6 +119,10 @@ Route::view('/terms-and-conditions', 'user.terms.index')->name('terms.index');
 // Public search API
 Route::get('/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');
 Route::get('/search/popular', [SearchController::class, 'popular'])->name('search.popular');
+
+// Public artikel
+Route::get('/artikel', [ArticleController::class, 'index'])->name('articles.index');
+Route::get('/artikel/{slug}', [ArticleController::class, 'show'])->name('articles.show');
 
 Route::post('/midtrans/callback', [App\Http\Controllers\MidtransController::class, 'callback']);
 Route::get('/order/{order:order_number}/payment-status', [CheckoutController::class, 'checkPaymentStatus'])->middleware('auth');
@@ -241,6 +247,15 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/sections', 'storeSection')->name('sections.store');
             Route::put('/sections/{section}', 'updateSection')->name('sections.update');
             Route::delete('/sections/{section}', 'destroySection')->name('sections.destroy');
+        });
+
+        // Admin Artikel
+        Route::prefix('admin/articles')->controller(AdminArticleController::class)->name('admin.articles.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{article}', 'update')->name('update');
+            Route::delete('/{article}', 'destroy')->name('destroy');
+            Route::patch('/{article}/toggle-publish', 'togglePublish')->name('toggle-publish');
         });
     });
 

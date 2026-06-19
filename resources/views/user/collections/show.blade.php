@@ -47,7 +47,7 @@
                         <div class="relative aspect-[4/5] bg-[#eee5dc]">
                             <img id="mainImage"
                                 src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/900x1125?text=FURE' }}"
-                                class="h-full w-full object-cover" alt="{{ $product->name }}"
+                                class="h-full w-full object-cover transition-opacity duration-300" alt="{{ $product->name }}"
                                 fetchpriority="high">
 
                             @if($displayComparePrice > $displayPrice)
@@ -59,10 +59,13 @@
                     </div>
 
                     @if($galleryImages->count() > 1)
-                        <div class="no-scrollbar flex gap-3 overflow-x-auto pb-1">
-                            @foreach($galleryImages as $img)
-                                <button type="button" onclick="changeImage('{{ asset('storage/' . $img->image_url) }}')"
-                                    class="h-20 w-16 flex-none overflow-hidden border {{ $img->is_primary ? 'border-brand-primary' : 'border-brand-secondary/60' }} bg-white transition hover:border-brand-primary">
+                        <div class="no-scrollbar flex gap-3 overflow-x-auto pb-1" id="galleryThumbs">
+                            @foreach($galleryImages as $index => $img)
+                                <button type="button"
+                                    data-src="{{ asset('storage/' . $img->image_url) }}"
+                                    data-index="{{ $index }}"
+                                    onclick="changeImage('{{ asset('storage/' . $img->image_url) }}', this)"
+                                    class="gallery-thumb h-20 w-16 flex-none overflow-hidden border {{ $index === 0 ? 'border-brand-primary' : 'border-brand-secondary/60' }} bg-white transition-all duration-300 hover:border-brand-primary">
                                     <img src="{{ asset('storage/' . $img->image_url) }}" loading="lazy" class="h-full w-full object-cover" alt="{{ $product->name }}">
                                 </button>
                             @endforeach
@@ -401,8 +404,27 @@
         const variants = @json($product->variants->load('attributes'));
         let selectedChoices = {};
 
-        function changeImage(src) {
-            $('#mainImage').attr('src', src);
+        function setActiveThumbnail(btn) {
+            $('.gallery-thumb')
+                .removeClass('border-brand-primary')
+                .addClass('border-brand-secondary/60');
+            if (btn) {
+                $(btn).addClass('border-brand-primary').removeClass('border-brand-secondary/60');
+            }
+        }
+
+        function switchMainImage(src) {
+            const $img = $('#mainImage');
+            $img.css('opacity', 0);
+            setTimeout(function () {
+                $img.attr('src', src);
+                $img.css('opacity', 1);
+            }, 200);
+        }
+
+        function changeImage(src, btn) {
+            switchMainImage(src);
+            setActiveThumbnail(btn || null);
         }
 
         function adjustQty(val) {
@@ -451,15 +473,39 @@
             }
 
             // Ganti foto utama ke foto variant jika ada
+            const $gallery = $('#galleryThumbs');
+            $('#variantThumb').remove(); // hapus thumb variant sebelumnya
+
             if (match.image) {
                 const variantImageUrl = '/storage/' + match.image;
-                $('#mainImage').attr('src', variantImageUrl);
+                switchMainImage(variantImageUrl);
+
+                // Tambahkan thumbnail sementara untuk foto variant di galeri
+                if ($gallery.length) {
+                    setActiveThumbnail(null);
+                    const $thumb = $('<button>', {
+                        id: 'variantThumb',
+                        type: 'button',
+                        class: 'gallery-thumb h-20 w-16 flex-none overflow-hidden border border-brand-primary bg-white transition-all duration-300'
+                    }).on('click', function () {
+                        switchMainImage(variantImageUrl);
+                        setActiveThumbnail(this);
+                    }).append(
+                        $('<img>', { src: variantImageUrl, class: 'h-full w-full object-cover', alt: 'Foto varian' })
+                    );
+                    $gallery.prepend($thumb);
+                }
             } else if (defaultProductImage) {
-                $('#mainImage').attr('src', defaultProductImage);
+                switchMainImage(defaultProductImage);
+                // Kembalikan highlight ke thumbnail pertama
+                setActiveThumbnail($('.gallery-thumb[data-index="0"]')[0]);
             }
         }
 
         $(document).ready(function () {
+            // Set thumbnail pertama aktif saat load
+            setActiveThumbnail($('.gallery-thumb[data-index="0"]')[0] || null);
+
             // Wishlist toggle
             $('#wishlistBtn').on('click', function () {
                 if ($(this).data('auth') == 0) {

@@ -128,7 +128,8 @@
             <div class="grid gap-3 md:grid-cols-3">
                 @foreach($promoSections as $section)
                     <a href="{{ $section->button_url ?: route('collections.index') }}"
-                        class="group relative min-h-56 overflow-hidden p-6 md:min-h-64"
+                        class="reveal group relative min-h-56 overflow-hidden p-6 md:min-h-64"
+                        data-delay="{{ $loop->index * 100 }}"
                         style="background: {{ $section->background_color }}; color: {{ $section->text_color }};">
                         @if($section->image)
                             <img src="{{ asset('storage/' . $section->image) }}" alt="{{ $section->title }}"
@@ -163,17 +164,19 @@
             <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
                 <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                     <div>
-                        <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Most Loved</p>
-                        <h2 class="mt-2 text-3xl font-semibold">Best Seller From FURE</h2>
+                        <p class="reveal text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Most Loved</p>
+                        <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">Best Seller From FURE</h2>
                     </div>
-                    <a href="{{ route('best-seller.index') }}" class="text-sm font-bold text-brand-primary hover:text-brand-dark">
+                    <a href="{{ route('best-seller.index') }}" class="reveal text-sm font-bold text-brand-primary hover:text-brand-dark" data-delay="150">
                         View all products
                     </a>
                 </div>
 
                 <div class="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4">
                     @foreach($bestSellerProducts as $product)
-                        @include('user.components.product-card', ['product' => $product, 'isFlashSale' => $product->compare_price > $product->price])
+                        <div class="reveal" data-delay="{{ $loop->index * 80 }}">
+                            @include('user.components.product-card', ['product' => $product, 'isFlashSale' => $product->compare_price > $product->price])
+                        </div>
                     @endforeach
                 </div>
             </section>
@@ -185,18 +188,20 @@
             <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
                 <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                     <div>
-                        <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Featured Collection</p>
-                        <h2 class="mt-2 text-3xl font-semibold">{{ strtoupper($category->name) }}</h2>
+                        <p class="reveal text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Featured Collection</p>
+                        <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">{{ strtoupper($category->name) }}</h2>
                     </div>
                     <a href="{{ route('collections.index', ['category' => $category->slug]) }}"
-                        class="text-sm font-bold text-brand-primary hover:text-brand-dark">
+                        class="reveal text-sm font-bold text-brand-primary hover:text-brand-dark" data-delay="150">
                         View all products
                     </a>
                 </div>
 
                 <div class="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4">
                     @foreach($category->featuredProducts as $product)
-                        @include('user.components.product-card', ['product' => $product, 'isFlashSale' => $product->compare_price > $product->price])
+                        <div class="reveal" data-delay="{{ $loop->index * 80 }}">
+                            @include('user.components.product-card', ['product' => $product, 'isFlashSale' => $product->compare_price > $product->price])
+                        </div>
                     @endforeach
                 </div>
             </section>
@@ -207,18 +212,20 @@
         <section id="new-arrival" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
-                    <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Fresh Drop</p>
-                    <h2 class="mt-2 text-3xl font-semibold">New Arrival</h2>
+                    <p class="reveal text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Fresh Drop</p>
+                    <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">New Arrival</h2>
                 </div>
                 <a href="{{ route('new-arrived.index') }}"
-                    class="text-sm font-bold text-brand-primary hover:text-brand-dark">
+                    class="reveal text-sm font-bold text-brand-primary hover:text-brand-dark" data-delay="150">
                     View all products
                 </a>
             </div>
 
             <div class="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
                 @foreach($latestProducts as $product)
-                    @include('user.components.product-card', ['product' => $product, 'isFlashSale' => $product->compare_price > $product->price])
+                    <div class="reveal" data-delay="{{ $loop->index * 70 }}">
+                        @include('user.components.product-card', ['product' => $product, 'isFlashSale' => $product->compare_price > $product->price])
+                    </div>
                 @endforeach
             </div>
         </section>
@@ -227,20 +234,20 @@
 
         @if($flashSaleProducts->count() > 0)
             <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-                <div class="bg-brand-dark px-5 py-8 text-white sm:px-8 lg:px-10">
+                <div class="reveal from-scale bg-brand-dark px-5 py-8 text-white sm:px-8 lg:px-10">
                     <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                         <div>
-                            <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-secondary">Limited Offer</p>
-                            <h2 class="mt-2 text-3xl font-semibold">Special Price</h2>
+                            <p class="reveal text-[11px] font-bold uppercase tracking-[0.28em] text-brand-secondary">Limited Offer</p>
+                            <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">Special Price</h2>
                         </div>
-                        <a href="{{ route('promo.index') }}" class="text-sm font-bold text-brand-secondary hover:text-white">
+                        <a href="{{ route('promo.index') }}" class="reveal text-sm font-bold text-brand-secondary hover:text-white" data-delay="150">
                             View all promos
                         </a>
                     </div>
 
                     <div class="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4">
                         @foreach($flashSaleProducts as $product)
-                            <div class="bg-[#f8f3ee] p-3 text-brand-dark">
+                            <div class="reveal bg-[#f8f3ee] p-3 text-brand-dark" data-delay="{{ $loop->index * 80 }}">
                                 @include('user.components.product-card', ['product' => $product, 'isFlashSale' => true])
                             </div>
                         @endforeach
@@ -251,7 +258,7 @@
 
         <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <div class="grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
-                <div class="relative min-h-[520px] overflow-hidden bg-brand-dark">
+                <div class="reveal from-left relative min-h-[520px] overflow-hidden bg-brand-dark">
                     <img src="{{ $shopLookImage }}" alt="Shop the look FURE"
                         class="absolute inset-0 h-full w-full object-cover opacity-80">
                     <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/85 via-brand-dark/20 to-transparent"></div>
@@ -271,10 +278,11 @@
                 <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                     @forelse($shopLookProducts as $product)
                         <a href="{{ route('collections.show', $product->slug) }}"
-                            class="group grid grid-cols-[130px_1fr] gap-4 bg-white p-3 transition hover:bg-[#eee5dc] sm:grid-cols-1 lg:grid-cols-[150px_1fr]">
+                            class="reveal from-right group grid grid-cols-[130px_1fr] gap-4 bg-white p-3 transition hover:bg-[#eee5dc] sm:grid-cols-1 lg:grid-cols-[150px_1fr]"
+                            data-delay="{{ $loop->index * 100 }}">
                             <div class="aspect-[3/4] overflow-hidden bg-[#eee5dc]">
                                 <img src="{{ optional($product->images->first())->image_url ? asset('storage/' . $product->images->first()->image_url) : 'https://via.placeholder.com/400x533?text=FURE' }}"
-                                    alt="{{ $product->name }}"
+                                    loading="lazy" alt="{{ $product->name }}"
                                     class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
                             </div>
                             <div class="flex flex-col justify-center">
@@ -289,7 +297,7 @@
                     @empty
                         @foreach($promoSections->take(2) as $section)
                             <a href="{{ $section->button_url ?: route('collections.index') }}"
-                                class="group bg-white p-6 transition hover:bg-[#eee5dc]">
+                                class="reveal from-right group bg-white p-6 transition hover:bg-[#eee5dc]" data-delay="{{ $loop->index * 100 }}">
                                 <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">{{ $section->eyebrow }}</p>
                                 <h3 class="mt-3 text-2xl font-semibold leading-tight">{{ $section->title }}</h3>
                                 <span class="mt-6 inline-flex text-xs font-bold uppercase tracking-[0.16em] text-brand-primary">Shop the look</span>
@@ -300,39 +308,76 @@
             </div>
         </section>
 
+        @if($journalArticles->count() > 0)
         <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
-                    <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Stories</p>
-                    <h2 class="mt-2 text-3xl font-semibold">FURE Journal</h2>
+                    <p class="reveal text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Stories</p>
+                    <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">FURE Journal</h2>
                 </div>
+                <a href="{{ route('articles.index') }}" class="reveal text-sm font-bold text-brand-primary hover:text-brand-dark" data-delay="150">
+                    View all articles
+                </a>
             </div>
 
             <div class="grid gap-4 md:grid-cols-3">
-                <article class="bg-white p-5">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">Styling Guide</p>
-                    <h3 class="mt-3 text-xl font-semibold leading-tight">Cara memilih hijab harian yang nyaman dan tetap rapi.</h3>
-                    <p class="mt-4 text-sm leading-6 text-brand-dark/60">Mulai dari bahan, ukuran, hingga warna netral yang mudah dipadukan.</p>
-                    <a href="{{ route('collections.index') }}" class="mt-6 inline-flex text-xs font-bold uppercase tracking-[0.16em] text-brand-primary">Read more</a>
-                </article>
-                <article class="bg-white p-5">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">Fabric Notes</p>
-                    <h3 class="mt-3 text-xl font-semibold leading-tight">Kenali bahan hijab untuk aktivitas dari pagi sampai malam.</h3>
-                    <p class="mt-4 text-sm leading-6 text-brand-dark/60">Pilih tekstur yang ringan, mudah dibentuk, dan tidak cepat kusut.</p>
-                    <a href="{{ route('hijab.index') }}" class="mt-6 inline-flex text-xs font-bold uppercase tracking-[0.16em] text-brand-primary">Read more</a>
-                </article>
-                <article class="bg-white p-5">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">Occasion</p>
-                    <h3 class="mt-3 text-xl font-semibold leading-tight">Inspirasi modest look untuk acara spesial dan keluarga.</h3>
-                    <p class="mt-4 text-sm leading-6 text-brand-dark/60">Tampil santun dengan palet lembut dan siluet yang elegan.</p>
-                    <a href="{{ route('syari.index') }}" class="mt-6 inline-flex text-xs font-bold uppercase tracking-[0.16em] text-brand-primary">Read more</a>
-                </article>
+                @foreach($journalArticles as $article)
+                    <a href="{{ route('articles.show', $article->slug) }}"
+                        class="reveal article-card group flex flex-col bg-white" data-delay="{{ $loop->index * 120 }}">
+                        @if($article->thumbnail)
+                            <div class="aspect-[16/10] overflow-hidden bg-[#eee5dc]">
+                                <img src="{{ asset('storage/' . $article->thumbnail) }}"
+                                    loading="lazy" alt="{{ $article->title }}"
+                                    class="article-img h-full w-full object-cover">
+                            </div>
+                        @endif
+                        <div class="flex flex-1 flex-col p-5">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+                                {{ $article->category_label }}
+                            </p>
+                            <h3 class="mt-3 line-clamp-2 text-base font-semibold leading-snug text-brand-dark transition-colors group-hover:text-brand-primary">
+                                {{ $article->title }}
+                            </h3>
+                            <p class="mt-3 line-clamp-2 text-sm leading-6 text-brand-dark/60">{{ $article->excerpt }}</p>
+                            <div class="mt-auto flex items-center justify-between pt-4 text-[10px] text-brand-dark/40">
+                                <span class="font-semibold">{{ $article->author }}</span>
+                                <span>{{ $article->read_time }} min read</span>
+                            </div>
+                        </div>
+                    </a>
+                @endforeach
             </div>
         </section>
+        @endif
     </div>
 @endsection
 
 @push('scripts')
+    <script>
+        // ── Scroll reveal (Intersection Observer) ──────────────────────────────
+        (function () {
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (!entry.isIntersecting) return;
+                    var el = entry.target;
+                    var delay = parseInt(el.dataset.delay || '0', 10);
+                    if (delay > 0) {
+                        setTimeout(function () { el.classList.add('revealed'); }, delay);
+                    } else {
+                        el.classList.add('revealed');
+                    }
+                    observer.unobserve(el);
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -48px 0px'
+            });
+
+            document.querySelectorAll('.reveal').forEach(function (el) {
+                observer.observe(el);
+            });
+        })();
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const slides = Array.from(document.querySelectorAll('.landing-slide'));

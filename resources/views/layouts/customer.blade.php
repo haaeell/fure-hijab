@@ -77,6 +77,56 @@
             animation: fure-shimmer 1.4s ease-in-out infinite;
         }
 
+        /* ─── Product card hover ────────────────────────────────────────────── */
+        .product-card {
+            transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        box-shadow 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 18px 44px rgba(95, 74, 58, 0.13);
+        }
+        .product-card .product-image {
+            transition: transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .product-card:hover .product-image {
+            transform: scale(1.06);
+        }
+        .product-card .card-overlay {
+            opacity: 0;
+            transition: opacity 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .product-card:hover .card-overlay { opacity: 1; }
+        .product-card .card-zoom-icon {
+            transform: scale(0.78);
+            transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .product-card:hover .card-zoom-icon { transform: scale(1); }
+        .product-card .card-bag-icon {
+            transition: background 0.32s ease, color 0.32s ease, transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .product-card:hover .card-bag-icon {
+            background: var(--color-brand-primary, #A78B6F);
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        /* ─── Scroll reveal ─────────────────────────────────────────────────── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(32px);
+            transition: opacity 0.72s cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 0.72s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: opacity, transform;
+        }
+        .reveal.from-left  { transform: translateX(-44px); }
+        .reveal.from-right { transform: translateX(44px); }
+        .reveal.from-scale { transform: scale(0.93) translateY(16px); }
+        .reveal.revealed {
+            opacity: 1;
+            transform: none;
+        }
+
         html {
             scroll-behavior: smooth;
         }
@@ -339,6 +389,11 @@
                     class="transition-colors {{ request()->routeIs('about.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
                     Store Locator
                 </a>
+
+                <a href="{{ route('articles.index') }}"
+                    class="transition-colors {{ request()->routeIs('articles.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    Journal
+                </a>
             </div>
             <div class="flex min-w-0 items-center justify-end gap-1 sm:gap-2 lg:gap-3">
                 <button type="button" data-search-trigger class="hidden p-2 text-brand-dark transition-colors hover:text-brand-primary md:block">
@@ -462,6 +517,11 @@
                 <a href="{{ route('about.index') }}"
                     class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('about.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     Store Locator
+                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
+                </a>
+                <a href="{{ route('articles.index') }}"
+                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('articles.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    Journal
                     <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
                 </a>
             </div>

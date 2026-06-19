@@ -192,6 +192,12 @@
                 <i class="fa-solid fa-images w-5"></i> Landing Page
             </a>
 
+            <a href="{{ route('admin.articles.index') }}"
+                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
+                {{ request()->is('admin/articles*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
+                <i class="fa-solid fa-newspaper w-5"></i> Artikel
+            </a>
+
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] px-4 mb-3 mt-6">Penjualan</p>
 
             <a href="/orders"
