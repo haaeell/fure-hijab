@@ -18,7 +18,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with(['category', 'brand', 'images' => fn($q) => $q->where('is_primary', true)])
+        $products = Product::with(['category', 'brand', 'collections', 'variants', 'images' => fn($q) => $q->where('is_primary', true)])
             ->latest()
             ->get();
         $categories  = Category::where('is_active', true)->get();
@@ -35,6 +35,7 @@ class ProductController extends Controller
 
         return response()->json(array_merge($product->toArray(), [
             'collection_ids' => $product->collections->pluck('id'),
+            'collection_id' => $product->collections->pluck('id')->first(),
         ]));
     }
 
@@ -57,6 +58,7 @@ class ProductController extends Controller
             'is_active'         => 'nullable',
             'has_variant'       => 'nullable|boolean',
             'images.*'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'collection_id'     => 'nullable|exists:collections,id',
             'collection_ids'    => 'nullable|array',
             'collection_ids.*'  => 'exists:collections,id',
         ], [
@@ -106,8 +108,7 @@ class ProductController extends Controller
                 $this->syncVariants($product, $request->input('variants', []));
             }
 
-            // Sync collections
-            $product->collections()->sync($request->input('collection_ids', []));
+            $this->syncCollections($product, $request);
 
             DB::commit();
             return redirect()->back()->with('success', 'Produk berhasil ditambahkan');
@@ -137,6 +138,7 @@ class ProductController extends Controller
             'is_active'         => 'nullable',
             'has_variant'       => 'nullable|boolean',
             'images.*'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'collection_id'     => 'nullable|exists:collections,id',
             'collection_ids'    => 'nullable|array',
             'collection_ids.*'  => 'exists:collections,id',
         ], [
@@ -199,8 +201,7 @@ class ProductController extends Controller
                 $product->variants()->delete();
             }
 
-            // Sync collections
-            $product->collections()->sync($request->input('collection_ids', []));
+            $this->syncCollections($product, $request);
 
             DB::commit();
             return redirect()->back()->with('success', 'Produk berhasil diperbarui');
@@ -233,7 +234,30 @@ class ProductController extends Controller
         }
     }
 
+    public function uploadDescriptionImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:4096',
+        ]);
+
+        $path = $request->file('image')->store('products/descriptions', 'public');
+
+        return response()->json([
+            'url' => asset('storage/' . $path),
+        ]);
+    }
+
     // ─── Image helpers ────────────────────────────────────────────────────────
+
+    private function syncCollections(Product $product, Request $request): void
+    {
+        if ($request->filled('collection_id')) {
+            $product->collections()->sync([(int) $request->input('collection_id')]);
+            return;
+        }
+
+        $product->collections()->sync($request->input('collection_ids', []));
+    }
 
     public function destroyImage($productId, $imageId)
     {

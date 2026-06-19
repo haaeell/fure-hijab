@@ -23,7 +23,6 @@ class CategoryController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
-            'collection_type' => 'nullable|in:best-seller,hijab,syari,new-arrived',
             'is_active' => 'nullable'
         ]);
 
@@ -37,7 +36,6 @@ class CategoryController extends Controller
             'parent_id' => $data['parent_id'] ?? null,
             'image' => $data['image'] ?? null,
             'description' => $data['description'] ?? null,
-            'collection_type' => $data['collection_type'] ?? null,
             'is_active' => $request->has('is_active')
         ]);
 
@@ -53,7 +51,6 @@ class CategoryController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
-            'collection_type' => 'nullable|in:best-seller,hijab,syari,new-arrived',
             'is_active' => 'nullable'
         ]);
 
@@ -70,7 +67,6 @@ class CategoryController extends Controller
             'parent_id' => $data['parent_id'] ?? null,
             'image' => $data['image'] ?? $category->image,
             'description' => $data['description'] ?? $category->description,
-            'collection_type' => $data['collection_type'] ?? null,
             'is_active' => $request->has('is_active')
         ]);
 

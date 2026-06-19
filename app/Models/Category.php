@@ -16,7 +16,6 @@ class Category extends Model
         'image',
         'description',
         'sort_order',
-        'collection_type',
         'is_active'
     ];
 

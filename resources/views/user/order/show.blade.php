@@ -3,16 +3,16 @@
 @section('title', 'Detail Pesanan #' . $order->order_number)
 
 @section('content')
-    <section class="py-12 bg-[#f8f3ee] min-h-screen px-4 sm:px-6 lg:px-8">
+    <section class="mobile-action-safe-space px-4 py-6 bg-[#f8f3ee] min-h-screen sm:px-6 sm:py-12 lg:px-8">
         <div class="max-w-6xl mx-auto">
             @php
                 $statusMap = [
-                    'pending' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-600', 'label' => 'Menunggu Pembayaran', 'icon' => 'fa-clock'],
-                    'confirmed' => ['bg' => 'bg-blue-50', 'text' => 'text-blue-600', 'label' => 'Dikonfirmasi', 'icon' => 'fa-check-circle'],
-                    'processing' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600', 'label' => 'Diproses', 'icon' => 'fa-box'],
-                    'shipped' => ['bg' => 'bg-cyan-50', 'text' => 'text-cyan-600', 'label' => 'Dalam Pengiriman', 'icon' => 'fa-truck'],
-                    'delivered' => ['bg' => 'bg-green-50', 'text' => 'text-green-600', 'label' => 'Selesai', 'icon' => 'fa-check-double'],
-                    'cancelled' => ['bg' => 'bg-red-50', 'text' => 'text-red-600', 'label' => 'Dibatalkan', 'icon' => 'fa-xmark'],
+                    'pending' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-600', 'label' => 'Menunggu Pembayaran', 'short' => 'Bayar', 'icon' => 'fa-clock'],
+                    'confirmed' => ['bg' => 'bg-blue-50', 'text' => 'text-blue-600', 'label' => 'Dikonfirmasi', 'short' => 'Konfirmasi', 'icon' => 'fa-check-circle'],
+                    'processing' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600', 'label' => 'Diproses', 'short' => 'Diproses', 'icon' => 'fa-box'],
+                    'shipped' => ['bg' => 'bg-cyan-50', 'text' => 'text-cyan-600', 'label' => 'Dalam Pengiriman', 'short' => 'Dikirim', 'icon' => 'fa-truck'],
+                    'delivered' => ['bg' => 'bg-green-50', 'text' => 'text-green-600', 'label' => 'Selesai', 'short' => 'Selesai', 'icon' => 'fa-check-double'],
+                    'cancelled' => ['bg' => 'bg-red-50', 'text' => 'text-red-600', 'label' => 'Dibatalkan', 'short' => 'Batal', 'icon' => 'fa-xmark'],
                 ];
                 $currentStatus = $statusMap[$order->status] ?? $statusMap['pending'];
 
@@ -21,28 +21,28 @@
                 $remainingPaymentSeconds = $order->status === 'pending' ? max(0, now()->diffInSeconds($paymentExpiresAt, false)) : 0;
             @endphp
 
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
-                <div class="flex items-center gap-4">
+            <div class="mb-6 flex flex-col gap-4 md:mb-10 md:flex-row md:items-center md:justify-between">
+                <div class="flex min-w-0 items-center gap-3 sm:gap-4">
                     <a href="{{ route('order.history') }}"
-                        class="w-12 h-12 bg-white flex items-center justify-center text-brand-dark shadow-sm border border-brand-secondary/50 hover:bg-brand-primary hover:text-white transition-all">
+                        class="flex h-11 w-11 flex-shrink-0 items-center justify-center bg-white text-brand-dark shadow-sm border border-brand-secondary/50 transition-all hover:bg-brand-primary hover:text-white sm:h-12 sm:w-12">
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
-                    <div>
-                        <h1 class="text-2xl font-black text-brand-dark tracking-tight">Detail Pesanan</h1>
-                        <p class="text-sm text-gray-500">ID Transaksi: <span
+                    <div class="min-w-0">
+                        <h1 class="text-xl font-black text-brand-dark tracking-tight sm:text-2xl">Detail Pesanan</h1>
+                        <p class="truncate text-xs text-gray-500 sm:text-sm">ID Transaksi: <span
                                 class="font-bold text-brand-dark">#{{ $order->order_number }}</span></p>
                     </div>
                 </div>
 
+                <div
+                    class="flex w-full items-center gap-3 {{ $currentStatus['bg'] }} border border-current/10 bg-white p-2 pr-4 shadow-sm sm:w-fit sm:pr-6">
                     <div
-                        class="flex items-center gap-3 {{ $currentStatus['bg'] }} p-2 pr-6 border border-current/10 w-fit bg-white">
-                    <div
-                        class="w-10 h-10 {{ str_replace('text-', 'bg-', $currentStatus['text']) }} rounded-xl flex items-center justify-center text-white shadow-lg">
+                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl {{ str_replace('text-', 'bg-', $currentStatus['text']) }} text-white shadow-lg">
                         <i class="fa-solid {{ $currentStatus['icon'] }}"></i>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <p class="text-[10px] font-bold opacity-60 uppercase tracking-widest leading-none">Status</p>
-                        <p class="text-sm font-black {{ $currentStatus['text'] }} uppercase">{{ $currentStatus['label'] }}
+                        <p class="truncate text-sm font-black {{ $currentStatus['text'] }} uppercase">{{ $currentStatus['label'] }}
                         </p>
                     </div>
                 </div>
@@ -52,7 +52,7 @@
                 <div class="lg:col-span-2 space-y-8">
 
                     {{-- STEPPER --}}
-                    <div class="bg-white p-8 shadow-sm border border-brand-secondary/30">
+                    <div class="bg-white p-4 shadow-sm border border-brand-secondary/30 sm:p-8">
                         @if (in_array($order->status, ['cancelled', 'refunded']))
                             <div class="flex items-center gap-4 p-4 rounded-2xl bg-red-50 border border-dashed border-red-200">
                                 <i class="fa-solid fa-circle-xmark text-red-500 text-2xl"></i>
@@ -70,29 +70,35 @@
                                 </div>
                             </div>
                         @else
-                            <div class="relative flex justify-between px-4">
-                                @php
-                                    $steps = ['pending', 'processing', 'shipped', 'delivered'];
-                                    $currentIndex = array_search($order->status, $steps);
-                                @endphp
-                                <div class="absolute top-5 left-10 right-10 h-1 bg-gray-100 -z-0">
+                            @php
+                                $steps = ['pending', 'processing', 'shipped', 'delivered'];
+                                $currentIndex = array_search($order->status, $steps);
+                                $progressIndex = $currentIndex !== false ? $currentIndex : 0;
+                            @endphp
+
+                            <div class="relative">
+                                <div class="absolute left-[12.5%] right-[12.5%] top-5 h-1 bg-gray-100">
                                     <div class="h-full bg-brand-primary transition-all duration-700"
-                                        style="width: {{ $currentIndex !== false ? ($currentIndex / (count($steps) - 1)) * 100 : 0 }}%">
+                                        style="width: {{ ($progressIndex / (count($steps) - 1)) * 100 }}%">
                                     </div>
                                 </div>
-                                @foreach ($steps as $index => $step)
-                                    <div class="relative z-10 flex flex-col items-center">
-                                        <div
-                                            class="w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-sm transition-all
-                                                                                                                                                                                                                                            {{ $currentIndex >= $index ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-400' }}">
-                                            <i class="fa-solid {{ $statusMap[$step]['icon'] }} text-[10px]"></i>
+
+                                <div class="relative z-10 grid grid-cols-4 gap-1">
+                                    @foreach ($steps as $index => $step)
+                                        <div class="flex min-w-0 flex-col items-center text-center">
+                                            <div
+                                                class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-white shadow-sm transition-all sm:h-11 sm:w-11
+                                                {{ $progressIndex >= $index ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-400' }}">
+                                                <i class="fa-solid {{ $statusMap[$step]['icon'] }} text-[10px]"></i>
+                                            </div>
+                                            <span
+                                                class="mt-2 block w-full px-0.5 text-[9px] font-black uppercase leading-tight tracking-normal sm:text-[10px] {{ $progressIndex >= $index ? 'text-brand-dark' : 'text-gray-300' }}">
+                                                <span class="sm:hidden">{{ $statusMap[$step]['short'] }}</span>
+                                                <span class="hidden sm:inline">{{ $statusMap[$step]['label'] }}</span>
+                                            </span>
                                         </div>
-                                        <span
-                                            class="mt-2 text-[9px] font-bold uppercase tracking-tighter {{ $currentIndex >= $index ? 'text-brand-dark' : 'text-gray-300' }}">
-                                            {{ $statusMap[$step]['label'] }}
-                                        </span>
-                                    </div>
-                                @endforeach
+                                    @endforeach
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -104,23 +110,23 @@
                                 <i class="fa-solid fa-bag-shopping text-brand-primary"></i> Daftar Belanja
                             </h3>
                         </div>
-                        <div class="p-6 divide-y divide-gray-100">
+                            <div class="divide-y divide-gray-100 p-4 sm:p-6">
                             @foreach ($order->items as $item)
-                                <div class="py-6 first:pt-0 last:pb-0 flex gap-6">
+                                <div class="flex gap-4 py-5 first:pt-0 last:pb-0 sm:gap-6 sm:py-6">
                                     <div
-                                        class="w-20 h-24 rounded-2xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100">
+                                        class="h-24 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-gray-100 border border-gray-100 sm:h-24 sm:w-20">
                                         @php $primaryImage = $item->product->images->where('is_primary', true)->first(); @endphp
                                         <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533' }}"
                                             class="w-full h-full object-cover">
                                     </div>
-                                    <div class="flex-grow">
-                                        <h4 class="font-bold text-brand-dark text-base mb-1">{{ $item->product->name }}</h4>
+                                    <div class="min-w-0 flex-grow">
+                                        <h4 class="mb-1 text-sm font-bold leading-snug text-brand-dark sm:text-base">{{ $item->product->name }}</h4>
                                         @if ($item->variant)
                                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">
                                                 VARIAN: {{ $item->variant->name ?? 'Default' }}
                                             </p>
                                         @endif
-                                        <div class="flex justify-between items-center mt-4">
+                                        <div class="mt-3 flex flex-col gap-1 sm:mt-4 sm:flex-row sm:items-center sm:justify-between">
                                             <p class="text-sm text-gray-500">{{ $item->qty }} x
                                                 Rp{{ number_format($item->price, 0, ',', '.') }}</p>
                                             <p class="font-black text-brand-dark">
@@ -341,7 +347,7 @@
 
                                 @if($remainingPaymentSeconds > 0)
                                     <button id="pay-button"
-                                        class="w-full py-4 bg-brand-primary text-white font-bold rounded-2xl shadow-lg hover:shadow-brand-primary/30 transition-all mt-4 flex items-center justify-center gap-2">
+                                        class="desktop-only-action w-full py-4 bg-brand-primary text-white font-bold rounded-2xl shadow-lg hover:shadow-brand-primary/30 transition-all mt-4 flex items-center justify-center gap-2">
                                         BAYAR SEKARANG
                                     </button>
                                 @else
@@ -404,7 +410,7 @@
 
                     {{-- KONFIRMASI SELESAI --}}
                     @if ($order->status == 'shipped')
-                        <form action="{{ route('order.history.complete', $order->order_number) }}" method="POST">
+                        <form action="{{ route('order.history.complete', $order->order_number) }}" method="POST" class="desktop-only-action">
                             @csrf @method('PATCH')
                             <button type="submit"
                                 class="w-full py-5 bg-green-500 text-white font-black rounded-2xl shadow-lg hover:bg-green-600 transition-all flex items-center justify-center gap-3">
@@ -423,6 +429,42 @@
             </div>
         </div>
     </section>
+
+    @if($order->status == 'pending' && $remainingPaymentSeconds > 0)
+        <x-user.components.mobile-bottom-action-bar>
+            <div class="flex items-center justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">Total Pembayaran</p>
+                    <p class="mt-0.5 truncate text-xl font-black text-brand-dark">
+                        Rp{{ number_format($order->total, 0, ',', '.') }}
+                    </p>
+                </div>
+                @if($payment && $payment->snap_token)
+                    <button type="button" id="pay-button-mobile"
+                        class="flex min-h-[52px] min-w-[150px] items-center justify-center rounded-2xl bg-brand-primary px-5 text-sm font-black uppercase text-white shadow-lg shadow-brand-primary/25 transition active:scale-95">
+                        Bayar Sekarang
+                    </button>
+                @else
+                    <a href="{{ route('order.history.show', $order->order_number) }}"
+                        class="flex min-h-[52px] min-w-[170px] items-center justify-center rounded-2xl bg-brand-primary px-5 text-xs font-black uppercase text-white shadow-lg shadow-brand-primary/25">
+                        Lanjutkan Pembayaran
+                    </a>
+                @endif
+            </div>
+        </x-user.components.mobile-bottom-action-bar>
+    @elseif($order->status == 'shipped')
+        <x-user.components.mobile-bottom-action-bar>
+            <form action="{{ route('order.history.complete', $order->order_number) }}" method="POST">
+                @csrf
+                @method('PATCH')
+                <button type="submit"
+                    class="flex min-h-[54px] w-full items-center justify-center gap-3 rounded-2xl bg-green-500 px-5 text-sm font-black uppercase text-white shadow-lg shadow-green-500/20 transition active:scale-95">
+                    <i class="fa-solid fa-box-open"></i>
+                    Konfirmasi Pembayaran
+                </button>
+            </form>
+        </x-user.components.mobile-bottom-action-bar>
+    @endif
 
     @if (in_array($order->status, ['pending', 'confirmed']))
         <div id="cancelOrderModal" class="fixed inset-0 z-[120] hidden items-center justify-center p-4">
@@ -532,8 +574,7 @@
                 }
             }
 
-            const payButton = document.getElementById('pay-button');
-            payButton.addEventListener('click', function () {
+            function openSnapPayment() {
                 window.snap.pay('{{ $payment->snap_token }}', {
                     onSuccess: function (result) {
                         stopPolling();
@@ -563,6 +604,12 @@
                     }
                 });
                 setTimeout(() => startPolling(), 2000);
+            }
+
+            document.querySelectorAll('#pay-button, #pay-button-mobile').forEach(function (button) {
+                if (button) {
+                    button.addEventListener('click', openSnapPayment);
+                }
             });
         </script>
     @endif

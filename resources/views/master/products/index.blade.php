@@ -2,6 +2,31 @@
 
 @section('title', 'Produk')
 
+@push('styles')
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <style>
+        .note-editor.note-frame {
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .note-editor .note-toolbar {
+            background: #f9fafb;
+            border-bottom: 1px solid #f3f4f6;
+            padding: 0.75rem;
+        }
+
+        .note-editor .note-editing-area .note-editable {
+            min-height: 420px;
+            color: #374151;
+            font-size: 0.875rem;
+            line-height: 1.75;
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="mx-auto">
         {{-- ── Page Header ── --}}
@@ -78,6 +103,7 @@
                         <th class="px-4 py-4 text-left">Gambar</th>
                         <th class="px-4 py-4 text-left">Nama Produk</th>
                         <th class="px-4 py-4 text-left">Kategori / Brand</th>
+                        <th class="px-4 py-4 text-left">Koleksi</th>
                         <th class="px-4 py-4 text-left">Harga</th>
                         <th class="px-4 py-4 text-left">Stok</th>
                         <th class="px-4 py-4 text-left">Varian</th>
@@ -112,6 +138,15 @@
                             <td class="px-4 py-5">
                                 <div class="text-xs font-semibold text-gray-600">{{ $product->category->name ?? '-' }}</div>
                                 <div class="text-[10px] text-gray-400 mt-0.5">{{ $product->brand->name ?? 'No Brand' }}</div>
+                            </td>
+                            <td class="px-4 py-5">
+                                @if($product->collections->isNotEmpty())
+                                    <span class="px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary text-[10px] font-black tracking-wider">
+                                        {{ $product->collections->first()->name }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-300 text-xs italic">Tanpa koleksi</span>
+                                @endif
                             </td>
                             <td class="px-4 py-5">
                                 <div class="font-bold text-brand-dark text-sm">Rp {{ number_format($product->price, 0, ',', '.') }}</div>
@@ -309,28 +344,30 @@
                                 </div>
                             </div>
 
-                            {{-- Deskripsi Lengkap (CKEditor) --}}
+                            {{-- Deskripsi Lengkap (Summernote) --}}
                             <div class="md:col-span-2 space-y-1.5">
                                 <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">DESKRIPSI LENGKAP</label>
-                                <textarea name="description" id="productDesc"></textarea>
+                                <p class="ml-1 text-[10px] text-gray-400">Bisa tambah gambar langsung lewat toolbar editor.</p>
+                                <textarea name="description" id="productDesc" rows="12"></textarea>
                             </div>
 
                             {{-- Koleksi --}}
-                            <div class="md:col-span-2 space-y-2">
-                                <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">KOLEKSI <span class="text-gray-300">(Opsional, bisa lebih dari satu)</span></label>
+                            <div class="md:col-span-2 space-y-1.5">
+                                <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">KOLEKSI <span class="text-gray-300">(Opsional)</span></label>
                                 @if($collections->isEmpty())
                                     <p class="text-xs text-gray-400 px-1">Belum ada koleksi. <a href="{{ route('koleksi.index') }}" class="text-brand-primary font-semibold hover:underline">Buat koleksi</a> terlebih dahulu.</p>
                                 @else
-                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    <div class="relative group">
+                                        <i class="fa-solid fa-table-cells-large absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-primary transition-colors text-xs"></i>
+                                        <select name="collection_id" id="productCollection"
+                                            class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary focus:bg-white outline-none transition-all text-sm font-semibold appearance-none">
+                                            <option value="">Tanpa koleksi khusus</option>
                                         @foreach($collections as $col)
-                                            <label class="collection-label flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-2xl cursor-pointer transition-all hover:border-brand-primary has-[input:checked]:border-brand-primary has-[input:checked]:bg-brand-primary/5">
-                                                <input type="checkbox" name="collection_ids[]" value="{{ $col->id }}"
-                                                    data-collection-id="{{ $col->id }}"
-                                                    class="h-4 w-4 rounded border-gray-300 text-brand-primary focus:ring-brand-primary collection-checkbox">
-                                                <span class="text-sm font-semibold text-gray-600 leading-tight">{{ $col->name }}</span>
-                                            </label>
+                                                <option value="{{ $col->id }}">{{ $col->name }}</option>
                                         @endforeach
+                                        </select>
                                     </div>
+                                    <p class="ml-1 text-[11px] text-gray-400">Dipakai untuk filter halaman koleksi seperti Best Seller, Hijab, Syar'i, atau New Arrived.</p>
                                 @endif
                             </div>
 
@@ -565,8 +602,8 @@
     </div>
 
     @push('scripts')
-        {{-- CKEditor 5 CDN --}}
-        <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+        {{-- Summernote Lite CDN --}}
+        <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
 
         <script>
         // ══════════════════════════════════════════════════════
@@ -615,28 +652,76 @@
         }
 
         // ══════════════════════════════════════════════════════
-        // CKEditor instance
+        // Summernote instance
         // ══════════════════════════════════════════════════════
-        let ckEditor = null;
+        let summernoteReady = false;
 
-        function initCKEditor() {
-            if (ckEditor) return; // jangan init ulang
-            ClassicEditor.create(document.querySelector('#productDesc'), {
-                toolbar: ['heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|',
-                          'bulletedList', 'numberedList', '|', 'blockQuote', 'insertTable', '|',
-                          'link', 'imageUpload', '|', 'undo', 'redo'],
-                placeholder: 'Tulis deskripsi lengkap produk di sini...',
-            }).then(editor => {
-                ckEditor = editor;
-            }).catch(console.error);
+        function initSummernote() {
+            if (summernoteReady) return;
+
+            $('#productDesc').summernote({
+                placeholder: 'Tulis deskripsi lengkap produk di sini. Gunakan tombol gambar untuk menambahkan foto ke deskripsi.',
+                height: 420,
+                minHeight: 360,
+                dialogsInBody: true,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'strikethrough', 'clear']],
+                    ['fontname', ['fontname']],
+                    ['fontsize', ['fontsize']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link', 'picture', 'table']],
+                    ['view', ['fullscreen', 'codeview', 'help']],
+                ],
+                callbacks: {
+                    onImageUpload: function (files) {
+                        Array.from(files).forEach(uploadDescriptionImage);
+                    },
+                },
+            });
+
+            summernoteReady = true;
         }
 
-        function getCKData() {
-            return ckEditor ? ckEditor.getData() : $('#productDesc').val();
+        function uploadDescriptionImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            $.ajax({
+                url: "{{ route('products.description-image') }}",
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    $('#productDesc').summernote('insertImage', res.url);
+                },
+                error: function (xhr) {
+                    const message = xhr.responseJSON?.message || 'Gagal mengupload gambar deskripsi.';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload Gambar Gagal',
+                        text: message,
+                        confirmButtonColor: '#A78B6F',
+                    });
+                },
+            });
         }
 
-        function setCKData(val) {
-            if (ckEditor) ckEditor.setData(val || '');
+        function destroySummernote() {
+            if (!summernoteReady) return;
+            $('#productDesc').summernote('destroy');
+            summernoteReady = false;
+        }
+
+        function getDescriptionData() {
+            return summernoteReady ? $('#productDesc').summernote('code') : $('#productDesc').val();
+        }
+
+        function setDescriptionData(val) {
+            if (summernoteReady) $('#productDesc').summernote('code', val || '');
             else $('#productDesc').val(val || '');
         }
 
@@ -664,9 +749,9 @@
 
             // Submit: inject raw numeric values for all price + description fields
             $('#productForm').on('submit', function (e) {
-                // CKEditor — remove stale hidden then inject fresh value
+                // Summernote — remove stale hidden then inject fresh value
                 $('[name="description"][type="hidden"]').remove();
-                $('<input>').attr({ type: 'hidden', name: 'description', value: getCKData() }).appendTo('#productForm');
+                $('<input>').attr({ type: 'hidden', name: 'description', value: getDescriptionData() }).appendTo('#productForm');
 
                 // Price fields — disable formatted input, inject clean integer
                 const priceMap = {
@@ -705,8 +790,8 @@
             $('#tab-' + name).addClass('border-brand-primary text-brand-primary').removeClass('border-transparent text-gray-400');
 
             if (name === 'info') {
-                // Lazy-init CKEditor saat panel info tampil
-                setTimeout(initCKEditor, 100);
+                // Lazy-init Summernote saat panel info tampil
+                setTimeout(initSummernote, 100);
             }
         }
 
@@ -721,7 +806,7 @@
             $('#btnText').text('Simpan Produk');
             switchTab('info');
             $('#productModal').removeClass('hidden').addClass('flex');
-            setTimeout(initCKEditor, 200);
+            setTimeout(initSummernote, 200);
         }
 
         window.openEditModal = async function (id) {
@@ -742,17 +827,18 @@
 
             switchTab('info');
             $('#productModal').removeClass('hidden').addClass('flex');
-            setTimeout(initCKEditor, 200);
+            setTimeout(initSummernote, 200);
         }
 
         window.closeModal = function () {
             $('#productModal').addClass('hidden').removeClass('flex');
-            if (ckEditor) { ckEditor.destroy(); ckEditor = null; }
+            destroySummernote();
         }
 
         function resetModal() {
+            destroySummernote();
             $('#productForm')[0].reset();
-            $('.collection-checkbox').prop('checked', false);
+            $('#productCollection').val('');
             $('#imageList').empty();
             $('#imageEmpty').removeClass('hidden');
             pendingCounter = 0;
@@ -768,7 +854,7 @@
             $('#marginCard').addClass('hidden');
             $('#submitBtn').prop('disabled', false).removeClass('opacity-70');
             $('#loader').addClass('hidden');
-            if (ckEditor) { ckEditor.destroy(); ckEditor = null; }
+            $('#productDesc').val('');
         }
 
         function fillForm(data) {
@@ -792,19 +878,13 @@
             recalcMargin();
             toggleVariantMode();
 
-            // CKEditor
-            setTimeout(() => setCKData(data.description), 300);
+            // Summernote
+            setTimeout(() => setDescriptionData(data.description), 300);
 
             // Images
             if (data.images?.length) renderExistingImages(data.id, data.images);
 
-            // Collections
-            $('.collection-checkbox').prop('checked', false);
-            if (data.collection_ids?.length) {
-                data.collection_ids.forEach(id => {
-                    $(`.collection-checkbox[data-collection-id="${id}"]`).prop('checked', true);
-                });
-            }
+            $('#productCollection').val(data.collection_id || '');
 
             // Variants
             if (data.has_variant && data.variants?.length) {

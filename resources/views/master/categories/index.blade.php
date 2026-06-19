@@ -31,7 +31,6 @@
                         <th class="px-4 py-4 text-left">Gambar</th>
                         <th class="px-4 py-4 text-left">Kategori</th>
                         <th class="px-4 py-4 text-left">Parent</th>
-                        <th class="px-4 py-4 text-left">Collection</th>
                         <th class="px-4 py-4 text-left">Status</th>
                         <th class="px-4 py-4 text-center">Aksi</th>
                     </tr>
@@ -58,23 +57,6 @@
                                     </span>
                                 @else
                                     <span class="text-gray-300 text-xs italic">Utama</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-5">
-                                @php
-                                    $collectionLabels = [
-                                        'best-seller' => 'Best Seller',
-                                        'hijab' => 'Hijab',
-                                        'syari' => "Syar'i",
-                                        'new-arrived' => 'New Arrived',
-                                    ];
-                                @endphp
-                                @if($cat->collection_type)
-                                    <span class="px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-lg text-[10px] font-black uppercase tracking-wider">
-                                        {{ $collectionLabels[$cat->collection_type] ?? $cat->collection_type }}
-                                    </span>
-                                @else
-                                    <span class="text-gray-300 text-xs italic">Default</span>
                                 @endif
                             </td>
                             <td class="px-4 py-5">
@@ -149,22 +131,6 @@
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipe Collection</label>
-                        <div class="relative group">
-                            <i class="fa-solid fa-table-cells-large absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-primary transition-colors text-xs"></i>
-                            <select name="collection_type" id="catCollectionType"
-                                class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary outline-none transition-all text-sm font-semibold appearance-none">
-                                <option value="">Kategori biasa</option>
-                                <option value="best-seller">Best Seller</option>
-                                <option value="hijab">Hijab</option>
-                                <option value="syari">Syar'i</option>
-                                <option value="new-arrived">New Arrived</option>
-                            </select>
-                        </div>
-                        <p class="ml-1 text-[11px] text-gray-400">Jika dipilih, kategori ini menjadi sumber halaman collection terkait.</p>
-                    </div>
-
-                    <div class="space-y-1.5">
                         <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Gambar Kategori</label>
                         <div class="flex items-center p-1 bg-gray-50/50 border border-gray-200 rounded-2xl">
                             <input type="file" name="image" id="catImage" accept="image/*"
@@ -232,7 +198,6 @@
 
                     $('#catName').val(data.name);
                     $('#catParent').val(data.parent_id);
-                    $('#catCollectionType').val(data.collection_type || '');
                     $('#catDescription').val(data.description);
                     $('#catStatus').prop('checked', data.is_active == 1);
                 }

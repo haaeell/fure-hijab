@@ -30,6 +30,38 @@ class CartController extends Controller
 
         return view('user.cart.index', compact('total_price', 'carts'));
     }
+
+    public function summary()
+    {
+        $cart = Cart::with(['items.product.category', 'items.product.images', 'items.variant.attributes'])
+            ->where('user_id', Auth::id())
+            ->first();
+
+        $items = $cart ? $cart->items : collect();
+        $subtotal = $items->sum(fn ($item) => $item->price * $item->qty);
+
+        return response()->json([
+            'items' => $items->map(function ($item) {
+                $image = $item->product->images->where('is_primary', true)->first()
+                    ?? $item->product->images->first();
+
+                return [
+                    'id' => $item->id,
+                    'name' => $item->product->name,
+                    'category' => $item->product->category?->name,
+                    'image' => $image ? asset('storage/' . $image->image_url) : 'https://via.placeholder.com/400x533',
+                    'variant' => $item->variant
+                        ? $item->variant->attributes->pluck('attribute_value')->implode(' | ')
+                        : null,
+                    'qty' => $item->qty,
+                    'price' => $item->price,
+                    'subtotal' => $item->price * $item->qty,
+                ];
+            })->values(),
+            'subtotal' => $subtotal,
+            'count' => $items->sum('qty'),
+        ]);
+    }
     public function store(Request $request)
     {
         $request->validate([

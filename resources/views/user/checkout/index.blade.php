@@ -3,7 +3,7 @@
 @section('title', 'Checkout - FURE')
 
 @section('content')
-    <section class="bg-[#F8FBF8] min-h-screen px-4 sm:px-6 lg:px-8 pt-28 pb-12">
+    <section class="mobile-action-safe-space bg-[#F8FBF8] min-h-screen px-4 sm:px-6 lg:px-8 pt-28 pb-12">
         <div class="max-w-7xl mx-auto">
             <div class="mb-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                 <div class="flex items-center gap-4">
@@ -335,7 +335,7 @@
                                 </div>
 
                                 <button type="submit" id="btn-submit" @if(!$address) disabled @endif
-                                    class="group mt-6 relative w-full py-4 bg-brand-primary text-brand-dark font-black rounded-2xl flex items-center justify-center gap-3 overflow-hidden transition-all active:scale-95 shadow-lg hover:shadow-brand-primary/30 hover:-translate-y-0.5 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none">
+                                    class="desktop-only-action group mt-6 relative flex w-full py-4 bg-brand-primary text-brand-dark font-black rounded-2xl items-center justify-center gap-3 overflow-hidden transition-all active:scale-95 shadow-lg hover:shadow-brand-primary/30 hover:-translate-y-0.5 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none">
                                     <span class="relative z-10 uppercase tracking-tight">Buat Pesanan</span>
                                     <i class="fa-solid fa-arrow-right text-xs relative z-10 group-hover:translate-x-1 transition-transform"></i>
                                 </button>
@@ -350,6 +350,24 @@
             </form>
         </div>
     </section>
+
+    <x-user.components.mobile-bottom-action-bar>
+        <div class="flex items-center justify-between gap-4">
+            <div class="min-w-0">
+                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">Total</p>
+                <p class="mt-0.5 truncate text-xl font-black text-brand-dark" id="mobile_grand_total_display">
+                    Rp{{ number_format($total_price, 0, ',', '.') }}
+                </p>
+            </div>
+            <button type="submit" form="checkoutForm" id="mobile-btn-submit" @if(!$address) disabled @endif
+                class="flex min-h-[52px] min-w-[148px] items-center justify-center rounded-2xl bg-brand-primary px-5 text-sm font-black text-white shadow-lg shadow-brand-primary/25 transition active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none">
+                Buat Pesanan
+            </button>
+        </div>
+        @if(!$address)
+            <p class="mt-2 text-center text-[10px] font-bold text-gray-400">Tambahkan alamat pengiriman terlebih dahulu.</p>
+        @endif
+    </x-user.components.mobile-bottom-action-bar>
 
     {{-- MODAL PENGIRIMAN --}}
     <div id="shippingModal" class="fixed inset-0 z-[100] hidden">
@@ -629,6 +647,7 @@
                 const grandTotal = subtotal - currentDiscount + currentShipping;
                 $('#shipping_cost_display').text(formatRupiah(currentShipping));
                 $('#grand_total_display').text(formatRupiah(grandTotal));
+                $('#mobile_grand_total_display').text(formatRupiah(grandTotal));
             }
 
             function showShippingMessage(type, message) {
@@ -933,6 +952,7 @@
                 $('#selected_service_etd').text(`Est. ${$el.data('etd')} hari`);
                 $('#selected_service_info').removeClass('hidden');
                 $('#btn-submit').prop('disabled', false);
+                $('#mobile-btn-submit').prop('disabled', false);
                 $('#shipping-selected-card')
                     .removeClass('border-dashed border-gray-200 bg-gray-50/70')
                     .addClass('border-brand-primary/30 bg-soft-mint/30');

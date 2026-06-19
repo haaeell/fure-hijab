@@ -214,6 +214,16 @@
         }
 
         /* Mobile */
+        .customer-nav-shell {
+            grid-template-columns: 5.75rem minmax(0, 1fr) 5.75rem;
+        }
+
+        @media (min-width: 769px) {
+            .customer-nav-shell {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
         @media (max-width: 768px) {
             .dataTables_wrapper .dataTables_filter input {
                 width: 100% !important;
@@ -228,7 +238,7 @@
 
     <nav class="sticky top-0 z-50 border-b border-brand-secondary/40 bg-white">
         <div class="bg-brand-dark text-white overflow-hidden">
-            <div class="flex w-max animate-marquee whitespace-nowrap px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] sm:px-6 lg:px-8">
+            <div class="flex w-max animate-marquee whitespace-nowrap px-4 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] sm:px-6 sm:py-2 sm:text-[10px] sm:tracking-[0.24em] lg:px-8">
                 <div class="flex shrink-0 items-center">
                     @for ($i = 0; $i < 5; $i++)
                         <span class="mr-10">Exclusive discount 10% off</span>
@@ -245,18 +255,18 @@
                 </div>
             </div>
         </div>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 grid grid-cols-3 items-center lg:flex lg:justify-between">
-            <div class="flex items-center gap-2 lg:hidden">
+        <div class="customer-nav-shell mx-auto grid h-14 max-w-7xl items-center gap-1 px-3 sm:h-16 sm:px-6 lg:flex lg:justify-between lg:px-8">
+            <div class="flex min-w-0 items-center gap-1 lg:hidden">
                 <button type="button" id="mobileMenuButton" aria-label="Menu" aria-expanded="false" aria-controls="mobileMenuPanel"
-                    class="flex h-10 w-10 items-center justify-center text-brand-dark transition hover:bg-[#f8f3ee]">
+                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center text-brand-dark transition hover:bg-[#f8f3ee]">
                     <i id="mobileMenuIcon" class="fa-solid fa-bars text-lg"></i>
                 </button>
-                <button type="button" data-search-trigger aria-label="Cari produk" class="p-2 text-brand-dark transition hover:text-brand-primary">
+                <button type="button" data-search-trigger aria-label="Cari produk" class="flex h-10 w-10 flex-shrink-0 items-center justify-center text-brand-dark transition hover:text-brand-primary">
                     <i class="fa-solid fa-magnifying-glass text-lg"></i>
                 </button>
             </div>
 
-            <a href="/" class="group flex items-center justify-center gap-2.5 lg:justify-start">
+            <a href="/" class="group flex min-w-0 items-center justify-center gap-2 lg:justify-start">
                 @if($storeLogo)
                     <img src="{{ asset('storage/' . $storeLogo) }}" alt="{{ $storeName }}" class="hidden h-9 w-9 object-cover sm:block">
                 @else
@@ -264,7 +274,7 @@
                         <i class="fa-solid fa-wand-magic-sparkles text-white text-base"></i>
                     </div>
                 @endif
-                <span class="text-brand-dark font-black text-xl tracking-[0.22em] uppercase">{{ $storeName }}</span>
+                <span class="truncate text-center text-brand-dark font-black text-lg tracking-[0.18em] uppercase sm:text-xl sm:tracking-[0.22em]">{{ $storeName }}</span>
             </a>
 
             <div class="hidden lg:flex items-center gap-7 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-dark/80">
@@ -303,12 +313,12 @@
                     ? \App\Models\Wishlist::where('user_id', Auth::id())->count()
                     : 0;
             @endphp
-            <div class="flex items-center justify-end gap-2 lg:gap-3">
+            <div class="flex min-w-0 items-center justify-end gap-1 sm:gap-2 lg:gap-3">
                 <button type="button" data-search-trigger class="hidden p-2 text-brand-dark transition-colors hover:text-brand-primary md:block">
                     <i class="fa-solid fa-magnifying-glass text-lg"></i>
                 </button>
                 @if(Auth::check() && Auth::user()->role === 'customer')
-                    <a href="{{ route('wishlist.index') }}" class="relative p-2 text-brand-dark transition-colors hover:text-brand-primary">
+                    <a href="{{ route('wishlist.index') }}" class="relative hidden p-2 text-brand-dark transition-colors hover:text-brand-primary sm:block">
                         <i class="fa-regular fa-heart text-lg"></i>
                         @if($wishlistCount > 0)
                             <span class="absolute top-0 right-0 bg-brand-primary text-white text-[10px] w-4 h-4 flex items-center justify-center border-2 border-white shadow">
@@ -317,10 +327,13 @@
                         @endif
                     </a>
                 @endif
-                <a href="/cart" class="relative p-2 text-brand-dark hover:text-brand-primary transition-colors">
+                <a href="{{ route('cart.index') }}"
+                    @if(Auth::check() && Auth::user()->role === 'customer') data-cart-trigger @endif
+                    class="relative flex h-10 w-10 flex-shrink-0 items-center justify-center text-brand-dark transition-colors hover:text-brand-primary">
                     <i class="fa-solid fa-bag-shopping text-lg"></i>
                     <span
-                        class="absolute top-0 right-0 bg-brand-primary text-white text-[10px] w-4 h-4 flex items-center justify-center border-2 border-white shadow">
+                        id="navCartCount"
+                        class="js-cart-count absolute top-0 right-0 bg-brand-primary text-white text-[10px] w-4 h-4 flex items-center justify-center border-2 border-white shadow">
                         @auth
                                             {{ \App\Models\CartItem::whereHas('cart', function ($q) {
                             $q->where('user_id', auth()->id()); })->count() }}
@@ -331,15 +344,15 @@
                 </a>
 
                 @auth
-                    <div class="relative ml-2" id="userDropdownContainer">
+                    <div class="relative ml-0 sm:ml-2" id="userDropdownContainer">
                         <button type="button" id="userDropdownBtn"
-                            class="flex items-center gap-3 pl-3 pr-1 py-1 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-white hover:shadow-md transition-all duration-300">
+                            class="flex h-10 w-10 items-center justify-center gap-0 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-white hover:shadow-md transition-all duration-300 sm:w-auto sm:gap-3 sm:pl-3 sm:pr-1 sm:py-1">
                             <span class="hidden md:block text-sm font-bold text-brand-dark">{{ Auth::user()->name }}</span>
                             <div
-                                class="w-9 h-9 bg-brand-primary/10 rounded-xl flex items-center justify-center border border-brand-primary/20">
+                                class="w-9 h-9 flex-shrink-0 bg-brand-primary/10 rounded-xl flex items-center justify-center border border-brand-primary/20">
                                 <i class="fa-solid fa-user text-brand-primary text-sm"></i>
                             </div>
-                            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 mr-2 transition-transform duration-300"
+                            <i class="hidden fa-solid fa-chevron-down text-[10px] text-gray-400 mr-2 transition-transform duration-300 sm:block"
                                 id="dropdownArrow"></i>
                         </button>
 
@@ -580,6 +593,52 @@
     </div>
     {{-- ─────────────────────────────────────────────────────────────────── --}}
 
+    @if(Auth::check() && Auth::user()->role === 'customer')
+        <div id="cartDrawer" class="fixed inset-0 z-[240] hidden" aria-hidden="true">
+            <div class="absolute inset-0 bg-black/45 backdrop-blur-[2px]" data-cart-drawer-close></div>
+            <div id="cartDrawerPanel"
+                class="absolute right-0 top-0 flex h-full w-full max-w-md translate-x-full flex-col overflow-hidden bg-white shadow-2xl transition-transform duration-300">
+                <div class="flex items-start justify-between gap-4 border-b border-gray-100 p-5">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-brand-primary">Keranjang</p>
+                        <h3 class="mt-1 text-xl font-black text-brand-dark">Tas Belanja</h3>
+                    </div>
+                    <button type="button" data-cart-drawer-close
+                        class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gray-50 text-gray-400 transition hover:bg-brand-dark hover:text-white">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div id="cartDrawerItems" class="min-h-[220px] flex-1 overflow-y-auto p-5">
+                    <div class="py-12 text-center text-sm font-semibold text-gray-400">
+                        <i class="fa-solid fa-circle-notch fa-spin mb-3 text-2xl text-brand-primary"></i>
+                        <p>Memuat keranjang...</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-100 bg-white p-5" style="padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));">
+                    <div class="mb-4 flex items-end justify-between gap-4">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Subtotal</p>
+                            <p class="mt-1 text-2xl font-black text-brand-dark" id="cartDrawerSubtotal">Rp0</p>
+                        </div>
+                        <p class="text-xs font-bold text-gray-400" id="cartDrawerCount">0 item</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" data-cart-drawer-close
+                            class="flex items-center justify-center rounded-2xl border border-brand-primary/30 bg-white px-4 py-3 text-xs font-black uppercase tracking-wide text-brand-dark">
+                            Lanjut Belanja
+                        </button>
+                        <a href="{{ route('checkout.index') }}"
+                            class="flex items-center justify-center rounded-2xl bg-brand-primary px-4 py-3 text-xs font-black uppercase tracking-wide text-white shadow-lg shadow-brand-primary/20">
+                            Checkout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
@@ -611,6 +670,135 @@
     @endif
 
     <script>
+        @if(Auth::check() && Auth::user()->role === 'customer')
+            window.FureCartDrawer = (function () {
+                const cartSummaryUrl = "{{ route('cart.summary') }}";
+                const cartUpdateUrl = "{{ url('/cart/update') }}";
+
+                function formatRupiah(amount) {
+                    return 'Rp' + new Intl.NumberFormat('id-ID').format(amount || 0);
+                }
+
+                function escapeHtml(value) {
+                    return String(value ?? '').replace(/[&<>"']/g, function (char) {
+                        return {
+                            '&': '&amp;',
+                            '<': '&lt;',
+                            '>': '&gt;',
+                            '"': '&quot;',
+                            "'": '&#039;',
+                        }[char];
+                    });
+                }
+
+                function open() {
+                    $('#cartDrawer').removeClass('hidden').attr('aria-hidden', 'false');
+                    requestAnimationFrame(function () {
+                        $('#cartDrawerPanel').removeClass('translate-x-full');
+                    });
+                    $('body').addClass('overflow-hidden');
+                }
+
+                function close() {
+                    $('#cartDrawerPanel').addClass('translate-x-full');
+                    setTimeout(function () {
+                        $('#cartDrawer').addClass('hidden').attr('aria-hidden', 'true');
+                    }, 300);
+                    $('body').removeClass('overflow-hidden');
+                }
+
+                function render(data) {
+                    $('#cartDrawerSubtotal').text(formatRupiah(data.subtotal));
+                    $('#cartDrawerCount').text(`${data.count || 0} item`);
+                    $('.js-cart-count').text((data.count || 0) > 9 ? '9+' : (data.count || 0));
+
+                    if (!data.items?.length) {
+                        $('#cartDrawerItems').html(`
+                            <div class="py-12 text-center">
+                                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-soft-mint text-brand-primary">
+                                    <i class="fa-solid fa-bag-shopping text-2xl"></i>
+                                </div>
+                                <p class="font-black text-brand-dark">Keranjang masih kosong</p>
+                                <p class="mt-1 text-xs text-gray-400">Produk yang ditambahkan akan muncul di sini.</p>
+                            </div>
+                        `);
+                        return;
+                    }
+
+                    $('#cartDrawerItems').html(data.items.map(function (item) {
+                        return `
+                            <div class="flex gap-4 border-b border-gray-100 py-4 first:pt-0 last:border-b-0">
+                                <div class="h-24 w-16 flex-shrink-0 overflow-hidden rounded-2xl bg-gray-100">
+                                    <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="h-full w-full object-cover">
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-brand-primary">${escapeHtml(item.category || 'Produk')}</p>
+                                    <h4 class="mt-1 truncate text-sm font-black text-brand-dark">${escapeHtml(item.name)}</h4>
+                                    ${item.variant ? `<p class="mt-1 truncate text-xs text-gray-400">${escapeHtml(item.variant)}</p>` : ''}
+                                    <div class="mt-3 flex items-center justify-between gap-3">
+                                        <div class="flex items-center rounded-xl border border-brand-secondary/50 bg-white">
+                                            <button type="button" class="drawer-qty h-8 w-8 text-brand-dark" data-id="${item.id}" data-qty="${item.qty - 1}">
+                                                <i class="fa-solid fa-minus text-[10px]"></i>
+                                            </button>
+                                            <span class="w-9 text-center text-xs font-black text-brand-dark">${item.qty}</span>
+                                            <button type="button" class="drawer-qty h-8 w-8 text-brand-dark" data-id="${item.id}" data-qty="${item.qty + 1}">
+                                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                            </button>
+                                        </div>
+                                        <p class="text-sm font-black text-brand-dark">${formatRupiah(item.subtotal)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join(''));
+                }
+
+                function load() {
+                    $('#cartDrawerItems').html(`
+                        <div class="py-12 text-center text-sm font-semibold text-gray-400">
+                            <i class="fa-solid fa-circle-notch fa-spin mb-3 text-2xl text-brand-primary"></i>
+                            <p>Memuat keranjang...</p>
+                        </div>
+                    `);
+
+                    return $.get(cartSummaryUrl)
+                        .done(render)
+                        .fail(function () {
+                            $('#cartDrawerItems').html('<div class="rounded-2xl bg-red-50 p-5 text-sm font-bold text-red-600">Gagal memuat keranjang.</div>');
+                        });
+                }
+
+                function reloadAndOpen() {
+                    open();
+                    return load();
+                }
+
+                $(document).on('click', '[data-cart-trigger]', function (e) {
+                    e.preventDefault();
+                    reloadAndOpen();
+                });
+
+                $(document).on('click', '[data-cart-drawer-close]', close);
+
+                $(document).on('click', '.drawer-qty', function () {
+                    const nextQty = parseInt($(this).data('qty'), 10);
+                    if (nextQty < 1) return;
+
+                    $.ajax({
+                        url: `${cartUpdateUrl}/${$(this).data('id')}`,
+                        method: 'PATCH',
+                        data: {
+                            _token: $('meta[name="csrf-token"]').attr('content'),
+                            quantity: nextQty,
+                        },
+                        success: load,
+                    });
+                });
+
+                return { open, close, load, reloadAndOpen };
+            })();
+        @endif
+
         let map, marker;
         const defaultLat = -7.7956;
         const defaultLng = 110.3695;

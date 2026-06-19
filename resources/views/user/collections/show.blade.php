@@ -20,7 +20,7 @@
         $galleryImages = $product->images->count() > 0 ? $product->images : collect([$primaryImage])->filter();
     @endphp
 
-    <section class="bg-[#f8f3ee]">
+    <section class="mobile-action-safe-space bg-[#f8f3ee]">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
             <nav class="mb-8 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-brand-dark/45">
                 <a href="/" class="transition hover:text-brand-primary">Home</a>
@@ -149,14 +149,14 @@
                                 </p>
                             </div>
 
-                            <div class="grid gap-3 sm:grid-cols-2">
+                            <div class="desktop-only-action grid gap-3 sm:grid-cols-2">
                                 <button type="submit" id="btnAddToCart"
-                                    class="inline-flex items-center justify-center gap-3 border border-brand-primary bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-dark transition hover:bg-[#eee5dc]">
+                                    class="js-add-to-cart inline-flex items-center justify-center gap-3 border border-brand-primary bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-dark transition hover:bg-[#eee5dc]">
                                     <i class="fa-solid fa-cart-shopping"></i>
-                                    <span id="btnText">Tambah ke Keranjang</span>
+                                    <span class="js-add-text">Tambah ke Keranjang</span>
                                 </button>
-                                <button type="button" id="btnBuyNow"
-                                    class="inline-flex items-center justify-center gap-3 bg-brand-primary px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-dark">
+                                <button type="button"
+                                    class="js-buy-now inline-flex items-center justify-center gap-3 bg-brand-primary px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-dark">
                                     <i class="fa-solid fa-bolt"></i>
                                     <span>Beli Sekarang</span>
                                 </button>
@@ -280,6 +280,21 @@
             </div>
         </div>
     </section>
+
+    <x-user.components.mobile-bottom-action-bar>
+        <div class="grid grid-cols-2 gap-3">
+            <button type="submit" form="addToCartForm"
+                class="js-add-to-cart flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-brand-primary bg-white px-3 text-[11px] font-black uppercase tracking-tight text-brand-dark">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="js-add-text">Masukkan Keranjang</span>
+            </button>
+            <button type="button"
+                class="js-buy-now flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-brand-primary px-3 text-[11px] font-black uppercase tracking-tight text-white shadow-lg shadow-brand-primary/25">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Pesan Sekarang</span>
+            </button>
+        </div>
+    </x-user.components.mobile-bottom-action-bar>
 @endsection
 
 @push('scripts')
@@ -325,11 +340,13 @@
             }
 
             if (match.stock <= 0) {
-                $('#btnAddToCart').prop('disabled', true).addClass('opacity-50 pointer-events-none');
-                $('#btnText').text('Stok Habis');
+                $('.js-add-to-cart').prop('disabled', true).addClass('opacity-50 pointer-events-none');
+                $('.js-add-text').text('Stok Habis');
             } else {
-                $('#btnAddToCart').prop('disabled', false).removeClass('opacity-50 pointer-events-none');
-                $('#btnText').text('Tambah ke Keranjang');
+                $('.js-add-to-cart').prop('disabled', false).removeClass('opacity-50 pointer-events-none');
+                $('.js-add-text').text(function () {
+                    return $(this).closest('.desktop-only-action').length ? 'Tambah ke Keranjang' : 'Masukkan Keranjang';
+                });
             }
         }
 
@@ -393,7 +410,7 @@
                 submitCartAction('cart');
             });
 
-            $('#btnBuyNow').on('click', function () {
+            $('.js-buy-now').on('click', function () {
                 submitCartAction('buy-now');
             });
 
@@ -410,7 +427,7 @@
                     return;
                 @endif
 
-                const btn = action === 'buy-now' ? $('#btnBuyNow') : $('#btnAddToCart');
+                const btn = action === 'buy-now' ? $('.js-buy-now') : $('.js-add-to-cart');
                 btn.prop('disabled', true).addClass('opacity-70');
 
                 $.ajax({
@@ -424,8 +441,17 @@
                                 return;
                             }
 
-                            Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message, showConfirmButton: false, timer: 1500 });
-                            window.location.reload();
+                            window.FureCartDrawer?.reloadAndOpen();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: response.message,
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 1400,
+                                timerProgressBar: true,
+                            });
                         }
                     },
                     error: function (xhr) {

@@ -113,6 +113,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('products')->controller(ProductController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
+            Route::post('/description-image', 'uploadDescriptionImage')->name('products.description-image');
             Route::get('/{id}', 'show');
             Route::put('/{id}', 'update');
             Route::delete('/{id}', 'destroy');
@@ -179,6 +180,7 @@ Route::middleware(['auth'])->group(function () {
         // Cart
         Route::prefix('cart')->controller(CartController::class)->group(function () {
             Route::get('/', 'index')->name('cart.index');
+            Route::get('/summary', 'summary')->name('cart.summary');
             Route::post('/add', 'store')->name('cart.store');
             Route::post('/buy-now', 'buyNow')->name('cart.buy-now');
             Route::patch('/update/{id}', 'update')->name('cart.update');
