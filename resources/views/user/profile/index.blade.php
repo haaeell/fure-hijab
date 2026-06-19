@@ -19,11 +19,11 @@
                     </button>
                 </div>
                 <div class="text-center md:text-left">
-                    <h1 class="text-2xl font-bold text-brand-dark">{{ Auth::user()->name }}</h1>
-                    <p class="text-gray-400 text-sm">{{ Auth::user()->email }}</p>
+                    <h1 class="text-2xl font-bold text-brand-dark">{{ $profileUser->name }}</h1>
+                    <p class="text-gray-400 text-sm">{{ $profileUser->email }}</p>
                     <div
                         class="mt-2 inline-flex items-center px-3 py-1 bg-soft-mint text-brand-dark text-[10px] font-bold uppercase tracking-wider rounded-lg">
-                        Member {{ Auth::user()->role }}
+                        Member {{ $profileUser->role }}
                     </div>
                 </div>
                 <div class="md:ml-auto flex gap-3">
@@ -102,12 +102,12 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-2">
                                     <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nama Lengkap</label>
-                                    <input type="text" value="{{ Auth::user()->name }}"
+                                    <input type="text" value="{{ $profileUser->name }}"
                                         class="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition text-sm font-medium">
                                 </div>
                                 <div class="space-y-2">
                                     <label class="text-xs font-bold text-gray-500 uppercase ml-1">Alamat Email</label>
-                                    <input type="email" value="{{ Auth::user()->email }}" disabled
+                                    <input type="email" value="{{ $profileUser->email }}" disabled
                                         class="w-full px-5 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-gray-400 text-sm font-medium cursor-not-allowed">
                                 </div>
                                 <div class="space-y-2">

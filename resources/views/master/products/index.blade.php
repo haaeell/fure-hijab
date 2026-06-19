@@ -178,7 +178,7 @@
                             <td class="px-4 py-5">
                                 @if($product->has_variant)
                                     <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider bg-blue-50 text-blue-600">
-                                        {{ $product->variants->count() }} Varian
+                                        {{ $product->variants_count }} Varian
                                     </span>
                                 @else
                                     <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider bg-gray-50 text-gray-400">

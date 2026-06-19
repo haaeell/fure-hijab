@@ -58,8 +58,9 @@ Route::get('/sitemap.xml', function () {
     $pushUrl(route('promo.index'), now(), 'weekly', '0.6');
 
     Category::where('is_active', true)
+        ->select(['slug', 'updated_at'])
         ->orderBy('sort_order')
-        ->get(['slug', 'updated_at'])
+        ->cursor()
         ->each(fn($category) => $pushUrl(route('collections.index', ['category' => $category->slug]), $category->updated_at, 'weekly', '0.7'));
 
     $collectionRoutes = [
@@ -70,13 +71,15 @@ Route::get('/sitemap.xml', function () {
     ];
 
     ProductCollection::where('is_active', true)
+        ->select(['slug', 'updated_at'])
         ->whereIn('slug', array_keys($collectionRoutes))
-        ->get(['slug', 'updated_at'])
+        ->cursor()
         ->each(fn($collection) => $pushUrl(route($collectionRoutes[$collection->slug]), $collection->updated_at, 'weekly', '0.8'));
 
     Product::where('is_active', true)
+        ->select(['slug', 'updated_at'])
         ->latest('updated_at')
-        ->get(['slug', 'updated_at'])
+        ->cursor()
         ->each(fn($product) => $pushUrl(route('collections.show', $product->slug), $product->updated_at, 'weekly', '0.9'));
 
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;

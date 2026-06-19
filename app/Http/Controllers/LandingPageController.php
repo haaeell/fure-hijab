@@ -10,19 +10,27 @@ use App\Models\LandingBanner;
 use App\Models\LandingSection;
 use App\Models\Order;
 use App\Models\Wishlist;
+use App\Services\LandingPageViewDataService;
+use App\Services\StorefrontContextService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class LandingPageController extends Controller
 {
-    public function index()
+    public function index(LandingPageViewDataService $landingViewData)
     {
-        $categories = Category::where('is_active', true)->withCount('products')->orderBy('sort_order', 'asc')->get();
+        $productCardRelations = $this->productCardRelations();
+        $categories = Category::query()
+            ->select(['id', 'name', 'slug', 'sort_order', 'is_active'])
+            ->where('is_active', true)
+            ->withCount(['products' => fn($q) => $q->where('is_active', true)])
+            ->orderBy('sort_order', 'asc')
+            ->get();
 
-        $flashSaleProducts = Product::with(['category', 'images' => function ($q) {
-            $q->where('is_primary', true);
-        }, 'variants'])
+        $flashSaleProducts = Product::query()
+            ->select($this->productCardColumns())
+            ->with($productCardRelations)
             ->where('is_active', true)
             ->whereNotNull('compare_price')
             ->where('compare_price', '>', DB::raw('price'))
@@ -30,27 +38,27 @@ class LandingPageController extends Controller
             ->take(4)
             ->get();
 
-        $latestProducts = Product::with(['category', 'images' => function ($q) {
-            $q->where('is_primary', true);
-        }, 'variants'])
+        $latestProducts = Product::query()
+            ->select($this->productCardColumns())
+            ->with($productCardRelations)
             ->where('is_active', true)
             ->latest()
             ->take(8)
             ->get();
 
-        $bestSellerProducts = Product::with(['category', 'images' => function ($q) {
-            $q->where('is_primary', true);
-        }, 'variants'])
+        $bestSellerProducts = Product::query()
+            ->select($this->productCardColumns())
+            ->with($productCardRelations)
             ->where('is_active', true)
             ->orderByDesc('sold_count')
             ->latest()
             ->take(4)
             ->get();
 
-        $featuredCategorySections = $categories->take(3)->map(function ($category) {
-            $products = Product::with(['category', 'images' => function ($q) {
-                $q->where('is_primary', true);
-            }, 'variants'])
+        $featuredCategorySections = $categories->take(3)->map(function ($category) use ($productCardRelations) {
+            $products = Product::query()
+                ->select($this->productCardColumns())
+                ->with($productCardRelations)
                 ->where('is_active', true)
                 ->where('category_id', $category->id)
                 ->latest()
@@ -64,9 +72,9 @@ class LandingPageController extends Controller
             return $category->featuredProducts->count() > 0;
         });
 
-        $shopLookProducts = Product::with(['category', 'images' => function ($q) {
-            $q->where('is_primary', true);
-        }, 'variants'])
+        $shopLookProducts = Product::query()
+            ->select($this->productCardColumns())
+            ->with($productCardRelations)
             ->where('is_active', true)
             ->latest()
             ->take(2)
@@ -74,8 +82,9 @@ class LandingPageController extends Controller
 
         $landingBanners = LandingBanner::where('is_active', true)->orderBy('sort_order')->latest()->get();
         $landingSections = LandingSection::where('is_active', true)->orderBy('sort_order')->latest()->get();
+        $viewData = $landingViewData->homeData($landingBanners, $landingSections, $shopLookProducts);
 
-        return view('welcome', compact(
+        return view('welcome', array_merge(compact(
             'categories',
             'flashSaleProducts',
             'latestProducts',
@@ -84,7 +93,7 @@ class LandingPageController extends Controller
             'shopLookProducts',
             'landingBanners',
             'landingSections'
-        ));
+        ), $viewData));
     }
 
     public function collections(Request $request)
@@ -114,11 +123,13 @@ class LandingPageController extends Controller
 
     public function show($slug)
     {
-        $product = Product::with(['variants.attributes', 'category', 'images', 'reviews.user'])
+        $product = Product::with(['variants.attributes', 'category', 'brand', 'images', 'reviews.user'])
             ->where('slug', $slug)
             ->firstOrFail();
 
-        $relatedProducts = Product::with(['category', 'images'])
+        $relatedProducts = Product::query()
+            ->select($this->productCardColumns())
+            ->with($this->productCardRelations())
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
@@ -130,8 +141,10 @@ class LandingPageController extends Controller
         $inWishlist    = Auth::check()
             ? Wishlist::where('user_id', Auth::id())->where('product_id', $product->id)->exists()
             : false;
+        $isAuthenticated = Auth::check();
+        $productSeo = $this->productSeo($product, $averageRating, $totalReviews, app(StorefrontContextService::class)->store());
 
-        return view('user.collections.show', compact('product', 'relatedProducts', 'averageRating', 'totalReviews', 'inWishlist'));
+        return view('user.collections.show', compact('product', 'relatedProducts', 'averageRating', 'totalReviews', 'inWishlist', 'isAuthenticated', 'productSeo'));
     }
 
     public function about(Request $request)
@@ -140,6 +153,7 @@ class LandingPageController extends Controller
     }
     public function profile(Request $request)
     {
+        $profileUser = Auth::user();
         $orderCount = Order::where('user_id', Auth::id())->count();
         $voucherCount = Coupon::where('is_active', true)
             ->where(function ($q) {
@@ -150,7 +164,7 @@ class LandingPageController extends Controller
             })
             ->count();
 
-        return view('user.profile.index', compact('orderCount', 'voucherCount'));
+        return view('user.profile.index', compact('profileUser', 'orderCount', 'voucherCount'));
     }
 
     public function promo()
@@ -170,7 +184,10 @@ class LandingPageController extends Controller
 
     private function catalog(Request $request, string $type)
     {
-        $query      = Product::with(['category', 'images', 'variants'])->where('is_active', true);
+        $query = Product::query()
+            ->select($this->productCardColumns())
+            ->with($this->productCardRelations())
+            ->where('is_active', true);
         $collection = $type !== 'all' ? Collection::where('slug', $type)->where('is_active', true)->first() : null;
 
         if ($request->filled('search')) {
@@ -224,9 +241,18 @@ class LandingPageController extends Controller
         }
 
         $products = $query->paginate(12)->withQueryString();
-        $categories = Category::where('is_active', true)->withCount('products')->orderBy('sort_order', 'asc')->get();
-        $inStockCount = Product::where('is_active', true)->where('stock', '>', 0)->count();
-        $outOfStockCount = Product::where('is_active', true)->where('stock', '<=', 0)->count();
+        $categories = Category::query()
+            ->select(['id', 'name', 'slug', 'sort_order', 'is_active'])
+            ->where('is_active', true)
+            ->withCount(['products' => fn($q) => $q->where('is_active', true)])
+            ->orderBy('sort_order', 'asc')
+            ->get();
+        $stockCounts = Product::where('is_active', true)
+            ->selectRaw('SUM(CASE WHEN stock > 0 THEN 1 ELSE 0 END) as in_stock_count')
+            ->selectRaw('SUM(CASE WHEN stock <= 0 THEN 1 ELSE 0 END) as out_of_stock_count')
+            ->first();
+        $inStockCount = (int) ($stockCounts->in_stock_count ?? 0);
+        $outOfStockCount = (int) ($stockCounts->out_of_stock_count ?? 0);
 
         $catalogMeta = match ($type) {
             'best-seller' => [
@@ -254,5 +280,89 @@ class LandingPageController extends Controller
         return view('user.collections.index', compact(
             'categories', 'products', 'catalogMeta', 'collection', 'inStockCount', 'outOfStockCount'
         ));
+    }
+
+    private function productCardColumns(): array
+    {
+        return [
+            'id',
+            'category_id',
+            'brand_id',
+            'name',
+            'slug',
+            'price',
+            'compare_price',
+            'stock',
+            'sold_count',
+            'has_variant',
+            'is_active',
+            'created_at',
+            'updated_at',
+        ];
+    }
+
+    private function productCardRelations(): array
+    {
+        return [
+            'category:id,name,slug',
+            'images' => fn($q) => $q
+                ->select(['id', 'product_id', 'image_url', 'is_primary', 'sort_order'])
+                ->orderByDesc('is_primary')
+                ->orderBy('sort_order'),
+            'variants' => fn($q) => $q
+                ->select(['id', 'product_id', 'price', 'stock'])
+                ->orderBy('price'),
+        ];
+    }
+
+    private function productSeo(Product $product, $averageRating, int $totalReviews, array $store): array
+    {
+        $primaryImage = $product->images->where('is_primary', true)->first() ?? $product->images->first();
+        $galleryImages = $product->images->count() > 0 ? $product->images : collect([$primaryImage])->filter();
+        $displayPrice = $product->has_variant && $product->variants->count() > 0
+            ? $product->variants->first()->price
+            : $product->price;
+        $displayStock = $product->has_variant && $product->variants->count() > 0
+            ? $product->variants->first()->stock
+            : $product->stock;
+        $description = $product->short_description
+            ?: \Illuminate\Support\Str::limit(trim(strip_tags($product->description)), 155, '');
+        $image = $primaryImage ? asset('storage/' . $primaryImage->image_url) : asset('favicon.ico');
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $product->name,
+            'image' => $galleryImages->map(fn($item) => asset('storage/' . $item->image_url))->values()->all() ?: [$image],
+            'description' => $description ?: trim(strip_tags($product->description)),
+            'sku' => $product->sku ?: 'FURE-' . $product->id,
+            'brand' => [
+                '@type' => 'Brand',
+                'name' => $product->brand->name ?? $store['name'],
+            ],
+            'category' => $product->category->name ?? 'Hijab',
+            'offers' => [
+                '@type' => 'Offer',
+                'url' => route('collections.show', $product->slug),
+                'priceCurrency' => 'IDR',
+                'price' => (float) $displayPrice,
+                'availability' => $displayStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                'itemCondition' => 'https://schema.org/NewCondition',
+            ],
+        ];
+
+        if ($totalReviews > 0) {
+            $schema['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => round((float) $averageRating, 1),
+                'reviewCount' => $totalReviews,
+            ];
+        }
+
+        return [
+            'description' => $description,
+            'image' => $image,
+            'keywords' => implode(', ', array_filter([$product->name, $product->category->name ?? null, $product->brand->name ?? null, 'hijab premium', 'modest wear', $store['name']])),
+            'schema' => $schema,
+        ];
     }
 }

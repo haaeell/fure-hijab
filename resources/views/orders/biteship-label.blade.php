@@ -122,8 +122,6 @@
     $waybill    = $label['waybill'] ?? null;
     $reference  = $order->shipment->biteship_order_id ?? $order->order_number;
 
-    // Courier logo from Courier model
-    $courierModel = \App\Models\Courier::where('code', $order->shipment->courier ?? '')->first();
 @endphp
 
 <body>
@@ -140,8 +138,8 @@
     {{-- Row 1: Kurir + Nomor Resi --}}
     <div class="pad grid-2">
         <div class="col-l center" style="padding:8px 6px;">
-            @if($courierModel?->logo)
-                <img src="{{ asset('storage/' . $courierModel->logo) }}" class="courier-logo-img" alt="{{ $courierModel->name }}">
+            @if($courierLabel['logo'])
+                <img src="{{ asset('storage/' . $courierLabel['logo']) }}" class="courier-logo-img" alt="{{ $courierLabel['name'] }}">
             @else
                 <div class="courier-area">{{ strtoupper($order->shipment->courier ?? '-') }}</div>
             @endif

@@ -18,6 +18,7 @@ class AdminSettingController extends Controller
     {
         return view('settings.index', [
             'settings' => $this->settings(),
+            'testEmailDefault' => auth()->user()?->email,
         ]);
     }
 

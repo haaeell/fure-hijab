@@ -71,8 +71,8 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #000; 
             @if($storeLogoUrl)
                 <img src="{{ $storeLogoUrl }}" style="height:32px; margin-bottom:4px;" alt="Logo">
             @endif
-            <div class="store-name">{{ \App\Models\Setting::getValue('store_name', config('app.name', 'FURE')) }}</div>
-            <div class="store-sub">{{ \App\Models\Setting::getValue('store_address', '') }}</div>
+            <div class="store-name">{{ $storeLabel['name'] }}</div>
+            <div class="store-sub">{{ $storeLabel['address'] }}</div>
         </div>
         <div class="header-cell header-right">
             @if($label['courier_logo_url'])

@@ -336,7 +336,13 @@ class OrderController extends Controller
             $label['destination_name'] = $this->maskName((string) $label['destination_name']);
         }
 
-        return view('orders.biteship-label', compact('order', 'label', 'labelOptions'));
+        $courierModel = Courier::where('code', $order->shipment->courier ?? '')->first();
+        $courierLabel = [
+            'name' => $courierModel?->name,
+            'logo' => $courierModel?->logo,
+        ];
+
+        return view('orders.biteship-label', compact('order', 'label', 'labelOptions', 'courierLabel'));
     }
 
     public function downloadBiteshipLabel($id)
@@ -422,8 +428,12 @@ class OrderController extends Controller
 
         $storeLogo = Setting::getValue('store_logo');
         $storeLogoUrl = $storeLogo ? asset('storage/' . $storeLogo) : null;
+        $storeLabel = [
+            'name' => Setting::getValue('store_name', config('app.name', 'FURE')),
+            'address' => Setting::getValue('store_address', ''),
+        ];
 
-        $pdf = Pdf::loadView('orders.label-pdf', compact('order', 'label', 'storeLogoUrl'))
+        $pdf = Pdf::loadView('orders.label-pdf', compact('order', 'label', 'storeLogoUrl', 'storeLabel'))
             ->setPaper([0, 0, 420, 595], 'portrait'); // A5-ish: ~148mm × 210mm
 
         return $pdf->download('resi-' . $order->order_number . '.pdf');

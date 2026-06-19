@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SearchController extends Controller
 {
@@ -15,26 +16,36 @@ class SearchController extends Controller
             return response()->json(['products' => [], 'did_you_mean' => null]);
         }
 
-        $products = Product::with([
-            'images'   => fn($q) => $q->where('is_primary', true),
-            'category',
-            'variants' => fn($q) => $q->orderBy('price'),
-        ])
-        ->where('is_active', true)
-        ->where(function ($query) use ($q) {
-            $query->where('name', 'like', "%{$q}%")
-                  ->orWhereHas('category', fn($q2) => $q2->where('name', 'like', "%{$q}%"));
-        })
-        ->orderByDesc('sold_count')
-        ->limit(8)
-        ->get()
-        ->map(fn($p) => [
-            'name'     => $p->name,
-            'slug'     => $p->slug,
-            'price'    => $p->has_variant ? ($p->variants->first()?->price ?? $p->price) : $p->price,
-            'image'    => $p->images->first()?->image_url,
-            'category' => $p->category?->name,
-        ]);
+        $cacheKey = 'search.suggestions.' . md5(mb_strtolower($q));
+        $products = Cache::remember($cacheKey, now()->addMinutes(2), function () use ($q) {
+            return Product::query()
+                ->select(['id', 'category_id', 'name', 'slug', 'price', 'has_variant', 'sold_count', 'is_active'])
+                ->with([
+                    'images' => fn($query) => $query
+                        ->select(['id', 'product_id', 'image_url', 'is_primary'])
+                        ->where('is_primary', true)
+                        ->orderBy('sort_order'),
+                    'category:id,name',
+                    'variants' => fn($query) => $query
+                        ->select(['id', 'product_id', 'price'])
+                        ->orderBy('price'),
+                ])
+                ->where('is_active', true)
+                ->where(function ($query) use ($q) {
+                    $query->where('name', 'like', "%{$q}%")
+                        ->orWhereHas('category', fn($q2) => $q2->where('name', 'like', "%{$q}%"));
+                })
+                ->orderByDesc('sold_count')
+                ->limit(8)
+                ->get()
+                ->map(fn($p) => [
+                    'name' => $p->name,
+                    'slug' => $p->slug,
+                    'price' => $p->has_variant ? ($p->variants->first()?->price ?? $p->price) : $p->price,
+                    'image' => $p->images->first()?->image_url,
+                    'category' => $p->category?->name,
+                ]);
+        });
 
         $didYouMean = null;
         if ($products->isEmpty()) {
@@ -46,17 +57,24 @@ class SearchController extends Controller
 
     public function popular()
     {
-        $terms = Product::where('is_active', true)
-            ->orderByDesc('sold_count')
-            ->limit(6)
-            ->pluck('name');
+        $terms = Cache::remember('search.popular_terms', now()->addMinutes(10), function () {
+            return Product::where('is_active', true)
+                ->orderByDesc('sold_count')
+                ->limit(6)
+                ->pluck('name');
+        });
 
         return response()->json(['terms' => $terms]);
     }
 
     private function findClosestMatch(string $query): ?string
     {
-        $names = Product::where('is_active', true)->pluck('name');
+        $names = Cache::remember('search.active_product_names', now()->addMinutes(10), function () {
+            return Product::where('is_active', true)
+                ->orderByDesc('sold_count')
+                ->limit(300)
+                ->pluck('name');
+        });
 
         $best      = null;
         $bestScore = 0;

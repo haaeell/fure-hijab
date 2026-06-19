@@ -14,6 +14,7 @@ use App\Models\UserAddress;
 use App\Services\BiteshipService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Midtrans\Config;
 use Midtrans\Snap;
@@ -24,10 +25,12 @@ class CheckoutController extends Controller
 
     private function activeCouriers(): array
     {
-        return Courier::where('is_active', true)
-            ->orderBy('sort_order')
-            ->pluck('name', 'code')
-            ->toArray();
+        return Cache::remember('checkout.active_couriers', now()->addMinutes(10), function () {
+            return Courier::where('is_active', true)
+                ->orderBy('sort_order')
+                ->pluck('name', 'code')
+                ->toArray();
+        });
     }
 
     public function index()
@@ -43,7 +46,13 @@ class CheckoutController extends Controller
                 ->with('error', 'Kamu masih punya pesanan yang belum dibayar. Selesaikan atau batalkan dulu sebelum membuat pesanan baru. Batas bayar sampai ' . $expiresAt->format('d M Y H:i') . '.');
         }
 
-        $cart = Cart::with(['items.product.images', 'items.variant.attributes'])
+        $cart = Cart::with([
+                'items:id,cart_id,product_id,variant_id,qty,price',
+                'items.product:id,name,slug,weight',
+                'items.product.images:id,product_id,image_url,is_primary,sort_order',
+                'items.variant:id,product_id,name,weight',
+                'items.variant.attributes:id,variant_id,attribute_name,attribute_value',
+            ])
             ->where('user_id', $user->id)
             ->first();
 
@@ -51,7 +60,8 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Keranjang belanja kosong.');
         }
 
-        $address      = $user->addresses()->where('is_default', true)->first();
+        $addresses = $user->addresses()->latest('is_default')->latest()->get();
+        $address = $addresses->firstWhere('is_default', true);
         $carts        = $cart->items;
         $total_price  = 0;
         $total_weight = 0;
@@ -79,6 +89,7 @@ class CheckoutController extends Controller
             'total_price',
             'total_weight',
             'address',
+            'addresses',
             'couriers',
             'appliedCoupon',   // ← tambah
             'discountAmount',  // ← tambah
@@ -91,7 +102,7 @@ class CheckoutController extends Controller
         $request->validate(['coupon_code' => 'required|string']);
 
         $user    = Auth::user();
-        $cart    = Cart::with('items.product')->where('user_id', $user->id)->first();
+        $cart = Cart::with('items:id,cart_id,qty,price')->where('user_id', $user->id)->first();
         $subtotal = $cart
             ? $cart->items->reduce(fn($carry, $item) => $carry + ($item->price * $item->qty), 0)
             : 0;
@@ -158,7 +169,11 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Kode pos alamat belum diisi. Biteship membutuhkan kode pos tujuan.'], 400);
         }
 
-        $cart = Cart::with(['items.product', 'items.variant'])
+        $cart = Cart::with([
+                'items:id,cart_id,product_id,variant_id,qty,price',
+                'items.product:id,name,weight',
+                'items.variant:id,product_id,name,weight',
+            ])
             ->where('user_id', Auth::id())
             ->first();
 
@@ -235,7 +250,11 @@ class CheckoutController extends Controller
         ]);
 
         $user = Auth::user();
-        $cart = Cart::with(['items.product', 'items.variant'])
+        $cart = Cart::with([
+                'items:id,cart_id,product_id,variant_id,qty,price',
+                'items.product:id,name,weight',
+                'items.variant:id,product_id,name,weight',
+            ])
             ->where('user_id', $user->id)
             ->firstOrFail();
 
@@ -386,15 +405,9 @@ class CheckoutController extends Controller
 
         $subtotal = $cart->items->sum(fn($i) => $i->price * $i->qty);
 
-        $coupon = DB::table('coupons')
+        $coupon = Coupon::query()
             ->where('code', $code)
             ->where('is_active', true)
-            ->where(function ($q) use ($subtotal) {
-                $q->where('min_purchase', 0)->orWhere('min_purchase', '<=', $subtotal);
-            })
-            ->where(function ($q) {
-                $q->whereNull('quota')->orWhere('quota', '>', DB::table('coupons')->where('code', $code)->value('used_count'));
-            })
             ->where(function ($q) {
                 $q->whereNull('started_at')->orWhere('started_at', '<=', now());
             })
@@ -405,6 +418,11 @@ class CheckoutController extends Controller
 
         if (!$coupon) {
             return response()->json(['error' => 'Voucher tidak valid atau expired'], 400);
+        }
+
+        $validation = $coupon->validate($subtotal);
+        if (!$validation['valid']) {
+            return response()->json(['error' => $validation['message']], 400);
         }
 
         $discountValue = $coupon->type === 'percent'

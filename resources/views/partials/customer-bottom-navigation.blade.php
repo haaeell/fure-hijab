@@ -21,7 +21,7 @@
         </a>
 
         <a href="{{ route('cart.index') }}"
-            @if(Auth::check() && Auth::user()->role === 'customer') data-cart-trigger @endif
+            @if($isCustomer) data-cart-trigger @endif
             class="relative flex flex-col items-center gap-1 w-1/5">
             <div
                 class="w-12 h-12 flex items-center justify-center rounded-2xl {{ request()->is('cart') ? 'bg-brand-primary' : 'bg-brand-dark' }} text-white shadow-lg -mt-10 border-4 border-[#FBFBFE] transition">
@@ -31,13 +31,7 @@
                 class="text-[9px] font-bold tracking-tighter {{ request()->is('cart') ? 'text-brand-primary' : 'text-brand-dark' }} mt-1">Cart</span>
             <span
                 class="js-cart-count absolute -top-11 right-2 bg-brand-primary text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white font-bold shadow-sm">
-                @auth
-                    {{ \App\Models\CartItem::whereHas('cart', function ($q) {
-                        $q->where('user_id', auth()->id());
-                    })->count() }}
-                @else
-                    0
-                @endauth
+                {{ $cartCount > 9 ? '9+' : $cartCount }}
             </span>
         </a>
 
@@ -50,7 +44,7 @@
                 class="text-[9px] font-bold tracking-tighter {{ request()->routeIs('about.*') ? 'text-brand-primary' : 'text-gray-400' }}">Tentang</span>
         </a>
 
-        @auth
+        @if($currentUser)
             <a href="/user/profile" class="flex flex-col items-center gap-1 group w-1/5">
                 <div
                     class="w-10 h-10 flex items-center justify-center rounded-xl {{ request()->is('user/profile*') ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'bg-gray-50 text-gray-400' }} transition-all">
@@ -68,7 +62,7 @@
                 <span
                     class="text-[9px] font-bold tracking-tighter {{ request()->is('login') || request()->is('register') || request()->is('password/*') ? 'text-brand-primary' : 'text-gray-400' }}">Akun</span>
             </a>
-        @endauth
+        @endif
     </div>
 </div>
 

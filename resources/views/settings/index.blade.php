@@ -337,7 +337,7 @@
             <div class="flex flex-col md:flex-row md:items-end gap-5">
                 <div class="flex-1 space-y-1.5">
                     <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kirim Test Email</label>
-                    <input type="email" name="test_email" value="{{ old('test_email', auth()->user()->email) }}"
+                    <input type="email" name="test_email" value="{{ old('test_email', $testEmailDefault) }}"
                         class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
                     <p class="text-[11px] text-gray-400 ml-1">Simpan pengaturan terlebih dahulu, lalu kirim test email ke alamat tujuan.</p>
                 </div>

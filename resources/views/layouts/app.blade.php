@@ -5,10 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    @php
-        $adminStoreName = \App\Models\Setting::getValue('store_name', 'FURE');
-        $adminStoreLogo = \App\Models\Setting::getValue('store_logo');
-    @endphp
     <title>Admin Dashboard - {{ $adminStoreName }}</title>
 
     <link href="https://fonts.bunny.net/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
@@ -189,13 +185,9 @@
                 {{ request()->is('orders*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-cart-shopping w-5"></i> Pesanan
 
-                @php
-                    $count = \App\Models\Order::whereIn('status', ['pending', 'confirmed'])->count();
-                @endphp
-
-                @if($count > 0)
+                @if($adminPendingOrderCount > 0)
                     <span class="ml-auto bg-orange-100 text-orange-600 text-[10px] px-2 py-0.5 rounded-lg">
-                        {{ $count }}
+                        {{ $adminPendingOrderCount }}
                     </span>
                 @endif
             </a>
@@ -271,40 +263,25 @@
                     <button id="notifDropdownBtn"
                         class="w-12 h-12 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-brand-primary transition-all relative">
                         <i class="fa-regular fa-bell"></i>
-                        @php
-                            $hasNotif = \App\Models\Order::whereIn('status', ['pending','confirmed'])->exists()
-                                     || \App\Models\Product::where('is_active',true)->where('stock','>'  ,0)->where('stock','<=',5)->exists()
-                                     || \App\Models\Review::where('is_verified',false)->exists();
-                        @endphp
-                        @if($hasNotif)
+                        @if($adminHasNotif)
                             <span class="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                         @endif
                     </button>
 
-                    @php
-                        $notifPendingOrders = \App\Models\Order::whereIn('status', ['pending', 'confirmed'])
-                            ->with('user')->latest()->take(3)->get();
-                        $notifLowStock = \App\Models\Product::where('is_active', true)
-                            ->where('stock', '>', 0)->where('stock', '<=', 5)
-                            ->orderBy('stock')->take(3)->get();
-                        $notifNewReviews = \App\Models\Review::where('is_verified', false)
-                            ->with(['product', 'user'])->latest()->take(3)->get();
-                        $notifTotal = $notifPendingOrders->count() + $notifLowStock->count() + $notifNewReviews->count();
-                    @endphp
                     <div id="notifDropdown"
                         class="absolute right-0 mt-3 w-80 md:w-96 bg-white rounded-[2rem] shadow-2xl border border-gray-50 overflow-hidden hidden z-50">
                         <div class="p-5 border-b border-gray-50 flex justify-between items-center bg-soft-bg/50">
                             <h3 class="font-extrabold text-brand-dark text-sm">Perlu Perhatian</h3>
-                            @if($notifTotal > 0)
+                            @if($adminNotifTotal > 0)
                                 <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded-lg">
-                                    {{ $notifTotal }} item
+                                    {{ $adminNotifTotal }} item
                                 </span>
                             @endif
                         </div>
 
                         <div class="max-h-[400px] overflow-y-auto">
                             {{-- Pending / confirmed orders --}}
-                            @forelse($notifPendingOrders as $notifOrder)
+                            @forelse($adminNotifPendingOrders as $notifOrder)
                                 <a href="{{ route('orders.show', $notifOrder->id) }}"
                                     class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
                                     <div class="w-11 h-11 rounded-xl bg-orange-100 text-orange-600 flex-shrink-0 flex items-center justify-center">
@@ -325,7 +302,7 @@
                             @endforelse
 
                             {{-- Low stock --}}
-                            @forelse($notifLowStock as $lowProd)
+                            @forelse($adminNotifLowStock as $lowProd)
                                 <a href="/products"
                                     class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
                                     <div class="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex-shrink-0 flex items-center justify-center">
@@ -342,7 +319,7 @@
                             @endforelse
 
                             {{-- Unverified reviews --}}
-                            @forelse($notifNewReviews as $rev)
+                            @forelse($adminNotifNewReviews as $rev)
                                 <a href="/reviews"
                                     class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
                                     <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center">
@@ -361,7 +338,7 @@
                             @empty
                             @endforelse
 
-                            @if($notifTotal === 0)
+                            @if($adminNotifTotal === 0)
                                 <div class="py-10 text-center text-gray-400">
                                     <i class="fa-solid fa-check-circle text-2xl text-green-300 mb-2 block"></i>
                                     <p class="text-xs font-semibold">Semua beres!</p>
@@ -379,18 +356,18 @@
                 <div class="relative">
                     <button id="userDropdownBtn"
                         class="flex items-center gap-3 bg-white p-1.5 pr-4 border border-gray-100 rounded-2xl shadow-sm hover:border-brand-primary transition-all">
-                        @if(auth()->user()->avatar)
-                            <img src="{{ asset('storage/' . auth()->user()->avatar) }}"
+                        @if($adminUser->avatar)
+                            <img src="{{ asset('storage/' . $adminUser->avatar) }}"
                                 class="w-9 h-9 rounded-xl shadow-sm">
                         @else
                             <i class="fa-solid fa-user-tie text-5xl text-brand-primary"></i>
                         @endif
                         <div class="text-left hidden xs:block">
                             <p class="text-[12px] font-extrabold text-brand-dark leading-none mb-1">
-                                {{ Auth::user()->name }}
+                                {{ $adminUser->name }}
                             </p>
                             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                                {{ Auth::user()->role }}
+                                {{ $adminUser->role }}
                             </p>
                         </div>
                         <i class="fa-solid fa-chevron-down text-[10px] text-gray-300 ml-1"></i>

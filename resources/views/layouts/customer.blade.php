@@ -6,22 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
-        $storeName = \App\Models\Setting::getValue('store_name', 'FURE');
-        $storeLogo = \App\Models\Setting::getValue('store_logo');
-        $storeEmail = \App\Models\Setting::getValue('store_email');
-        $storePhone = \App\Models\Setting::getValue('store_phone');
-        $storeAddress = \App\Models\Setting::getValue('store_address');
-        $storeInstagram = \App\Models\Setting::getValue('store_instagram');
-        $storeTiktok = \App\Models\Setting::getValue('store_tiktok');
-        $storeWhatsapp = \App\Models\Setting::getValue('store_whatsapp');
-        $defaultSeoTitle = 'Hijab Premium dan Modest Wear';
-        $defaultSeoDescription = 'Belanja koleksi hijab premium dan modest wear FURE dengan bahan nyaman, warna lembut, dan desain elegan untuk aktivitas harian hingga momen spesial.';
-        $defaultSeoKeywords = 'hijab premium, hijab wanita, modest wear, hijab elegan, hijab terbaru, FURE';
+        $defaultSeoTitle = $seoDefaults['title'];
+        $defaultSeoDescription = $seoDefaults['description'];
+        $defaultSeoKeywords = $seoDefaults['keywords'];
         $seoTitle = trim($__env->yieldContent('seo_title') ?: $__env->yieldContent('title', $defaultSeoTitle));
         $seoTitleFull = str_contains($seoTitle, $storeName) ? $seoTitle : $seoTitle . ' | ' . $storeName;
         $seoDescription = trim($__env->yieldContent('seo_description') ?: $defaultSeoDescription);
         $seoKeywords = trim($__env->yieldContent('seo_keywords') ?: $defaultSeoKeywords);
-        $seoImage = trim($__env->yieldContent('seo_image') ?: ($storeLogo ? asset('storage/' . $storeLogo) : asset('favicon.ico')));
+        $seoImage = trim($__env->yieldContent('seo_image') ?: $seoDefaults['image']);
         $canonicalUrl = trim($__env->yieldContent('canonical') ?: url()->current());
         $robotsContent = trim($__env->yieldContent('robots') ?: (request()->hasAny(['search', 'category', 'availability', 'min_price', 'max_price', 'sort']) ? 'noindex,follow' : 'index,follow'));
     @endphp
@@ -334,16 +326,11 @@
                     Store Locator
                 </a>
             </div>
-            @php
-                $wishlistCount = (Auth::check() && Auth::user()->role === 'customer')
-                    ? \App\Models\Wishlist::where('user_id', Auth::id())->count()
-                    : 0;
-            @endphp
             <div class="flex min-w-0 items-center justify-end gap-1 sm:gap-2 lg:gap-3">
                 <button type="button" data-search-trigger class="hidden p-2 text-brand-dark transition-colors hover:text-brand-primary md:block">
                     <i class="fa-solid fa-magnifying-glass text-lg"></i>
                 </button>
-                @if(Auth::check() && Auth::user()->role === 'customer')
+                @if($isCustomer)
                     <a href="{{ route('wishlist.index') }}" class="relative hidden p-2 text-brand-dark transition-colors hover:text-brand-primary sm:block">
                         <i class="fa-regular fa-heart text-lg"></i>
                         @if($wishlistCount > 0)
@@ -354,26 +341,21 @@
                     </a>
                 @endif
                 <a href="{{ route('cart.index') }}"
-                    @if(Auth::check() && Auth::user()->role === 'customer') data-cart-trigger @endif
+                    @if($isCustomer) data-cart-trigger @endif
                     class="relative flex h-10 w-10 flex-shrink-0 items-center justify-center text-brand-dark transition-colors hover:text-brand-primary">
                     <i class="fa-solid fa-bag-shopping text-lg"></i>
                     <span
                         id="navCartCount"
                         class="js-cart-count absolute top-0 right-0 bg-brand-primary text-white text-[10px] w-4 h-4 flex items-center justify-center border-2 border-white shadow">
-                        @auth
-                                            {{ \App\Models\CartItem::whereHas('cart', function ($q) {
-                            $q->where('user_id', auth()->id()); })->count() }}
-                        @else
-                            0
-                        @endauth
+                        {{ $cartCount > 9 ? '9+' : $cartCount }}
                     </span>
                 </a>
 
-                @auth
+                @if($currentUser)
                     <div class="relative ml-0 sm:ml-2" id="userDropdownContainer">
                         <button type="button" id="userDropdownBtn"
                             class="flex h-10 w-10 items-center justify-center gap-0 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-white hover:shadow-md transition-all duration-300 sm:w-auto sm:gap-3 sm:pl-3 sm:pr-1 sm:py-1">
-                            <span class="hidden md:block text-sm font-bold text-brand-dark">{{ Auth::user()->name }}</span>
+                            <span class="hidden md:block text-sm font-bold text-brand-dark">{{ $currentUser->name }}</span>
                             <div
                                 class="w-9 h-9 flex-shrink-0 bg-brand-primary/10 rounded-xl flex items-center justify-center border border-brand-primary/20">
                                 <i class="fa-solid fa-user text-brand-primary text-sm"></i>
@@ -387,7 +369,7 @@
 
                             <div class="px-4 py-3 border-b border-gray-50 mb-1">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Role Akun</p>
-                                <p class="text-xs font-bold text-brand-primary uppercase">{{ Auth::user()->role }}</p>
+                                <p class="text-xs font-bold text-brand-primary uppercase">{{ $currentUser->role }}</p>
                             </div>
 
                             <a href="/user/profile"
@@ -433,7 +415,7 @@
                     <a href="/login" aria-label="Masuk" class="p-2 text-brand-dark md:hidden">
                         <i class="fa-regular fa-user text-lg"></i>
                     </a>
-                @endauth
+                @endif
             </div>
         </div>
         <div id="mobileMenuPanel" class="hidden border-t border-brand-secondary/30 bg-white px-4 py-4 shadow-[0_18px_40px_rgba(95,74,58,0.08)] lg:hidden">
@@ -619,7 +601,7 @@
     </div>
     {{-- ─────────────────────────────────────────────────────────────────── --}}
 
-    @if(Auth::check() && Auth::user()->role === 'customer')
+    @if($isCustomer)
         <div id="cartDrawer" class="fixed inset-0 z-[240] hidden" aria-hidden="true">
             <div class="absolute inset-0 bg-black/45 backdrop-blur-[2px]" data-cart-drawer-close></div>
             <div id="cartDrawerPanel"
@@ -696,7 +678,7 @@
     @endif
 
     <script>
-        @if(Auth::check() && Auth::user()->role === 'customer')
+        @if($isCustomer)
             window.FureCartDrawer = (function () {
                 const cartSummaryUrl = "{{ route('cart.summary') }}";
                 const cartUpdateUrl = "{{ url('/cart/update') }}";

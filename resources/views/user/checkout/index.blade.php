@@ -451,7 +451,7 @@
 
                     {{-- LIST ALAMAT --}}
                     <div id="address-list-section" class="space-y-3">
-                        @forelse(auth()->user()->addresses as $item)
+                        @forelse($addresses as $item)
                             <form action="{{ route('checkout.set-address') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="address_id" value="{{ $item->id }}">

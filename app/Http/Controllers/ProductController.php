@@ -12,18 +12,44 @@ use App\Models\VariantAttribute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with(['category', 'brand', 'collections', 'variants', 'images' => fn($q) => $q->where('is_primary', true)])
+        $products = Product::query()
+            ->select([
+                'id',
+                'category_id',
+                'brand_id',
+                'name',
+                'slug',
+                'short_description',
+                'price',
+                'compare_price',
+                'modal_price',
+                'stock',
+                'sku',
+                'is_active',
+                'has_variant',
+                'created_at',
+            ])
+            ->with([
+                'category:id,name',
+                'brand:id,name',
+                'collections:id,name',
+                'images' => fn($q) => $q->select(['id', 'product_id', 'image_url', 'is_primary', 'sort_order'])
+                    ->where('is_primary', true)
+                    ->orderBy('sort_order'),
+            ])
+            ->withCount('variants')
             ->latest()
             ->get();
-        $categories  = Category::where('is_active', true)->get();
-        $brands      = Brand::where('is_active', true)->get();
-        $collections = Collection::where('is_active', true)->orderBy('sort_order')->get();
+        $categories  = Category::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']);
+        $brands      = Brand::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $collections = Collection::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']);
 
         return view('master.products.index', compact('products', 'categories', 'brands', 'collections'));
     }
@@ -111,6 +137,7 @@ class ProductController extends Controller
             $this->syncCollections($product, $request);
 
             DB::commit();
+            $this->clearProductCaches();
             return redirect()->back()->with('success', 'Produk berhasil ditambahkan');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -204,6 +231,7 @@ class ProductController extends Controller
             $this->syncCollections($product, $request);
 
             DB::commit();
+            $this->clearProductCaches();
             return redirect()->back()->with('success', 'Produk berhasil diperbarui');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -227,6 +255,7 @@ class ProductController extends Controller
             }
             $product->delete();
             DB::commit();
+            $this->clearProductCaches();
             return redirect()->back()->with('success', 'Produk berhasil dihapus');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -275,6 +304,8 @@ class ProductController extends Controller
                 ?->update(['is_primary' => true]);
         }
 
+        $this->clearProductCaches();
+
         return response()->json(['success' => true]);
     }
 
@@ -282,6 +313,8 @@ class ProductController extends Controller
     {
         ProductImage::where('product_id', $productId)->update(['is_primary' => false]);
         ProductImage::where('product_id', $productId)->where('id', $imageId)->update(['is_primary' => true]);
+
+        $this->clearProductCaches();
 
         return response()->json(['success' => true]);
     }
@@ -324,6 +357,8 @@ class ProductController extends Controller
 
         // Sync product stock
         $product->update(['stock' => $product->variants()->sum('stock')]);
+
+        $this->clearProductCaches();
 
         return response()->json(['success' => true, 'variant' => $variant->load('attributes')]);
     }
@@ -371,6 +406,8 @@ class ProductController extends Controller
 
         $product->update(['stock' => $product->variants()->sum('stock')]);
 
+        $this->clearProductCaches();
+
         return response()->json(['success' => true, 'variant' => $variant->load('attributes')]);
     }
 
@@ -383,6 +420,8 @@ class ProductController extends Controller
         $variant->delete();
 
         $product->update(['stock' => $product->variants()->sum('stock')]);
+
+        $this->clearProductCaches();
 
         return response()->json(['success' => true]);
     }
@@ -411,6 +450,12 @@ class ProductController extends Controller
             }
             $request->merge([$field => (int) $val]);
         }
+    }
+
+    private function clearProductCaches(): void
+    {
+        Cache::forget('search.popular_terms');
+        Cache::forget('search.active_product_names');
     }
 
     private function syncVariants(Product $product, array $variants): void

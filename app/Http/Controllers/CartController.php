@@ -18,7 +18,13 @@ class CartController extends Controller
 
     public function index()
     {
-        $cart = Cart::with(['items.product.category', 'items.product.images', 'items.variant'])
+        $cart = Cart::with([
+                'items:id,cart_id,product_id,variant_id,qty,price',
+                'items.product:id,category_id,name,slug,weight',
+                'items.product.category:id,name',
+                'items.product.images:id,product_id,image_url,is_primary,sort_order',
+                'items.variant:id,product_id,name,weight',
+            ])
             ->where('user_id', Auth::id())
             ->first();
 
@@ -33,7 +39,14 @@ class CartController extends Controller
 
     public function summary()
     {
-        $cart = Cart::with(['items.product.category', 'items.product.images', 'items.variant.attributes'])
+        $cart = Cart::with([
+                'items:id,cart_id,product_id,variant_id,qty,price',
+                'items.product:id,category_id,name,slug',
+                'items.product.category:id,name',
+                'items.product.images:id,product_id,image_url,is_primary,sort_order',
+                'items.variant:id,product_id,name',
+                'items.variant.attributes:id,variant_id,attribute_value',
+            ])
             ->where('user_id', Auth::id())
             ->first();
 
@@ -42,7 +55,7 @@ class CartController extends Controller
 
         return response()->json([
             'items' => $items->map(function ($item) {
-                $image = $item->product->images->where('is_primary', true)->first()
+                $image = $item->product->images->firstWhere('is_primary', true)
                     ?? $item->product->images->first();
 
                 return [

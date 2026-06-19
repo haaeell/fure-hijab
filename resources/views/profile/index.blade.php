@@ -15,8 +15,8 @@
                     <div class="relative inline-block mb-6">
                         <div
                             class="w-32 h-32 rounded-[2.5rem] bg-brand-primary/10 flex items-center justify-center overflow-hidden border-4 border-white shadow-xl">
-                            @if(auth()->user()->avatar)
-                                <img src="{{ asset('storage/' . auth()->user()->avatar) }}" class="w-full h-full object-cover">
+                            @if($profileUser->avatar)
+                                <img src="{{ asset('storage/' . $profileUser->avatar) }}" class="w-full h-full object-cover">
                             @else
                                 <i class="fa-solid fa-user-tie text-5xl text-brand-primary"></i>
                             @endif
@@ -27,20 +27,20 @@
                         </label>
                     </div>
 
-                    <h2 class="text-xl font-extrabold text-brand-dark">{{ auth()->user()->name }}</h2>
+                    <h2 class="text-xl font-extrabold text-brand-dark">{{ $profileUser->name }}</h2>
                     <p class="text-xs font-black text-brand-primary uppercase tracking-widest mt-1">
-                        {{ auth()->user()->role }}
+                        {{ $profileUser->role }}
                     </p>
 
                     <div class="mt-8 pt-8 border-t border-gray-50 flex flex-col gap-3">
                         <div class="flex items-center gap-3 text-left p-3 rounded-2xl bg-gray-50/50">
                             <i class="fa-regular fa-envelope text-gray-400"></i>
-                            <span class="text-xs font-bold text-gray-600">{{ auth()->user()->email }}</span>
+                            <span class="text-xs font-bold text-gray-600">{{ $profileUser->email }}</span>
                         </div>
                         <div class="flex items-center gap-3 text-left p-3 rounded-2xl bg-gray-50/50">
                             <i class="fa-solid fa-phone text-gray-400"></i>
                             <span
-                                class="text-xs font-bold text-gray-600">{{ auth()->user()->phone ?? 'Belum diatur' }}</span>
+                                class="text-xs font-bold text-gray-600">{{ $profileUser->phone ?? 'Belum diatur' }}</span>
                         </div>
                     </div>
                 </div>
@@ -64,13 +64,13 @@
                             <div class="space-y-1.5">
                                 <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama
                                     Lengkap</label>
-                                <input type="text" name="name" value="{{ auth()->user()->name }}"
+                                <input type="text" name="name" value="{{ $profileUser->name }}"
                                     class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
                             </div>
                             <div class="space-y-1.5">
                                 <label
                                     class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Email</label>
-                                <input type="email" name="email" value="{{ auth()->user()->email }}"
+                                <input type="email" name="email" value="{{ $profileUser->email }}"
                                     class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
                             </div>
                             <div class="md:col-span-2 space-y-1.5 text-right">

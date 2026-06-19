@@ -3,8 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Services\AdminLayoutContextService;
+use App\Services\StorefrontContextService;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\View;
 use Throwable;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +25,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        View::composer(['layouts.customer', 'partials.customer-bottom-navigation'], function ($view) {
+            $view->with(app(StorefrontContextService::class)->layoutData());
+        });
+
+        View::composer('layouts.app', function ($view) {
+            $view->with(app(AdminLayoutContextService::class)->layoutData());
+        });
+
         try {
             if (!Schema::hasTable('settings')) {
                 return;
