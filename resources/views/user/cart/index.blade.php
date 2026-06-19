@@ -22,7 +22,7 @@
                                 class="w-24 h-32 md:w-32 md:h-40 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-50">
                                 @php $primaryImage = $item->product->images->where('is_primary', true)->first(); @endphp
                                 <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533' }}"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                             </div>
 
                             <div class="flex-grow">

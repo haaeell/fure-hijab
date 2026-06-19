@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Courier;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -33,7 +34,7 @@ class CourierController extends Controller
         if ($courier->logo) {
             Storage::disk('public')->delete($courier->logo);
         }
-        $courier->update(['logo' => $request->file('logo')->store('couriers', 'public')]);
+        $courier->update(['logo' => ImageService::compress($request->file('logo'), 'couriers', 300, 85)]);
         Cache::forget('checkout.active_couriers');
 
         return redirect()->back()->with('success', 'Logo berhasil diperbarui.');

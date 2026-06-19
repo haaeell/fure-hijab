@@ -78,7 +78,7 @@
                             <div class="flex gap-3">
                                 <div class="w-16 h-20 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0">
                                     <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533' }}"
-                                        class="w-full h-full object-cover" alt="{{ $firstItem?->product?->name ?? 'Produk' }}">
+                                        loading="lazy" class="w-full h-full object-cover" alt="{{ $firstItem?->product?->name ?? 'Produk' }}">
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-bold text-brand-dark leading-snug line-clamp-2">

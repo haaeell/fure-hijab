@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Review;
+use App\Services\ImageService;
 use App\Services\ShipmentTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -143,7 +144,7 @@ class OrderHistoryController extends Controller
         $imagePaths = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $imagePaths[] = $image->store('reviews', 'public');
+                $imagePaths[] = ImageService::compress($image, 'reviews', 1000, 80);
             }
         }
 

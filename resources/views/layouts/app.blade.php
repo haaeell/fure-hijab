@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Dashboard - {{ $adminStoreName }}</title>
+    @if($adminStoreLogo)
+        <link rel="icon" type="image/png" href="{{ asset('storage/' . $adminStoreLogo) }}">
+        <link rel="apple-touch-icon" href="{{ asset('storage/' . $adminStoreLogo) }}">
+    @endif
 
     <link href="https://fonts.bunny.net/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -57,6 +61,16 @@
         ::-webkit-scrollbar-thumb {
             background: #A78B6F;
             border-radius: 10px;
+        }
+
+        @keyframes fure-shimmer {
+            0%   { background-position: -200% 0; }
+            100% { background-position:  200% 0; }
+        }
+        .shimmer-loading {
+            background: linear-gradient(90deg, #f5f3f1 25%, #ede9e5 50%, #f5f3f1 75%);
+            background-size: 200% 100%;
+            animation: fure-shimmer 1.4s ease-in-out infinite;
         }
 
         .sidebar-transition {
@@ -493,6 +507,30 @@
             });
         </script>
     @endif
+    <script>
+    (function () {
+        function initShimmer() {
+            document.querySelectorAll('img[loading="lazy"]').forEach(function (img) {
+                if (img.complete && img.naturalHeight !== 0) return;
+                var parent = img.parentElement;
+                parent.classList.add('shimmer-loading');
+                img.style.opacity = '0';
+                img.style.transition = 'opacity 0.25s ease';
+                function done() {
+                    parent.classList.remove('shimmer-loading');
+                    img.style.opacity = '1';
+                }
+                img.addEventListener('load',  done, { once: true });
+                img.addEventListener('error', done, { once: true });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initShimmer);
+        } else {
+            initShimmer();
+        }
+    })();
+    </script>
 </body>
 
 </html>

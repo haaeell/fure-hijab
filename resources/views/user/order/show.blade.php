@@ -117,7 +117,7 @@
                                         class="h-24 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-gray-100 border border-gray-100 sm:h-24 sm:w-20">
                                         @php $primaryImage = $item->product->images->where('is_primary', true)->first(); @endphp
                                         <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533' }}"
-                                            class="w-full h-full object-cover">
+                                            loading="lazy" class="w-full h-full object-cover">
                                     </div>
                                     <div class="min-w-0 flex-grow">
                                         <h4 class="mb-1 text-sm font-bold leading-snug text-brand-dark sm:text-base">{{ $item->product->name }}</h4>
@@ -153,7 +153,7 @@
                                             <div class="w-14 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
                                                 @php $img = $item->product->images->where('is_primary', true)->first(); @endphp
                                                 <img src="{{ $img ? asset('storage/' . $img->image_url) : 'https://via.placeholder.com/100' }}"
-                                                    class="w-full h-full object-cover">
+                                                    loading="lazy" class="w-full h-full object-cover">
                                             </div>
                                             <div class="flex-1">
                                                 <p class="font-bold text-brand-dark text-sm">{{ $item->product->name }}</p>

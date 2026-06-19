@@ -22,6 +22,10 @@
     <meta name="keywords" content="{{ $seoKeywords }}">
     <meta name="robots" content="{{ $robotsContent }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">
+    @if($storeLogo)
+        <link rel="icon" type="image/png" href="{{ asset('storage/' . $storeLogo) }}">
+        <link rel="apple-touch-icon" href="{{ asset('storage/' . $storeLogo) }}">
+    @endif
     <meta property="og:locale" content="id_ID">
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:site_name" content="{{ $storeName }}">
@@ -63,6 +67,16 @@
     </script>
 
     <style>
+        @keyframes fure-shimmer {
+            0%   { background-position: -200% 0; }
+            100% { background-position:  200% 0; }
+        }
+        .shimmer-loading {
+            background: linear-gradient(90deg, #f0ece8 25%, #e8e3de 50%, #f0ece8 75%);
+            background-size: 200% 100%;
+            animation: fure-shimmer 1.4s ease-in-out infinite;
+        }
+
         html {
             scroll-behavior: smooth;
         }
@@ -1109,6 +1123,30 @@
 
         // Exposed so inline onclick handlers can call it
         window.saveSearchAndGo = function (q) { saveSearch(q); closeSearch(); };
+    })();
+    </script>
+    <script>
+    (function () {
+        function initShimmer() {
+            document.querySelectorAll('img[loading="lazy"]').forEach(function (img) {
+                if (img.complete && img.naturalHeight !== 0) return;
+                var parent = img.parentElement;
+                parent.classList.add('shimmer-loading');
+                img.style.opacity = '0';
+                img.style.transition = 'opacity 0.25s ease';
+                function done() {
+                    parent.classList.remove('shimmer-loading');
+                    img.style.opacity = '1';
+                }
+                img.addEventListener('load',  done, { once: true });
+                img.addEventListener('error', done, { once: true });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initShimmer);
+        } else {
+            initShimmer();
+        }
     })();
     </script>
 </body>

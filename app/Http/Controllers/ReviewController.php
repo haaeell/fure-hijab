@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ReviewController extends Controller
 {
@@ -26,6 +27,13 @@ class ReviewController extends Controller
     public function destroy($id)
     {
         $review = Review::findOrFail($id);
+
+        if (!empty($review->images)) {
+            foreach ($review->images as $img) {
+                Storage::disk('public')->delete($img);
+            }
+        }
+
         $review->delete();
         return redirect()->back()->with('success', 'Ulasan berhasil dihapus');
     }

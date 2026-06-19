@@ -47,7 +47,8 @@
                         <div class="relative aspect-[4/5] bg-[#eee5dc]">
                             <img id="mainImage"
                                 src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/900x1125?text=FURE' }}"
-                                class="h-full w-full object-cover" alt="{{ $product->name }}">
+                                class="h-full w-full object-cover" alt="{{ $product->name }}"
+                                fetchpriority="high">
 
                             @if($displayComparePrice > $displayPrice)
                                 <div class="absolute left-4 top-4 bg-brand-dark px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
@@ -62,7 +63,7 @@
                             @foreach($galleryImages as $img)
                                 <button type="button" onclick="changeImage('{{ asset('storage/' . $img->image_url) }}')"
                                     class="h-20 w-16 flex-none overflow-hidden border {{ $img->is_primary ? 'border-brand-primary' : 'border-brand-secondary/60' }} bg-white transition hover:border-brand-primary">
-                                    <img src="{{ asset('storage/' . $img->image_url) }}" class="h-full w-full object-cover" alt="{{ $product->name }}">
+                                    <img src="{{ asset('storage/' . $img->image_url) }}" loading="lazy" class="h-full w-full object-cover" alt="{{ $product->name }}">
                                 </button>
                             @endforeach
                         </div>
@@ -247,7 +248,7 @@
                                                 <div class="mt-3 flex flex-wrap gap-2">
                                                     @foreach($review->images as $img)
                                                         <a href="{{ asset('storage/' . $img) }}" target="_blank" rel="noopener">
-                                                            <img src="{{ asset('storage/' . $img) }}" class="h-16 w-16 object-cover border border-brand-secondary/30 hover:opacity-80 transition" alt="Foto ulasan">
+                                                            <img src="{{ asset('storage/' . $img) }}" loading="lazy" class="h-16 w-16 object-cover border border-brand-secondary/30 hover:opacity-80 transition" alt="Foto ulasan">
                                                         </a>
                                                     @endforeach
                                                 </div>
@@ -282,7 +283,7 @@
                                             <div class="mt-3 flex flex-wrap gap-2">
                                                 @foreach($review->images as $img)
                                                     <a href="{{ asset('storage/' . $img) }}" target="_blank" rel="noopener">
-                                                        <img src="{{ asset('storage/' . $img) }}" class="h-16 w-16 object-cover border border-brand-secondary/30 hover:opacity-80 transition" alt="Foto ulasan">
+                                                        <img src="{{ asset('storage/' . $img) }}" loading="lazy" class="h-16 w-16 object-cover border border-brand-secondary/30 hover:opacity-80 transition" alt="Foto ulasan">
                                                     </a>
                                                 @endforeach
                                             </div>
