@@ -78,14 +78,6 @@
         }
 
         /* ─── Product card hover ────────────────────────────────────────────── */
-        .product-card {
-            transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                        box-shadow 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 18px 44px rgba(95, 74, 58, 0.13);
-        }
         .product-card .product-image {
             transition: transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }

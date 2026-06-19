@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use App\Services\BiteshipService;
-use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -57,7 +56,7 @@ class AdminSettingController extends Controller
             if ($oldLogo) {
                 Storage::disk('public')->delete($oldLogo);
             }
-            $validated['store_logo'] = ImageService::compress($request->file('store_logo'), 'settings', 500, 85);
+            $validated['store_logo'] = $request->file('store_logo')->store('settings', 'public');
         } else {
             unset($validated['store_logo']);
         }
@@ -110,7 +109,7 @@ class AdminSettingController extends Controller
             if ($oldLogo) {
                 Storage::disk('public')->delete($oldLogo);
             }
-            $validated['store_logo'] = ImageService::compress($request->file('store_logo'), 'settings', 500, 85);
+            $validated['store_logo'] = $request->file('store_logo')->store('settings', 'public');
         }
 
         $booleanSettings = [

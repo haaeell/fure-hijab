@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\LandingBanner;
 use App\Models\LandingSection;
-use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -23,11 +22,11 @@ class LandingContentController extends Controller
         $data = $this->validateBanner($request);
 
         if ($request->hasFile('image')) {
-            $data['image'] = ImageService::compress($request->file('image'), 'landing/banners', 1920, 80);
+            $data['image'] = $request->file('image')->store('landing/banners', 'public');
         }
 
         if ($request->hasFile('mobile_image')) {
-            $data['mobile_image'] = ImageService::compress($request->file('mobile_image'), 'landing/banners', 800, 80);
+            $data['mobile_image'] = $request->file('mobile_image')->store('landing/banners', 'public');
         }
 
         $data['is_active'] = $request->has('is_active');
@@ -43,12 +42,12 @@ class LandingContentController extends Controller
 
         if ($request->hasFile('image')) {
             $this->deletePublicFile($banner->image);
-            $data['image'] = ImageService::compress($request->file('image'), 'landing/banners', 1920, 80);
+            $data['image'] = $request->file('image')->store('landing/banners', 'public');
         }
 
         if ($request->hasFile('mobile_image')) {
             $this->deletePublicFile($banner->mobile_image);
-            $data['mobile_image'] = ImageService::compress($request->file('mobile_image'), 'landing/banners', 800, 80);
+            $data['mobile_image'] = $request->file('mobile_image')->store('landing/banners', 'public');
         }
 
         $data['is_active'] = $request->has('is_active');
@@ -72,7 +71,7 @@ class LandingContentController extends Controller
         $data = $this->validateSection($request);
 
         if ($request->hasFile('image')) {
-            $data['image'] = ImageService::compress($request->file('image'), 'landing/sections', 1200, 80);
+            $data['image'] = $request->file('image')->store('landing/sections', 'public');
         }
 
         $data['is_active'] = $request->has('is_active');
@@ -88,7 +87,7 @@ class LandingContentController extends Controller
 
         if ($request->hasFile('image')) {
             $this->deletePublicFile($section->image);
-            $data['image'] = ImageService::compress($request->file('image'), 'landing/sections', 1200, 80);
+            $data['image'] = $request->file('image')->store('landing/sections', 'public');
         }
 
         $data['is_active'] = $request->has('is_active');

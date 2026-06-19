@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +26,7 @@ class ProfileController extends Controller
 
         if ($request->hasFile('avatar')) {
             if ($user->avatar) Storage::disk('public')->delete($user->avatar);
-            $user->avatar = ImageService::compress($request->file('avatar'), 'avatars', 400, 85);
+            $user->avatar = $request->file('avatar')->store('avatars', 'public');
         }
 
         $user->name = $request->name;

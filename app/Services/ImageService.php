@@ -29,7 +29,7 @@ class ImageService
 
         Storage::disk('public')->put(
             $path,
-            Image::read($file->getRealPath())
+            Image::decode($file->getRealPath())
                 ->scaleDown(width: $maxWidth)
                 ->toWebp(quality: $quality)
         );

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +27,7 @@ class CategoryController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $data['image'] = ImageService::compress($request->file('image'), 'categories', 600, 82);
+            $data['image'] = $request->file('image')->store('categories', 'public');
         }
 
         Category::create([
@@ -59,7 +58,7 @@ class CategoryController extends Controller
             if ($category->image) {
                 Storage::disk('public')->delete($category->image);
             }
-            $data['image'] = ImageService::compress($request->file('image'), 'categories', 600, 82);
+            $data['image'] = $request->file('image')->store('categories', 'public');
         }
 
         $category->update([

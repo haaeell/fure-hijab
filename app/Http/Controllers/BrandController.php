@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
-use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -31,7 +30,7 @@ class BrandController extends Controller
         ]);
 
         if ($request->hasFile('logo')) {
-            $data['logo'] = ImageService::compress($request->file('logo'), 'brands', 400, 85);
+            $data['logo'] = $request->file('logo')->store('brands', 'public');
         }
 
         Brand::create([
@@ -65,7 +64,7 @@ class BrandController extends Controller
             if ($brand->logo) {
                 Storage::disk('public')->delete($brand->logo);
             }
-            $data['logo'] = ImageService::compress($request->file('logo'), 'brands', 400, 85);
+            $data['logo'] = $request->file('logo')->store('brands', 'public');
         }
 
         $brand->update([

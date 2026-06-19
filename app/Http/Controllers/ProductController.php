@@ -9,7 +9,6 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Models\VariantAttribute;
-use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -120,7 +119,7 @@ class ProductController extends Controller
             // Handle images
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $index => $image) {
-                    $path = ImageService::compress($image, 'products', 1200, 82);
+                    $path = $image->store('products', 'public');
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_url'  => $path,
@@ -206,7 +205,7 @@ class ProductController extends Controller
                 $hasPrimary = $product->images()->where('is_primary', true)->exists();
 
                 foreach ($request->file('images') as $index => $image) {
-                    $path = ImageService::compress($image, 'products', 1200, 82);
+                    $path = $image->store('products', 'public');
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_url'  => $path,
@@ -270,7 +269,7 @@ class ProductController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:4096',
         ]);
 
-        $path = ImageService::compress($request->file('image'), 'products/descriptions', 1200, 80);
+        $path = $request->file('image')->store('products/descriptions', 'public');
 
         return response()->json([
             'url' => asset('storage/' . $path),
@@ -345,7 +344,7 @@ class ProductController extends Controller
             'sku'    => $data['sku'] ?? null,
             'weight' => $data['weight'] ?? null,
             'image'  => $request->hasFile('image')
-                ? ImageService::compress($request->file('image'), 'variants', 800, 82)
+                ? $request->file('image')->store('variants', 'public')
                 : null,
         ]);
 
@@ -384,7 +383,7 @@ class ProductController extends Controller
         $imagePath = $variant->image;
         if ($request->hasFile('image')) {
             if ($imagePath) Storage::disk('public')->delete($imagePath);
-            $imagePath = ImageService::compress($request->file('image'), 'variants', 800, 82);
+            $imagePath = $request->file('image')->store('variants', 'public');
         }
 
         $variant->update([

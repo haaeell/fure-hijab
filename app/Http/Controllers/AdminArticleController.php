@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
-use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -40,7 +39,7 @@ class AdminArticleController extends Controller
         $data['tags']         = $this->parseTags($request->input('tags'));
 
         if ($request->hasFile('thumbnail')) {
-            $data['thumbnail'] = ImageService::compress($request->file('thumbnail'), 'articles', 1200, 82);
+            $data['thumbnail'] = $request->file('thumbnail')->store('articles', 'public');
         }
 
         Article::create($data);
@@ -75,7 +74,7 @@ class AdminArticleController extends Controller
             if ($article->thumbnail) {
                 Storage::disk('public')->delete($article->thumbnail);
             }
-            $data['thumbnail'] = ImageService::compress($request->file('thumbnail'), 'articles', 1200, 82);
+            $data['thumbnail'] = $request->file('thumbnail')->store('articles', 'public');
         }
 
         $article->update($data);
