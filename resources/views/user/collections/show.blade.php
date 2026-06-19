@@ -173,17 +173,24 @@
                                 </button>
                             </div>
 
-                            <button type="button" id="wishlistBtn"
-                                data-product-id="{{ $product->id }}"
-                                data-in-wishlist="{{ $inWishlist ? '1' : '0' }}"
-                                data-auth="{{ $isAuthenticated ? '1' : '0' }}"
-                                class="inline-flex w-full items-center justify-center gap-3 border px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] transition
-                                    {{ $inWishlist
-                                        ? 'border-brand-primary bg-[#f8f3ee] text-brand-primary'
-                                        : 'border-brand-secondary/60 bg-white text-brand-dark hover:border-brand-primary' }}">
-                                <i id="wishlistIcon" class="{{ $inWishlist ? 'fa-solid' : 'fa-regular' }} fa-heart"></i>
-                                <span id="wishlistLabel">{{ $inWishlist ? 'Tersimpan' : 'Wishlist' }}</span>
-                            </button>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button" id="wishlistBtn"
+                                    data-product-id="{{ $product->id }}"
+                                    data-in-wishlist="{{ $inWishlist ? '1' : '0' }}"
+                                    data-auth="{{ $isAuthenticated ? '1' : '0' }}"
+                                    class="inline-flex w-full items-center justify-center gap-3 border px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] transition
+                                        {{ $inWishlist
+                                            ? 'border-brand-primary bg-[#f8f3ee] text-brand-primary'
+                                            : 'border-brand-secondary/60 bg-white text-brand-dark hover:border-brand-primary' }}">
+                                    <i id="wishlistIcon" class="{{ $inWishlist ? 'fa-solid' : 'fa-regular' }} fa-heart"></i>
+                                    <span id="wishlistLabel">{{ $inWishlist ? 'Tersimpan' : 'Wishlist' }}</span>
+                                </button>
+                                <button type="button" id="shareBtn"
+                                    class="inline-flex w-full items-center justify-center gap-3 border border-brand-secondary/60 bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-dark transition hover:border-brand-primary hover:text-brand-primary">
+                                    <i class="fa-solid fa-share-nodes"></i>
+                                    <span>Bagikan</span>
+                                </button>
+                            </div>
                         </form>
 
                         <div class="mt-6 grid grid-cols-2 gap-3">
@@ -236,6 +243,15 @@
                                                 @endfor
                                             </div>
                                             <p class="mt-3 text-sm leading-6 text-brand-dark/60">{{ $review->comment }}</p>
+                                            @if(!empty($review->images))
+                                                <div class="mt-3 flex flex-wrap gap-2">
+                                                    @foreach($review->images as $img)
+                                                        <a href="{{ asset('storage/' . $img) }}" target="_blank" rel="noopener">
+                                                            <img src="{{ asset('storage/' . $img) }}" class="h-16 w-16 object-cover border border-brand-secondary/30 hover:opacity-80 transition" alt="Foto ulasan">
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            @endif
                                         </div>
                                     @empty
                                     @endforelse
@@ -262,6 +278,15 @@
                                             @endfor
                                         </div>
                                         <p class="mt-3 text-sm leading-6 text-brand-dark/60">{{ $review->comment }}</p>
+                                        @if(!empty($review->images))
+                                            <div class="mt-3 flex flex-wrap gap-2">
+                                                @foreach($review->images as $img)
+                                                    <a href="{{ asset('storage/' . $img) }}" target="_blank" rel="noopener">
+                                                        <img src="{{ asset('storage/' . $img) }}" class="h-16 w-16 object-cover border border-brand-secondary/30 hover:opacity-80 transition" alt="Foto ulasan">
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -291,6 +316,68 @@
             </div>
         </div>
     </section>
+
+    {{-- Share Modal --}}
+    <div id="shareModal" class="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="shareModalBackdrop"></div>
+        <div class="relative z-10 w-full max-w-sm bg-white p-6 sm:rounded-none shadow-2xl mx-0 sm:mx-4">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-sm font-bold uppercase tracking-[0.2em] text-brand-dark">Bagikan Produk</h3>
+                <button type="button" id="closeShareModal" class="text-brand-dark/40 hover:text-brand-dark transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="mb-5 flex items-center gap-3 border border-brand-secondary/40 bg-[#f8f3ee] p-3">
+                @if($primaryImage)
+                    <img src="{{ asset('storage/' . $primaryImage->image_url) }}" class="h-12 w-10 object-cover flex-shrink-0" alt="{{ $product->name }}">
+                @endif
+                <div class="min-w-0">
+                    <p class="text-xs font-semibold text-brand-dark truncate">{{ $product->name }}</p>
+                    <p class="text-xs text-brand-primary font-bold mt-0.5">Rp{{ number_format($displayPrice, 0, ',', '.') }}</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-3 mb-5">
+                <a id="shareWhatsapp" href="#" target="_blank" rel="noopener"
+                    class="flex flex-col items-center gap-2 p-3 hover:bg-[#f8f3ee] transition rounded-sm">
+                    <div class="flex h-11 w-11 items-center justify-center bg-[#25D366] text-white">
+                        <i class="fa-brands fa-whatsapp text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-[0.1em] text-brand-dark/60">WhatsApp</span>
+                </a>
+                <a id="shareTelegram" href="#" target="_blank" rel="noopener"
+                    class="flex flex-col items-center gap-2 p-3 hover:bg-[#f8f3ee] transition rounded-sm">
+                    <div class="flex h-11 w-11 items-center justify-center bg-[#229ED9] text-white">
+                        <i class="fa-brands fa-telegram text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-[0.1em] text-brand-dark/60">Telegram</span>
+                </a>
+                <a id="shareFacebook" href="#" target="_blank" rel="noopener"
+                    class="flex flex-col items-center gap-2 p-3 hover:bg-[#f8f3ee] transition rounded-sm">
+                    <div class="flex h-11 w-11 items-center justify-center bg-[#1877F2] text-white">
+                        <i class="fa-brands fa-facebook-f text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-[0.1em] text-brand-dark/60">Facebook</span>
+                </a>
+                <a id="shareTwitter" href="#" target="_blank" rel="noopener"
+                    class="flex flex-col items-center gap-2 p-3 hover:bg-[#f8f3ee] transition rounded-sm">
+                    <div class="flex h-11 w-11 items-center justify-center bg-black text-white">
+                        <i class="fa-brands fa-x-twitter text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-[0.1em] text-brand-dark/60">X (Twitter)</span>
+                </a>
+            </div>
+
+            <button type="button" id="copyLinkBtn"
+                class="flex w-full items-center justify-between gap-3 border border-brand-secondary/40 bg-[#f8f3ee] px-4 py-3 text-left transition hover:border-brand-primary group">
+                <span id="copyLinkText" class="text-xs font-semibold text-brand-dark/60 truncate flex-1">{{ route('collections.show', $product->slug) }}</span>
+                <span class="flex-shrink-0 text-[10px] font-bold uppercase tracking-[0.16em] text-brand-primary group-hover:text-brand-dark transition">
+                    <i class="fa-solid fa-copy mr-1"></i>Salin
+                </span>
+            </button>
+        </div>
+    </div>
 
     <x-user.components.mobile-bottom-action-bar>
         <div class="grid grid-cols-2 gap-3">
@@ -325,6 +412,8 @@
             if (next >= 1 && next <= stock) input.val(next);
         }
 
+        const defaultProductImage = "{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : '' }}";
+
         function findMatchingVariant() {
             const match = variants.find(v => v.attributes.every(attr => selectedChoices[attr.attribute_name] === attr.attribute_value));
 
@@ -333,7 +422,7 @@
             $('#selectedVariantId').val(match.id);
             $('#displayPrice').text('Rp' + new Intl.NumberFormat('id-ID').format(match.price));
 
-            if (match.compare_price > match.price) {
+            if (match.compare_price && match.compare_price > match.price) {
                 if (!$('#displayComparePrice').length) {
                     $('#displayPrice').after('<div id="displayComparePrice" class="pb-1 text-sm font-semibold text-brand-dark/35 line-through"></div>');
                 }
@@ -358,6 +447,14 @@
                 $('.js-add-text').text(function () {
                     return $(this).closest('.desktop-only-action').length ? 'Tambah ke Keranjang' : 'Masukkan Keranjang';
                 });
+            }
+
+            // Ganti foto utama ke foto variant jika ada
+            if (match.image) {
+                const variantImageUrl = '/storage/' + match.image;
+                $('#mainImage').attr('src', variantImageUrl);
+            } else if (defaultProductImage) {
+                $('#mainImage').attr('src', defaultProductImage);
             }
         }
 
@@ -485,6 +582,69 @@
                     }
                 });
             }
+        });
+
+        // Share functionality
+        const shareUrl = "{{ route('collections.show', $product->slug) }}";
+        const shareTitle = "{{ addslashes($product->name) }}";
+        const shareText = shareTitle + ' - Rp' + new Intl.NumberFormat('id-ID').format({{ $displayPrice }});
+
+        function openShareModal() {
+            const encodedUrl = encodeURIComponent(shareUrl);
+            const encodedText = encodeURIComponent(shareText + '\n' + shareUrl);
+
+            $('#shareWhatsapp').attr('href', 'https://wa.me/?text=' + encodedText);
+            $('#shareTelegram').attr('href', 'https://t.me/share/url?url=' + encodedUrl + '&text=' + encodeURIComponent(shareText));
+            $('#shareFacebook').attr('href', 'https://www.facebook.com/sharer/sharer.php?u=' + encodedUrl);
+            $('#shareTwitter').attr('href', 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) + '&url=' + encodedUrl);
+
+            $('#shareModal').removeClass('hidden');
+            $('body').addClass('overflow-hidden');
+        }
+
+        function closeShareModal() {
+            $('#shareModal').addClass('hidden');
+            $('body').removeClass('overflow-hidden');
+        }
+
+        $('#shareBtn').on('click', function () {
+            if (navigator.share) {
+                navigator.share({ title: shareTitle, text: shareText, url: shareUrl }).catch(() => {});
+            } else {
+                openShareModal();
+            }
+        });
+
+        $('#closeShareModal, #shareModalBackdrop').on('click', closeShareModal);
+
+        $('#copyLinkBtn').on('click', function () {
+            navigator.clipboard.writeText(shareUrl).then(function () {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Link disalin!',
+                    toast: true, position: 'top-end',
+                    showConfirmButton: false, timer: 2000, timerProgressBar: true,
+                });
+                closeShareModal();
+            }).catch(function () {
+                const el = document.createElement('textarea');
+                el.value = shareUrl;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Link disalin!',
+                    toast: true, position: 'top-end',
+                    showConfirmButton: false, timer: 2000, timerProgressBar: true,
+                });
+                closeShareModal();
+            });
+        });
+
+        $(document).on('keydown', function (e) {
+            if (e.key === 'Escape') closeShareModal();
         });
     </script>
 @endpush

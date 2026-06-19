@@ -984,11 +984,12 @@
                 const res  = await fetch('/search/popular');
                 const data = await res.json();
                 const list = document.getElementById('popularList');
-                list.innerHTML = data.terms.map(t => `
-                    <button onclick="document.getElementById('searchInput').value=${JSON.stringify(t)};document.getElementById('searchInput').dispatchEvent(new Event('input'))"
+                const items = data.products || [];
+                list.innerHTML = items.map(p => `
+                    <a href="/collections/${encodeURIComponent(p.slug)}"
                         class="flex items-center gap-2 border border-brand-secondary/60 bg-white px-3 py-1.5 text-xs font-semibold text-brand-dark transition hover:border-brand-primary hover:text-brand-primary">
-                        <i class="fa-solid fa-fire text-[10px] text-brand-primary/60"></i>${esc(t)}
-                    </button>`).join('');
+                        <i class="fa-solid fa-fire text-[10px] text-brand-primary/60"></i>${esc(p.name)}
+                    </a>`).join('');
             } catch (_) {
                 document.getElementById('popularSection').classList.add('hidden');
             }

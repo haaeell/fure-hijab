@@ -130,6 +130,8 @@ class OrderHistoryController extends Controller
             'order_item_id' => 'required|exists:order_items,id',
             'rating'        => 'required|integer|min:1|max:5',
             'comment'       => 'nullable|string|max:500',
+            'images'        => 'nullable|array|max:5',
+            'images.*'      => 'image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $item = $order->items()->findOrFail($request->order_item_id);
@@ -138,12 +140,20 @@ class OrderHistoryController extends Controller
             return response()->json(['message' => 'Sudah pernah direview'], 422);
         }
 
+        $imagePaths = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $imagePaths[] = $image->store('reviews', 'public');
+            }
+        }
+
         Review::create([
             'user_id'       => Auth::id(),
             'product_id'    => $item->product_id,
             'order_item_id' => $item->id,
             'rating'        => $request->rating,
             'comment'       => $request->comment,
+            'images'        => $imagePaths ?: null,
             'is_verified'   => true,
         ]);
 

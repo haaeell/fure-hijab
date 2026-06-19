@@ -88,14 +88,24 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="md:col-span-2 space-y-1.5">
                         <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">API Key</label>
-                        <input type="text" name="biteship_api_key" value="{{ old('biteship_api_key', $settings['biteship_api_key']) }}"
-                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                        <div class="relative">
+                            <input type="password" name="biteship_api_key" id="biteship_api_key" value="{{ old('biteship_api_key', $settings['biteship_api_key']) }}"
+                                class="w-full px-4 py-3 pr-12 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                            <button type="button" class="toggle-secret absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-brand-primary transition-colors" data-target="biteship_api_key">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="md:col-span-2 space-y-1.5">
                         <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Webhook Secret</label>
-                        <input type="text" name="biteship_webhook_secret" value="{{ old('biteship_webhook_secret', $settings['biteship_webhook_secret']) }}"
-                            placeholder="Opsional, isi token rahasia yang sama di dashboard Biteship"
-                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                        <div class="relative">
+                            <input type="password" name="biteship_webhook_secret" id="biteship_webhook_secret" value="{{ old('biteship_webhook_secret', $settings['biteship_webhook_secret']) }}"
+                                placeholder="Opsional, isi token rahasia yang sama di dashboard pengiriman"
+                                class="w-full px-4 py-3 pr-12 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                            <button type="button" class="toggle-secret absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-brand-primary transition-colors" data-target="biteship_webhook_secret">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
                         <p class="text-[11px] text-gray-400 ml-1">Jika diisi, webhook hanya diterima ketika request membawa Bearer token, header secret, atau query token yang sama.</p>
                     </div>
                     <div class="md:col-span-2 space-y-1.5 relative">
@@ -198,13 +208,23 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="md:col-span-2 space-y-1.5">
                         <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Server Key</label>
-                        <input type="text" name="midtrans_server_key" value="{{ old('midtrans_server_key', $settings['midtrans_server_key']) }}"
-                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                        <div class="relative">
+                            <input type="password" name="midtrans_server_key" id="midtrans_server_key" value="{{ old('midtrans_server_key', $settings['midtrans_server_key']) }}"
+                                class="w-full px-4 py-3 pr-12 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                            <button type="button" class="toggle-secret absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-brand-primary transition-colors" data-target="midtrans_server_key">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="md:col-span-2 space-y-1.5">
                         <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Client Key</label>
-                        <input type="text" name="midtrans_client_key" value="{{ old('midtrans_client_key', $settings['midtrans_client_key']) }}"
-                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                        <div class="relative">
+                            <input type="password" name="midtrans_client_key" id="midtrans_client_key" value="{{ old('midtrans_client_key', $settings['midtrans_client_key']) }}"
+                                class="w-full px-4 py-3 pr-12 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                            <button type="button" class="toggle-secret absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-brand-primary transition-colors" data-target="midtrans_client_key">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <label class="flex items-start gap-3 p-4 rounded-2xl border border-gray-200 bg-gray-50/50 cursor-pointer">
@@ -358,6 +378,13 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         $(function () {
+            // Toggle visibility untuk semua secret/key field
+            $('.toggle-secret').on('click', function () {
+                const $input = $('#' + $(this).data('target'));
+                $input.attr('type', $input.attr('type') === 'password' ? 'text' : 'password');
+                $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+            });
+
             $('#toggleMailPassword').on('click', function () {
                 const $input = $('#mail_password');
                 $input.attr('type', $input.attr('type') === 'password' ? 'text' : 'password');

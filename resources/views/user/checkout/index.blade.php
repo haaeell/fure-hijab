@@ -65,7 +65,7 @@
                                                 <div class="flex flex-wrap items-center gap-2 mb-2">
                                                     <span class="px-2.5 py-1 rounded-lg bg-brand-primary text-white text-[10px] font-black uppercase">{{ $address->label }}</span>
                                                     @if($address->biteship_area_id)
-                                                        <span class="px-2.5 py-1 rounded-lg bg-white text-brand-primary text-[10px] font-black uppercase">Area Biteship</span>
+                                                        <span class="px-2.5 py-1 rounded-lg bg-white text-brand-primary text-[10px] font-black uppercase">Terverifikasi</span>
                                                     @else
                                                         <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-600 text-[10px] font-black uppercase">Manual</span>
                                                     @endif
@@ -526,7 +526,7 @@
                             </div>
 
                             <div class="relative">
-                                <label class="text-xs font-bold text-gray-500 mb-1 block">Cari Area Biteship</label>
+                                <label class="text-xs font-bold text-gray-500 mb-1 block">Cari Area Pengiriman</label>
                                 <div class="relative">
                                     <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
                                         <i class="fa-solid fa-magnifying-glass text-sm"></i>

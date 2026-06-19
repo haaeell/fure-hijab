@@ -186,8 +186,22 @@
                                                             class="w-full text-sm border border-gray-100 rounded-xl p-3 bg-gray-50 resize-none focus:outline-none focus:border-brand-primary/50 transition-colors"
                                                             rows="2" placeholder="Tulis ulasanmu..."
                                                             id="comment-{{ $item->id }}"></textarea>
+
+                                                        {{-- foto ulasan --}}
+                                                        <div class="mt-2">
+                                                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+                                                                Foto (opsional, maks. 5)
+                                                            </label>
+                                                            <div class="flex flex-wrap gap-2 mb-2" id="preview-{{ $item->id }}"></div>
+                                                            <label class="inline-flex items-center gap-2 cursor-pointer px-3 py-2 rounded-xl border border-dashed border-brand-secondary/60 bg-gray-50 text-xs font-bold text-brand-dark/50 hover:border-brand-primary hover:text-brand-primary transition-colors">
+                                                                <i class="fa-solid fa-camera text-sm"></i>
+                                                                Tambah Foto
+                                                                <input type="file" class="hidden review-images" id="images-{{ $item->id }}" data-item="{{ $item->id }}" multiple accept="image/jpeg,image/png,image/jpg,image/webp">
+                                                            </label>
+                                                        </div>
+
                                                         <button onclick="submitReview('{{ $order->order_number }}', {{ $item->id }})"
-                                                            class="mt-2 px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition-all">
+                                                            class="mt-3 px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition-all">
                                                             Kirim Ulasan
                                                         </button>
                                                     </div>
@@ -647,23 +661,54 @@
                 });
             });
 
+            // Preview foto ulasan
+            document.querySelectorAll('.review-images').forEach(function (input) {
+                input.addEventListener('change', function () {
+                    const itemId = this.dataset.item;
+                    const preview = document.getElementById('preview-' + itemId);
+                    preview.innerHTML = '';
+
+                    const files = Array.from(this.files).slice(0, 5);
+                    files.forEach(function (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.className = 'h-16 w-16 rounded-xl object-cover border border-gray-100';
+                            preview.appendChild(img);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                });
+            });
+
             async function submitReview(orderNumber, itemId) {
                 const rating = document.getElementById('rating-' + itemId).value;
                 const comment = document.getElementById('comment-' + itemId).value;
+                const imageInput = document.getElementById('images-' + itemId);
 
                 if (rating == 0) {
                     Swal.fire({ icon: 'warning', title: 'Pilih Rating', text: 'Berikan bintang terlebih dahulu.', confirmButtonText: 'OK' });
                     return;
                 }
 
+                const formData = new FormData();
+                formData.append('order_item_id', itemId);
+                formData.append('rating', rating);
+                formData.append('comment', comment);
+                if (imageInput && imageInput.files.length > 0) {
+                    Array.from(imageInput.files).slice(0, 5).forEach(function (file) {
+                        formData.append('images[]', file);
+                    });
+                }
+
                 try {
                     const res = await fetch(`/order/${orderNumber}/review`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify({ order_item_id: itemId, rating, comment })
+                        body: formData
                     });
 
                     const data = await res.json();

@@ -57,14 +57,14 @@ class SearchController extends Controller
 
     public function popular()
     {
-        $terms = Cache::remember('search.popular_terms', now()->addMinutes(10), function () {
+        $products = Cache::remember('search.popular_products', now()->addMinutes(10), function () {
             return Product::where('is_active', true)
                 ->orderByDesc('sold_count')
                 ->limit(6)
-                ->pluck('name');
+                ->get(['name', 'slug']);
         });
 
-        return response()->json(['terms' => $terms]);
+        return response()->json(['products' => $products]);
     }
 
     private function findClosestMatch(string $query): ?string
