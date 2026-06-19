@@ -18,7 +18,55 @@
 
         $primaryImage = $product->images->where('is_primary', true)->first() ?? $product->images->first();
         $galleryImages = $product->images->count() > 0 ? $product->images : collect([$primaryImage])->filter();
+        $productSeoDescription = $product->short_description
+            ?: \Illuminate\Support\Str::limit(trim(strip_tags($product->description)), 155, '');
+        $productSeoImage = $primaryImage
+            ? asset('storage/' . $primaryImage->image_url)
+            : asset('favicon.ico');
     @endphp
+
+    @section('seo_title', $product->name)
+    @section('seo_description', $productSeoDescription ?: 'Belanja ' . $product->name . ' dari koleksi FURE dengan bahan nyaman, warna elegan, dan tampilan modest yang rapi.')
+    @section('seo_keywords', implode(', ', array_filter([$product->name, $product->category->name ?? null, $product->brand->name ?? null, 'hijab premium', 'modest wear', 'FURE'])))
+    @section('seo_image', $productSeoImage)
+    @section('canonical', route('collections.show', $product->slug))
+    @section('og_type', 'product')
+
+    @push('seo')
+        @php
+            $productImages = $galleryImages->map(fn($image) => asset('storage/' . $image->image_url))->values()->all();
+            $productSchema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'Product',
+                'name' => $product->name,
+                'image' => $productImages ?: [$productSeoImage],
+                'description' => $productSeoDescription ?: trim(strip_tags($product->description)),
+                'sku' => $product->sku ?: 'FURE-' . $product->id,
+                'brand' => [
+                    '@type' => 'Brand',
+                    'name' => $product->brand->name ?? \App\Models\Setting::getValue('store_name', 'FURE'),
+                ],
+                'category' => $product->category->name ?? 'Hijab',
+                'offers' => [
+                    '@type' => 'Offer',
+                    'url' => route('collections.show', $product->slug),
+                    'priceCurrency' => 'IDR',
+                    'price' => (float) $displayPrice,
+                    'availability' => $displayStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                    'itemCondition' => 'https://schema.org/NewCondition',
+                ],
+            ];
+
+            if ($totalReviews > 0) {
+                $productSchema['aggregateRating'] = [
+                    '@type' => 'AggregateRating',
+                    'ratingValue' => round((float) $averageRating, 1),
+                    'reviewCount' => $totalReviews,
+                ];
+            }
+        @endphp
+        <script type="application/ld+json">{!! json_encode($productSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @endpush
 
     <section class="mobile-action-safe-space bg-[#f8f3ee]">
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">

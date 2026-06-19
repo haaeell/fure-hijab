@@ -21,7 +21,52 @@
         'new-arrived.index' => 'Drop terbaru FURE untuk melengkapi wardrobe modest kamu dengan warna dan bahan pilihan.',
         'collections.index' => 'Semua koleksi FURE dalam satu katalog, dari hijab harian sampai pilihan spesial.',
     ];
+    $catalogSeoDescription = $catalogDescriptions[$activeRoute] ?? $catalogDescriptions['collections.index'];
+    $catalogSeoImageProduct = $products->first(fn($item) => $item->images->first());
+    $catalogSeoImage = $catalogSeoImageProduct
+        ? asset('storage/' . $catalogSeoImageProduct->images->first()->image_url)
+        : asset('favicon.ico');
 @endphp
+
+@section('seo_title', $catalogMeta['title'])
+@section('seo_description', $catalogSeoDescription)
+@section('seo_keywords', $catalogMeta['title'] . ', FURE, hijab premium, hijab wanita, modest wear, koleksi hijab')
+@section('seo_image', $catalogSeoImage)
+@section('canonical', route($activeRoute))
+
+@push('seo')
+    @php
+        $itemListSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'ItemList',
+            'name' => $catalogMeta['title'],
+            'description' => $catalogSeoDescription,
+            'url' => route($activeRoute),
+            'numberOfItems' => $products->count(),
+            'itemListElement' => $products->values()->map(function ($item, $index) {
+                $image = $item->images->first();
+
+                return [
+                    '@type' => 'ListItem',
+                    'position' => $index + 1,
+                    'url' => route('collections.show', $item->slug),
+                    'item' => [
+                        '@type' => 'Product',
+                        'name' => $item->name,
+                        'image' => $image ? asset('storage/' . $image->image_url) : asset('favicon.ico'),
+                        'offers' => [
+                            '@type' => 'Offer',
+                            'priceCurrency' => 'IDR',
+                            'price' => (float) $item->price,
+                            'availability' => $item->stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                        ],
+                    ],
+                ];
+            })->all(),
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($itemListSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endpush
 
 @section('content')
     <section class="bg-[#f8f3ee] text-brand-dark">

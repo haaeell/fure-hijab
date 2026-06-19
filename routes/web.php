@@ -21,9 +21,80 @@ use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\CourierController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\WishlistController;
+use App\Models\Category;
+use App\Models\Collection as ProductCollection;
+use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\Mime\Address;
+
+Route::get('/robots.txt', function () {
+    return response(
+        "User-agent: *\nAllow: /\nSitemap: " . url('/sitemap.xml') . "\n",
+        200,
+        ['Content-Type' => 'text/plain']
+    );
+});
+
+Route::get('/sitemap.xml', function () {
+    $urls = [];
+    $formatLastmod = fn($date) => $date instanceof \DateTimeInterface ? $date->format('c') : now()->format('c');
+    $pushUrl = function (string $loc, $lastmod = null, string $changefreq = 'weekly', string $priority = '0.7') use (&$urls, $formatLastmod) {
+        $urls[] = [
+            'loc' => $loc,
+            'lastmod' => $formatLastmod($lastmod),
+            'changefreq' => $changefreq,
+            'priority' => $priority,
+        ];
+    };
+
+    $pushUrl(url('/'), now(), 'daily', '1.0');
+    $pushUrl(route('collections.index'), now(), 'daily', '0.9');
+    $pushUrl(route('best-seller.index'), now(), 'daily', '0.8');
+    $pushUrl(route('hijab.index'), now(), 'weekly', '0.8');
+    $pushUrl(route('syari.index'), now(), 'weekly', '0.8');
+    $pushUrl(route('new-arrived.index'), now(), 'daily', '0.8');
+    $pushUrl(route('about.index'), now(), 'monthly', '0.5');
+    $pushUrl(route('promo.index'), now(), 'weekly', '0.6');
+
+    Category::where('is_active', true)
+        ->orderBy('sort_order')
+        ->get(['slug', 'updated_at'])
+        ->each(fn($category) => $pushUrl(route('collections.index', ['category' => $category->slug]), $category->updated_at, 'weekly', '0.7'));
+
+    $collectionRoutes = [
+        'best-seller' => 'best-seller.index',
+        'hijab' => 'hijab.index',
+        'syari' => 'syari.index',
+        'new-arrived' => 'new-arrived.index',
+    ];
+
+    ProductCollection::where('is_active', true)
+        ->whereIn('slug', array_keys($collectionRoutes))
+        ->get(['slug', 'updated_at'])
+        ->each(fn($collection) => $pushUrl(route($collectionRoutes[$collection->slug]), $collection->updated_at, 'weekly', '0.8'));
+
+    Product::where('is_active', true)
+        ->latest('updated_at')
+        ->get(['slug', 'updated_at'])
+        ->each(fn($product) => $pushUrl(route('collections.show', $product->slug), $product->updated_at, 'weekly', '0.9'));
+
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+
+    foreach ($urls as $url) {
+        $xml .= '  <url>' . PHP_EOL;
+        $xml .= '    <loc>' . htmlspecialchars($url['loc'], ENT_XML1 | ENT_COMPAT, 'UTF-8') . '</loc>' . PHP_EOL;
+        $xml .= '    <lastmod>' . htmlspecialchars($url['lastmod'], ENT_XML1 | ENT_COMPAT, 'UTF-8') . '</lastmod>' . PHP_EOL;
+        $xml .= '    <changefreq>' . htmlspecialchars($url['changefreq'], ENT_XML1 | ENT_COMPAT, 'UTF-8') . '</changefreq>' . PHP_EOL;
+        $xml .= '    <priority>' . htmlspecialchars($url['priority'], ENT_XML1 | ENT_COMPAT, 'UTF-8') . '</priority>' . PHP_EOL;
+        $xml .= '  </url>' . PHP_EOL;
+    }
+
+    $xml .= '</urlset>';
+
+    return response($xml, 200, ['Content-Type' => 'application/xml']);
+})->name('sitemap');
 
 Route::get('/', [LandingPageController::class, 'index']);
 

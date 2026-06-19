@@ -14,8 +14,33 @@
         $storeInstagram = \App\Models\Setting::getValue('store_instagram');
         $storeTiktok = \App\Models\Setting::getValue('store_tiktok');
         $storeWhatsapp = \App\Models\Setting::getValue('store_whatsapp');
+        $defaultSeoTitle = 'Hijab Premium dan Modest Wear';
+        $defaultSeoDescription = 'Belanja koleksi hijab premium dan modest wear FURE dengan bahan nyaman, warna lembut, dan desain elegan untuk aktivitas harian hingga momen spesial.';
+        $defaultSeoKeywords = 'hijab premium, hijab wanita, modest wear, hijab elegan, hijab terbaru, FURE';
+        $seoTitle = trim($__env->yieldContent('seo_title') ?: $__env->yieldContent('title', $defaultSeoTitle));
+        $seoTitleFull = str_contains($seoTitle, $storeName) ? $seoTitle : $seoTitle . ' | ' . $storeName;
+        $seoDescription = trim($__env->yieldContent('seo_description') ?: $defaultSeoDescription);
+        $seoKeywords = trim($__env->yieldContent('seo_keywords') ?: $defaultSeoKeywords);
+        $seoImage = trim($__env->yieldContent('seo_image') ?: ($storeLogo ? asset('storage/' . $storeLogo) : asset('favicon.ico')));
+        $canonicalUrl = trim($__env->yieldContent('canonical') ?: url()->current());
+        $robotsContent = trim($__env->yieldContent('robots') ?: (request()->hasAny(['search', 'category', 'availability', 'min_price', 'max_price', 'sort']) ? 'noindex,follow' : 'index,follow'));
     @endphp
-    <title>{{ $storeName }} - @yield('title', 'Elegansi dalam Kesantunan')</title>
+    <title>{{ $seoTitleFull }}</title>
+    <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags($seoDescription), 160, '') }}">
+    <meta name="keywords" content="{{ $seoKeywords }}">
+    <meta name="robots" content="{{ $robotsContent }}">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:site_name" content="{{ $storeName }}">
+    <meta property="og:title" content="{{ $seoTitleFull }}">
+    <meta property="og:description" content="{{ \Illuminate\Support\Str::limit(strip_tags($seoDescription), 200, '') }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:image" content="{{ $seoImage }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seoTitleFull }}">
+    <meta name="twitter:description" content="{{ \Illuminate\Support\Str::limit(strip_tags($seoDescription), 200, '') }}">
+    <meta name="twitter:image" content="{{ $seoImage }}">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -231,6 +256,7 @@
             }
         }
     </style>
+    @stack('seo')
     @yield('styles')
 </head>
 

@@ -101,7 +101,52 @@
             'align' => 'right',
         ],
     ]);
+    $homeSeoImage = $heroBanners->first()?->image
+        ? asset('storage/' . $heroBanners->first()->image)
+        : $fallbackHero;
 @endphp
+
+@section('seo_title', 'FURE Hijab Premium dan Modest Wear')
+@section('seo_description', 'Temukan koleksi hijab premium FURE, modest wear elegan, best seller, promo, dan new arrival dengan bahan nyaman serta warna lembut untuk daily look.')
+@section('seo_keywords', 'FURE, hijab premium, hijab wanita, hijab terbaru, modest wear, best seller hijab, hijab syari')
+@section('seo_image', $homeSeoImage)
+@section('canonical', url('/'))
+
+@push('seo')
+    @php
+        $organizationSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Organization',
+            'name' => \App\Models\Setting::getValue('store_name', 'FURE'),
+            'url' => url('/'),
+            'logo' => \App\Models\Setting::getValue('store_logo') ? asset('storage/' . \App\Models\Setting::getValue('store_logo')) : asset('favicon.ico'),
+            'sameAs' => array_values(array_filter([
+                \App\Models\Setting::getValue('store_instagram'),
+                \App\Models\Setting::getValue('store_tiktok'),
+            ])),
+            'contactPoint' => [
+                '@type' => 'ContactPoint',
+                'telephone' => \App\Models\Setting::getValue('store_phone') ?: \App\Models\Setting::getValue('store_whatsapp'),
+                'contactType' => 'customer service',
+                'areaServed' => 'ID',
+                'availableLanguage' => ['Indonesian'],
+            ],
+        ];
+        $websiteSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => \App\Models\Setting::getValue('store_name', 'FURE'),
+            'url' => url('/'),
+            'potentialAction' => [
+                '@type' => 'SearchAction',
+                'target' => route('collections.index') . '?search={search_term_string}',
+                'query-input' => 'required name=search_term_string',
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    <script type="application/ld+json">{!! json_encode($websiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endpush
 
 @section('content')
     <div class="bg-[#f8f3ee] text-brand-dark">
