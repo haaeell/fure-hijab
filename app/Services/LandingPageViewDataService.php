@@ -13,8 +13,8 @@ class LandingPageViewDataService
     public function homeData(Collection $landingBanners, Collection $landingSections, Collection $shopLookProducts): array
     {
         $store = $this->storefrontContext->store();
-        $fallbackHero = 'https://images.unsplash.com/photo-1585435465945-bef5a93f8849?auto=format&fit=crop&q=85&w=1800';
-        $fallbackEditorial = 'https://images.unsplash.com/photo-1618232118117-98d49b20e2f5?auto=format&fit=crop&q=85&w=1400';
+        $fallbackHero = 'banner2.png';
+        $fallbackEditorial = 'banner2.png';
         $defaultBanners = collect([
             (object) [
                 'eyebrow' => 'New Collection',
@@ -76,7 +76,7 @@ class LandingPageViewDataService
                 'subtitle' => 'Hijab premium dengan warna lembut, mudah dipadukan, dan nyaman dipakai sepanjang hari.',
                 'button_text' => 'Explore Collection',
                 'button_url' => route('collections.index'),
-                'image' => $fallbackEditorial,
+                'image' => '/banner3.png',
                 'align' => 'left',
             ],
             (object) [
@@ -85,7 +85,7 @@ class LandingPageViewDataService
                 'subtitle' => 'Temukan pilihan bahan ringan untuk aktivitas harian sampai momen spesial.',
                 'button_text' => 'Shop New Arrival',
                 'button_url' => route('new-arrived.index'),
-                'image' => $fallbackHero,
+                'image' => '/banner2.png',
                 'align' => 'right',
             ],
             (object) [
@@ -94,17 +94,8 @@ class LandingPageViewDataService
                 'subtitle' => 'Koleksi favorit dengan penawaran khusus untuk tampilan modest yang rapi.',
                 'button_text' => 'Claim Promo',
                 'button_url' => route('promo.index'),
-                'image' => 'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?auto=format&fit=crop&q=85&w=1600',
+                'image' => '/banner2.png',
                 'align' => 'left',
-            ],
-            (object) [
-                'eyebrow' => 'Style Edit',
-                'title' => 'One Look, Many Moments',
-                'subtitle' => 'Padukan hijab, atasan, dan warna netral untuk tampilan santun yang tetap modern.',
-                'button_text' => 'Shop The Look',
-                'button_url' => route('collections.index'),
-                'image' => $shopLookImage,
-                'align' => 'right',
             ],
         ]);
         $homeSeoImage = $heroBanners->first()?->image

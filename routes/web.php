@@ -189,7 +189,6 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', 'destroy')->name('koleksi.destroy');
         });
 
-        // Products
         Route::prefix('products')->controller(ProductController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');

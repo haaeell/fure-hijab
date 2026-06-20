@@ -574,10 +574,9 @@
                                         </p>
                                     </div>
                                     <div class="flex flex-wrap gap-2 sm:ml-auto">
-                                        {{-- Print label popup --}}
-                                        <button type="button" onclick="openPrintLabelModal()"
+                                        <button type="button" onclick="openLabelModal()"
                                             class="px-3 py-1.5 bg-brand-primary text-white text-[10px] font-black rounded-xl hover:bg-brand-dark transition-all flex items-center gap-1">
-                                            <i class="fa-solid fa-print mr-1"></i>Cetak Resi
+                                            <i class="fa-solid fa-download mr-1"></i>Download Resi
                                         </button>
                                         @if($ship->label_url)
                                             {{-- Official Biteship label --}}
@@ -694,11 +693,6 @@
                                                         Label Biteship
                                                     </a>
                                                 @endif
-                                                <button type="button" onclick="openPrintLabelModal()"
-                                                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-primary px-4 py-3 text-xs font-black text-white hover:bg-brand-dark transition-all">
-                                                    <i class="fa-solid fa-print"></i>
-                                                    Cetak Resi
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -989,69 +983,69 @@
     </div>
 
     {{-- ══════════════════════════════════════
-    PRINT LABEL MODAL
+    DOWNLOAD LABEL MODAL
     ══════════════════════════════════════ --}}
-    <div id="printLabelModal"
-        class="fixed inset-0 hidden bg-slate-900/50 backdrop-blur-sm items-center justify-center z-[110] p-4">
-        <div class="bg-white w-full max-w-3xl rounded-[1.75rem] shadow-2xl overflow-hidden">
+    <div id="labelModal"
+        class="fixed inset-0 hidden bg-black/40 backdrop-blur-sm items-center justify-center z-[110] p-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+
+            {{-- Header --}}
             <div class="px-7 py-5 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                    <h3 class="text-2xl font-black text-brand-dark">Print Label</h3>
-                    <p class="text-xs text-gray-400 font-bold mt-1">{{ $order->order_number }}</p>
+                    <h3 class="text-xl font-black text-brand-dark">Download Label Resi</h3>
+                    <p class="text-[11px] text-gray-400 font-bold mt-0.5 tracking-widest">{{ $order->order_number }}</p>
                 </div>
-                <button type="button" onclick="closePrintLabelModal()"
-                    class="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+                <button onclick="closeLabelModal()"
+                    class="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <form id="printLabelForm" class="p-7 space-y-7">
+            <form id="labelForm" class="p-7 space-y-6">
+
+                {{-- Isi Detail --}}
                 <div>
-                    <h4 class="text-xl font-black text-gray-700 mb-5">Isi Detail Resi</h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4">
+                    <p class="text-sm font-black text-gray-700 mb-4">Isi Detail Resi</p>
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-3">
                         @foreach([
-                            'insurance' => 'Nilai Asuransi',
-                            'shipping_cost' => 'Ongkos Kirim',
-                            'item_description' => 'Deskripsi Barang',
-                            'item_sku' => 'SKU Barang',
-                            'sender_phone' => 'No. Telp Pengirim',
-                            'sender_address' => 'Alamat Pengirim',
-                            'receiver_phone' => 'No. Telp Penerima',
+                            'shipping_cost'      => 'Ongkos Kirim',
+                            'item_description'   => 'Deskripsi Barang',
+                            'sender_phone'       => 'No. Telp Pengirim',
+                            'sender_address'     => 'Alamat Pengirim',
+                            'receiver_phone'     => 'No. Telp Penerima',
                             'mask_receiver_name' => 'Sensor Nama Penerima',
-                        ] as $key => $label)
-                            <label class="flex items-center gap-4 text-lg font-bold text-gray-500 cursor-pointer">
-                                <input type="checkbox" name="{{ $key }}" value="1" checked
-                                    class="h-6 w-6 rounded-md border-gray-300 text-purple-700 focus:ring-purple-600">
-                                <span>{{ $label }}</span>
+                        ] as $key => $lbl)
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" name="{{ $key }}" value="1"
+                                    {{ in_array($key, ['mask_receiver_name']) ? '' : 'checked' }}
+                                    class="w-5 h-5 rounded-md border-gray-300 text-brand-primary focus:ring-brand-primary/30 cursor-pointer">
+                                <span class="text-sm font-bold text-gray-500 group-hover:text-brand-dark transition-colors">{{ $lbl }}</span>
                             </label>
                         @endforeach
                     </div>
                 </div>
 
+                {{-- Ukuran --}}
                 <div>
-                    <label class="block text-xl font-black text-gray-700 mb-3">Tipe Label</label>
-                    <select name="label_type"
-                        class="w-full px-4 py-4 rounded-2xl border border-gray-200 text-sm font-bold text-gray-500 focus:outline-none focus:border-purple-600 bg-white">
-                        <option value="thermal_2">Thermal 2 (10 x 15 cm)</option>
+                    <p class="text-sm font-black text-gray-700 mb-3">Tipe Label</p>
+                    <select name="paper_size"
+                        class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-bold text-gray-600 bg-white focus:outline-none focus:border-brand-primary appearance-none cursor-pointer">
+                        <option value="a4">Default (A4 — 21 × 29.7 cm)</option>
+                        <option value="thermal1">Thermal 1 (8 × 10 cm)</option>
+                        <option value="thermal2">Thermal 2 (10 × 15 cm)</option>
                     </select>
                 </div>
 
-                <div class="flex items-center gap-3 text-purple-800 font-black">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <span>Atur dan Simpan Konfigurasi Label</span>
-                </div>
+                {{-- Submit --}}
+                <button type="submit"
+                    class="w-full py-4 rounded-2xl bg-brand-primary text-white font-black text-base hover:bg-brand-dark transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i>
+                    Download
+                </button>
 
-                <div class="-mx-7 px-7 pt-6 border-t border-gray-100">
-                    <button type="submit"
-                        class="w-full py-4 rounded-2xl bg-purple-800 text-white text-lg font-black hover:bg-brand-dark transition-all">
-                        Cetak Label
-                    </button>
-                </div>
             </form>
         </div>
     </div>
-
-    <iframe id="printLabelFrame" class="hidden" title="Print Label"></iframe>
 
     {{-- ══════════════════════════════════════
     STATUS MODAL
@@ -1273,6 +1267,24 @@
         };
         // ─────────────────────────────────────────────────────────────────────
 
+            // ── Label Download Modal ──────────────────────────────────────────
+            window.openLabelModal = function () {
+                $('#labelModal').removeClass('hidden').addClass('flex');
+            }
+            window.closeLabelModal = function () {
+                $('#labelModal').addClass('hidden').removeClass('flex');
+            }
+            $('#labelModal').on('click', function (e) {
+                if (e.target === this) closeLabelModal();
+            });
+            $('#labelForm').on('submit', function (e) {
+                e.preventDefault();
+                const params = new URLSearchParams(new FormData(this));
+                window.location.href = "{{ route('orders.label.pdf', $order->id) }}?" + params.toString();
+                closeLabelModal();
+            });
+            // ─────────────────────────────────────────────────────────────────
+
             window.openStatusModal = function () {
                 $('#statusModal').removeClass('hidden').addClass('flex');
             }
@@ -1285,29 +1297,12 @@
             window.closeShipModal = function () {
                 $('#shipModal').addClass('hidden').removeClass('flex');
             }
-            window.openPrintLabelModal = function () {
-                $('#printLabelModal').removeClass('hidden').addClass('flex');
-            }
-            window.closePrintLabelModal = function () {
-                $('#printLabelModal').addClass('hidden').removeClass('flex');
-            }
-
             $('#statusSelect').on('change', function () {
                 $('#resiGroup').toggleClass('hidden', this.value !== 'shipped');
             });
 
-            $('#statusModal, #shipModal, #printLabelModal').on('click', function (e) {
+            $('#statusModal, #shipModal').on('click', function (e) {
                 if (e.target === this) $(this).addClass('hidden').removeClass('flex');
-            });
-
-            $('#printLabelForm').on('submit', function (e) {
-                e.preventDefault();
-
-                const params = new URLSearchParams(new FormData(this));
-                params.set('auto_print', '1');
-
-                $('#printLabelFrame').attr('src', "{{ route('orders.biteship-label', $order->id) }}?" + params.toString());
-                closePrintLabelModal();
             });
 
             window.quickStatus = function (id, status) {

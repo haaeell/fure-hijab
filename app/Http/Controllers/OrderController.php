@@ -311,12 +311,17 @@ class OrderController extends Controller
             'weight' => Arr::get($payload, 'weight')
                 ?: Arr::get($payload, 'total_weight')
                 ?: $order->shipment->total_weight,
-            'price' => Arr::get($payload, 'order_price')
-                ?: Arr::get($payload, 'price')
-                ?: $order->shipment->cost,
+            'cost' => Arr::get($payload, 'price')
+                ?: Arr::get($payload, 'order_price')
+                ?: $order->shipment->cost
+                ?: 0,
             'service' => Arr::get($payload, 'courier_type')
                 ?: Arr::get($courier, 'type')
                 ?: $order->shipment->service,
+            'estimated_days' => Arr::get($payload, 'courier_estimated_time_send_to_start')
+                ?: Arr::get($payload, 'estimated_time_send_to_start')
+                ?: Arr::get($payload, 'courier_estimated_time')
+                ?: null,
         ];
 
         if (!$label['tracking_link'] && $label['tracking_id']) {
@@ -334,6 +339,7 @@ class OrderController extends Controller
             'receiver_phone' => $fromModal ? $request->boolean('receiver_phone') : true,
             'mask_receiver_name' => $fromModal ? $request->boolean('mask_receiver_name') : true,
             'auto_print' => $request->boolean('auto_print'),
+            'paper_size' => $request->input('paper_size', 'thermal2'),
         ];
 
         if ($labelOptions['mask_receiver_name']) {
@@ -386,7 +392,7 @@ class OrderController extends Controller
         ]);
     }
 
-    public function downloadLabelPdf($id)
+    public function downloadLabelPdf(Request $request, $id)
     {
         $order = Order::with(['user', 'items.product', 'shipment', 'address'])->findOrFail($id);
 
@@ -394,31 +400,51 @@ class OrderController extends Controller
             return redirect()->back()->with('error', 'Data shipment belum tersedia.');
         }
 
-        $shipment = $order->shipment;
-        $payload  = is_array($shipment->biteship_payload) ? $shipment->biteship_payload : [];
+        $shipment   = $order->shipment;
+        $payload    = is_array($shipment->biteship_payload) ? $shipment->biteship_payload : [];
         $courierObj = Courier::where('code', $shipment->courier)->first();
+
+        // Label options from modal form
+        $opts = [
+            'shipping_cost'      => $request->boolean('shipping_cost', true),
+            'item_description'   => $request->boolean('item_description', true),
+            'sender_phone'       => $request->boolean('sender_phone', true),
+            'sender_address'     => $request->boolean('sender_address', true),
+            'receiver_phone'     => $request->boolean('receiver_phone', true),
+            'mask_receiver_name' => $request->boolean('mask_receiver_name', false),
+        ];
+
+        $destinationName = Arr::get($payload, 'destination.contact_name')
+            ?: $order->address?->receiver_name
+            ?: $order->user?->name;
+
+        if ($opts['mask_receiver_name']) {
+            $destinationName = $this->maskName((string) $destinationName);
+        }
 
         $label = [
             'waybill'             => Arr::get($payload, 'courier_waybill_id')
                 ?: Arr::get($payload, 'waybill_id')
                 ?: $shipment->resi,
             'courier_name'        => $courierObj?->name ?? strtoupper((string) $shipment->courier),
-            'courier_logo_url'    => $courierObj?->logo_url,
+            'courier_logo_path'   => $courierObj?->logo ? public_path('storage/' . $courierObj->logo) : null,
+            'courier_name_display' => $courierObj?->name ?? strtoupper((string) $shipment->courier),
             'service'             => $shipment->service ?? Arr::get($payload, 'courier_type'),
             'weight'              => $shipment->total_weight ?? Arr::get($payload, 'weight') ?? 0,
             'cost'                => $shipment->cost,
             'estimated_days'      => $shipment->estimated_days,
             'origin_name'         => Arr::get($payload, 'origin.contact_name')
                 ?: Setting::getValue('store_name', config('app.name')),
-            'origin_phone'        => Arr::get($payload, 'origin.contact_phone')
-                ?: Setting::getValue('biteship_origin_contact_phone'),
-            'origin_address'      => Arr::get($payload, 'origin.address')
-                ?: Setting::getValue('biteship_origin_address'),
-            'destination_name'    => Arr::get($payload, 'destination.contact_name')
-                ?: $order->address?->receiver_name
-                ?: $order->user?->name,
-            'destination_phone'   => Arr::get($payload, 'destination.contact_phone')
-                ?: $order->address?->phone,
+            'origin_phone'        => $opts['sender_phone']
+                ? (Arr::get($payload, 'origin.contact_phone') ?: Setting::getValue('biteship_origin_contact_phone'))
+                : null,
+            'origin_address'      => $opts['sender_address']
+                ? (Arr::get($payload, 'origin.address') ?: Setting::getValue('biteship_origin_address'))
+                : null,
+            'destination_name'    => $destinationName,
+            'destination_phone'   => $opts['receiver_phone']
+                ? (Arr::get($payload, 'destination.contact_phone') ?: $order->address?->phone)
+                : null,
             'destination_address' => Arr::get($payload, 'destination.address')
                 ?: collect([
                     $order->address?->address,
@@ -430,15 +456,43 @@ class OrderController extends Controller
                 ])->filter()->implode(', '),
         ];
 
-        $storeLogo = Setting::getValue('store_logo');
-        $storeLogoUrl = $storeLogo ? asset('storage/' . $storeLogo) : null;
-        $storeLabel = [
-            'name' => Setting::getValue('store_name', config('app.name', 'FURE')),
-            'address' => Setting::getValue('store_address', ''),
+        // Courier label (local path for DomPDF)
+        $courierLabel = [
+            'name' => $courierObj?->name ?? strtoupper((string) $shipment->courier),
+            'logo' => $courierObj?->logo ?? null,
         ];
 
-        $pdf = Pdf::loadView('orders.label-pdf', compact('order', 'label', 'storeLogoUrl', 'storeLabel'))
-            ->setPaper([0, 0, 420, 595], 'portrait'); // A5-ish: ~148mm × 210mm
+        $labelOptions = [
+            'shipping_cost'    => $opts['shipping_cost'],
+            'item_description' => $opts['item_description'],
+            'sender_phone'     => $opts['sender_phone'],
+            'sender_address'   => $opts['sender_address'],
+            'receiver_phone'   => $opts['receiver_phone'],
+            'paper_size'       => $request->input('paper_size', 'thermal2'),
+        ];
+
+        $pdfMode = true;
+
+        // Paper sizes (in points: 1cm = 28.35pt)
+        $paperSizes = [
+            'a4'       => [0, 0, 595, 842],  // 21 × 29.7 cm
+            'thermal1' => [0, 0, 227, 284],  // 8 × 10 cm
+            'thermal2' => [0, 0, 284, 426],  // 10 × 15 cm
+        ];
+        $paper = $paperSizes[$request->input('paper_size', 'thermal2')] ?? $paperSizes['thermal2'];
+
+        $pdf = Pdf::loadView('orders.biteship-label',
+            compact('order', 'label', 'labelOptions', 'courierLabel', 'pdfMode'))
+            ->setPaper($paper, 'portrait')
+            ->setOptions([
+                'isRemoteEnabled' => false,
+                'defaultMediaType' => 'print',
+                'isFontSubsettingEnabled' => true,
+                'margin_top'    => 0,
+                'margin_right'  => 0,
+                'margin_bottom' => 0,
+                'margin_left'   => 0,
+            ]);
 
         return $pdf->download('resi-' . $order->order_number . '.pdf');
     }

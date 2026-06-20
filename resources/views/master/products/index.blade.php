@@ -41,11 +41,13 @@
                     </ol>
                 </nav>
             </div>
-            <button onclick="openCreateModal()"
-                class="px-5 py-3 bg-brand-primary text-white rounded-2xl font-bold shadow-lg shadow-brand-primary/20 hover:bg-brand-dark transition-all flex items-center gap-2">
-                <i class="fa-solid fa-plus text-sm"></i>
-                <span class="hidden sm:inline">Tambah Produk</span>
-            </button>
+            <div class="flex items-center gap-3">
+                <button onclick="openCreateModal()"
+                    class="px-5 py-3 bg-brand-primary text-white rounded-2xl font-bold shadow-lg shadow-brand-primary/20 hover:bg-brand-dark transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus text-sm"></i>
+                    <span class="hidden sm:inline">Tambah Produk</span>
+                </button>
+            </div>
         </div>
 
         {{-- ── Summary Cards ── --}}

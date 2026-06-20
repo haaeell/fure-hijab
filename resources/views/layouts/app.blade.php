@@ -170,7 +170,7 @@
 
             <a href="/products"
                 class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
-                {{ request()->is('products*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
+                {{ request()->is('products') || request()->is('products/*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
                 <i class="fa-solid fa-box w-5"></i> Produk
             </a>
 

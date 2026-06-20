@@ -15,7 +15,7 @@
     <section class="bg-[#f8f3ee] text-brand-dark">
         <div class="mx-auto grid min-h-[calc(100vh-7.25rem)] max-w-7xl grid-cols-1 lg:grid-cols-[0.9fr_1.1fr]">
             <div class="relative min-h-[360px] overflow-hidden bg-brand-dark lg:min-h-[calc(100vh-7.25rem)]">
-                <img src="https://images.unsplash.com/photo-1618232118117-98d49b20e2f5?auto=format&fit=crop&q=85&w=1200"
+                <img src="/login-bg.png"
                     alt="Koleksi modest FURE"
                     class="absolute inset-0 h-full w-full object-cover opacity-75">
                 <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/35 to-transparent"></div>
