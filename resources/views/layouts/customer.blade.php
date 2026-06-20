@@ -482,39 +482,32 @@
         <div id="mobileMenuPanel" class="hidden border-t border-brand-secondary/30 bg-white px-4 py-4 shadow-[0_18px_40px_rgba(95,74,58,0.08)] lg:hidden">
             <div class="grid gap-2 text-[12px] font-bold uppercase tracking-[0.16em] text-brand-dark/75">
                 <a href="/"
-                    class="flex items-center justify-between px-3 py-3 transition {{ request()->is('/') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    class="flex items-center px-3 py-3 transition {{ request()->is('/') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     Home
-                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
                 </a>
                 <a href="{{ route('best-seller.index') }}"
-                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('best-seller.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('best-seller.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     Best Seller
-                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
                 </a>
                 <a href="{{ route('hijab.index') }}"
-                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('hijab.*') || request()->routeIs('collections.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('hijab.*') || request()->routeIs('collections.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     Hijab
-                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
                 </a>
                 <a href="{{ route('syari.index') }}"
-                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('syari.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('syari.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     Syar'i
-                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
                 </a>
                 <a href="{{ route('new-arrived.index') }}"
-                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('new-arrived.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('new-arrived.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     New Arrived
-                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
                 </a>
                 <a href="{{ route('about.index') }}"
-                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('about.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('about.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     Store Locator
-                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
                 </a>
                 <a href="{{ route('articles.index') }}"
-                    class="flex items-center justify-between px-3 py-3 transition {{ request()->routeIs('articles.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('articles.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     Journal
-                    <i class="fa-solid fa-chevron-right text-[10px] opacity-40"></i>
                 </a>
             </div>
         </div>

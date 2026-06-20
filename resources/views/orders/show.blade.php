@@ -392,7 +392,7 @@
                                         {{ number_format($item->subtotal, 0, ',', '.') }}
                                     </p>
                                     @if($item->product)
-                                        <a href="#" class="text-[10px] text-brand-primary font-bold hover:underline">
+                                        <a href="{{ route('collections.show', $item->product->slug) }}" target="_blank" class="text-[10px] text-brand-primary font-bold hover:underline">
                                             Lihat Produk →
                                         </a>
                                     @endif
@@ -873,7 +873,7 @@
                             </div>
                         </div>
                         <div class="mt-4">
-                            <a href="#"
+                            <a href="/customers?search={{ urlencode($order->user?->email ?? '') }}"
                                 class="block text-center py-2.5 bg-brand-primary/5 text-brand-primary text-xs font-black rounded-2xl hover:bg-brand-primary hover:text-white transition-all tracking-widest">
                                 Lihat Profil
                             </a>
@@ -973,10 +973,6 @@
                                 <i class="fa-solid fa-ban"></i> Batalkan Pesanan
                             </button>
                         @endif
-                        <button onclick="window.print()"
-                            class="w-full py-3 bg-gray-50 text-gray-500 rounded-2xl text-xs font-black tracking-widest hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-print"></i> Print Invoice
-                        </button>
                     </div>
                 </div>
 

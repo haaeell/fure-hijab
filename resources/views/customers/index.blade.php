@@ -135,9 +135,14 @@
     @push('scripts')
         <script>
             $(document).ready(function () {
-                $('#customerTable').DataTable({
+                const table = $('#customerTable').DataTable({
                     responsive: true
                 });
+
+                const searchParam = new URLSearchParams(window.location.search).get('search');
+                if (searchParam) {
+                    table.search(searchParam).draw();
+                }
             });
 
             function viewCustomerDetail(data) {
