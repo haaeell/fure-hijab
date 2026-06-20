@@ -579,7 +579,7 @@
             });
 
             function submitCartAction(action) {
-                @if($product->has_variant)
+                @if($product->has_variant && $product->variants->count() > 0)
                     if (!$('#selectedVariantId').val()) {
                         Swal.fire({ icon: 'warning', title: 'Pilih Varian', text: 'Silakan pilih warna/ukuran terlebih dahulu.' });
                         return;
