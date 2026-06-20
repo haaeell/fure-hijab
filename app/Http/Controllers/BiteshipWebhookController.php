@@ -64,6 +64,14 @@ class BiteshipWebhookController extends Controller
                 'courier.label_url',
                 'courier.waybill_label_url',
             ]);
+            $cost = $this->firstFilled($data, [
+                'price',
+                'order_price',
+                'shipping_price',
+                'courier_price',
+                'cost',
+                'courier.price',
+            ]);
             $history = $this->trackingHistory($data, $payload);
 
             $updates = [
@@ -81,6 +89,10 @@ class BiteshipWebhookController extends Controller
 
             if ($labelUrl) {
                 $updates['label_url'] = $labelUrl;
+            }
+
+            if (filled($cost) && is_numeric($cost) && (int) $cost > 0) {
+                $updates['cost'] = (int) $cost;
             }
 
             if ($history) {
@@ -224,12 +236,15 @@ class BiteshipWebhookController extends Controller
         $status = strtolower(trim((string) $status));
 
         return match (true) {
-            $status === '' => null,
-            str_contains($status, 'deliver') || str_contains($status, 'complete') => 'delivered',
-            str_contains($status, 'cancel') || str_contains($status, 'reject') || str_contains($status, 'fail') => 'failed',
-            str_contains($status, 'pickup'), str_contains($status, 'pick_up') => 'picked_up',
-            str_contains($status, 'transit'), str_contains($status, 'process'), str_contains($status, 'ship') => 'in_transit',
-            default => $status,
+            $status === ''                                                               => null,
+            str_contains($status, 'deliver') || str_contains($status, 'complete')      => 'delivered',
+            str_contains($status, 'cancel') || str_contains($status, 'reject')         => 'cancelled',
+            str_contains($status, 'fail')                                               => 'failed',
+            str_contains($status, 'return')                                             => 'returned',
+            str_contains($status, 'pickup') || str_contains($status, 'pick_up')        => 'picked_up',
+            str_contains($status, 'transit') || str_contains($status, 'ship')          => 'in_transit',
+            str_contains($status, 'process') || str_contains($status, 'dropping')      => 'in_transit',
+            default                                                                     => $status,
         };
     }
 
@@ -240,10 +255,10 @@ class BiteshipWebhookController extends Controller
         }
 
         return match ($shipmentStatus) {
-            'delivered' => 'delivered',
+            'delivered'               => 'delivered',
             'in_transit', 'picked_up' => 'shipped',
-            'failed' => 'cancelled',
-            default => null,
+            'cancelled', 'failed'     => 'cancelled',
+            default                   => null,
         };
     }
 

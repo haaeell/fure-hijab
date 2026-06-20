@@ -852,8 +852,13 @@
                         currentServices = services;
                         displayServices(services);
                     },
-                    error: function () {
-                        showShippingMessage('error', 'Gagal cek ongkir. Coba lagi.');
+                    error: function (xhr) {
+                        const msg = xhr.responseJSON?.error;
+                        if (xhr.status === 404) {
+                            showShippingMessage('error', 'Kurir tidak ditemukan, silakan cek kurir lain.');
+                        } else {
+                            showShippingMessage('error', msg || 'Gagal cek ongkir. Coba lagi.');
+                        }
                     },
                     complete: function () {
                         isCheckingOngkir = false;
@@ -863,7 +868,7 @@
 
             function displayServices(services) {
                 if (!services?.length) {
-                    showShippingMessage('error', 'Tidak ada layanan untuk kurir ini.');
+                    showShippingMessage('error', 'Kurir tidak ditemukan, silakan cek kurir lain.');
                     return;
                 }
 

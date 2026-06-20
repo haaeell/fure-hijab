@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->validateCsrfTokens(except: [
             'midtrans/callback',
+            'webhooks/biteship',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
