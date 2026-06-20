@@ -33,7 +33,7 @@ class AdminLayoutContextService
     {
         return Cache::remember('admin.layout.notifications', now()->addMinute(), function () {
             $pendingOrders = Order::with('user:id,name,email')
-                ->whereIn('status', ['pending', 'confirmed'])
+                ->where('status', 'pending')
                 ->latest()
                 ->take(3)
                 ->get();
@@ -48,7 +48,7 @@ class AdminLayoutContextService
                 ->latest()
                 ->take(3)
                 ->get();
-            $pendingOrderCount = Order::whereIn('status', ['pending', 'confirmed'])->count();
+            $pendingOrderCount = Order::where('status', 'pending')->count();
 
             return [
                 'pending_order_count' => $pendingOrderCount,

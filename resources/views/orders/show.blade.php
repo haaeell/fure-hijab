@@ -292,8 +292,9 @@
 
         {{-- ── Status Timeline ── --}}
         @php
-            $timeline = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
+            $timeline = ['pending', 'processing', 'shipped', 'delivered'];
             $statusIndex = array_search($order->status, $timeline);
+            if ($statusIndex === false && $order->status === 'confirmed') $statusIndex = 1;
             $isCancelled = in_array($order->status, ['cancelled', 'refunded']);
         @endphp
         <div class="bg-white rounded-3xl border border-gray-50 shadow-sm px-6 py-5 mb-6">
@@ -318,11 +319,10 @@
                     @foreach($timeline as $idx => $step)
                         @php
                             $stepCfg = [
-                                'pending' => ['icon' => 'fa-hourglass-half', 'label' => 'Pending'],
-                                'confirmed' => ['icon' => 'fa-circle-check', 'label' => 'Dikonfirmasi'],
-                                'processing' => ['icon' => 'fa-gear', 'label' => 'Diproses'],
-                                'shipped' => ['icon' => 'fa-truck', 'label' => 'Dikirim'],
-                                'delivered' => ['icon' => 'fa-house-circle-check', 'label' => 'Terkirim'],
+                                'pending'    => ['icon' => 'fa-hourglass-half',     'label' => 'Pending'],
+                                'processing' => ['icon' => 'fa-gear',               'label' => 'Diproses'],
+                                'shipped'    => ['icon' => 'fa-truck',              'label' => 'Dikirim'],
+                                'delivered'  => ['icon' => 'fa-house-circle-check', 'label' => 'Terkirim'],
                             ];
                             $done = $statusIndex !== false && $idx <= $statusIndex;
                         @endphp
@@ -941,13 +941,7 @@
                         <h3 class="font-extrabold text-brand-dark">Aksi Cepat</h3>
                     </div>
                     <div class="px-5 py-4 space-y-2">
-                        @if($order->status === 'pending')
-                            <button onclick="quickStatus({{ $order->id }}, 'confirmed')"
-                                class="w-full py-3 bg-blue-50 text-blue-600 rounded-2xl text-xs font-black tracking-widest hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-circle-check"></i> Konfirmasi Pesanan
-                            </button>
-                        @endif
-                        @if($order->status === 'confirmed')
+                        @if(in_array($order->status, ['pending', 'confirmed']))
                             <button onclick="quickStatus({{ $order->id }}, 'processing')"
                                 class="w-full py-3 bg-indigo-50 text-indigo-600 rounded-2xl text-xs font-black tracking-widest hover:bg-indigo-500 hover:text-white transition-all flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-gear"></i> Proses Pesanan
@@ -1077,7 +1071,7 @@
                     <label class="text-[10px] font-black text-gray-400 tracking-widest">STATUS PESANAN</label>
                     <select name="status" id="statusSelect"
                         class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary outline-none text-sm font-semibold appearance-none">
-                        @foreach(['pending' => 'Pending', 'confirmed' => 'Dikonfirmasi', 'processing' => 'Diproses', 'shipped' => 'Dikirim', 'delivered' => 'Terkirim', 'cancelled' => 'Dibatalkan', 'refunded' => 'Refund'] as $val => $label)
+                        @foreach(['pending' => 'Pending', 'processing' => 'Diproses', 'shipped' => 'Dikirim', 'delivered' => 'Terkirim', 'cancelled' => 'Dibatalkan', 'refunded' => 'Refund'] as $val => $label)
                             <option value="{{ $val }}" {{ $order->status === $val ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
                     </select>

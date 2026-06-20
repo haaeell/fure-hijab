@@ -23,8 +23,8 @@
                     @php
                         $tabs = [
                             'all' => 'Semua',
-                            'pending' => 'Pending',
-                            'processing' => 'Diproses',
+                            'pending' => 'Belum Bayar',
+                            'processing' => 'Dikemas',
                             'shipped' => 'Dikirim',
                             'delivered' => 'Selesai',
                             'cancelled' => 'Batal'
@@ -43,8 +43,8 @@
                 $statusMap = [
                     'pending' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-600', 'label' => 'Belum Dibayar', 'icon' => 'fa-clock'],
                     'confirmed' => ['bg' => 'bg-blue-50', 'text' => 'text-blue-600', 'label' => 'Dikonfirmasi', 'icon' => 'fa-circle-check'],
-                    'processing' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600', 'label' => 'Diproses', 'icon' => 'fa-box'],
-                    'shipped' => ['bg' => 'bg-cyan-50', 'text' => 'text-cyan-600', 'label' => 'Dikirim', 'icon' => 'fa-truck'],
+                    'processing' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600', 'label' => 'Sedang Dikemas', 'icon' => 'fa-box'],
+                    'shipped' => ['bg' => 'bg-cyan-50', 'text' => 'text-cyan-600', 'label' => 'Dalam Pengiriman', 'icon' => 'fa-truck'],
                     'delivered' => ['bg' => 'bg-green-50', 'text' => 'text-green-600', 'label' => 'Selesai', 'icon' => 'fa-check-double'],
                     'cancelled' => ['bg' => 'bg-red-50', 'text' => 'text-red-600', 'label' => 'Batal', 'icon' => 'fa-ban'],
                 ];
@@ -116,7 +116,7 @@
                                             <i class="fa-solid fa-check"></i> Selesai
                                         </button>
                                     </form>
-                                @elseif(in_array($order->status, ['pending', 'confirmed']))
+                                @elseif($order->status === 'pending')
                                     <button type="button"
                                         onclick="cancelCustomerOrder({{ $order->id }})"
                                         class="h-11 flex items-center justify-center gap-2 text-xs font-black bg-red-50 text-red-600 rounded-2xl hover:bg-red-500 hover:text-white transition-all">
@@ -227,7 +227,7 @@
                                                 </button>
                                             </form>
                                         @endif
-                                        @if(in_array($order->status, ['pending', 'confirmed']))
+                                        @if($order->status === 'pending')
                                             <button type="button"
                                                 onclick="cancelCustomerOrder({{ $order->id }})"
                                                 class="p-2 text-xs font-bold bg-red-50 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm">

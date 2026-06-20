@@ -34,7 +34,7 @@ class OrderController extends Controller
 
         $summary = [
             'total' => (clone $ordersQuery)->count(),
-            'pending' => (clone $ordersQuery)->whereIn('status', ['pending', 'confirmed'])->count(),
+            'pending' => (clone $ordersQuery)->where('status', 'pending')->count(),
             'processing' => (clone $ordersQuery)->whereIn('status', ['processing', 'shipped'])->count(),
             'done' => (clone $ordersQuery)->where('status', 'delivered')->count(),
             'revenue' => (clone $ordersQuery)->where('status', 'delivered')->sum('total'),
@@ -136,7 +136,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
 
         $request->validate([
-            'status' => 'required|in:pending,confirmed,processing,shipped,delivered,cancelled,refunded',
+            'status' => 'required|in:pending,processing,shipped,delivered,cancelled,refunded',
             'resi'   => 'nullable|string|max:100',
             'note'   => 'nullable|string|max:500',
         ]);
@@ -518,7 +518,7 @@ class OrderController extends Controller
     private function resolveFilters(Request $request): array
     {
         $validated = $request->validate([
-            'status' => ['nullable', 'in:pending,confirmed,processing,shipped,delivered,cancelled,refunded'],
+            'status' => ['nullable', 'in:pending,processing,shipped,delivered,cancelled,refunded'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);

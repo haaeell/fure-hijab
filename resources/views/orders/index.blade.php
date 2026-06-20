@@ -188,7 +188,6 @@
                     <select name="status" id="statusSelect"
                         class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary outline-none text-sm font-semibold appearance-none">
                         <option value="pending">Pending</option>
-                        <option value="confirmed">Dikonfirmasi</option>
                         <option value="processing">Diproses</option>
                         <option value="shipped">Dikirim</option>
                         <option value="delivered">Terkirim</option>

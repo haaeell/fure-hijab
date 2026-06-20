@@ -340,7 +340,7 @@ class ReportController extends Controller
         $request->validate([
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'status' => ['nullable', 'in:pending,confirmed,processing,shipped,delivered,cancelled,refunded'],
+            'status' => ['nullable', 'in:pending,processing,shipped,delivered,cancelled,refunded'],
             'format' => ['nullable', 'in:pdf,excel'],
         ]);
 
@@ -360,7 +360,7 @@ class ReportController extends Controller
         $request->validate([
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'status' => ['nullable', 'in:pending,confirmed,processing,shipped,delivered,cancelled,refunded'],
+            'status' => ['nullable', 'in:pending,processing,shipped,delivered,cancelled,refunded'],
             'format' => ['nullable', 'in:pdf,excel'],
         ]);
 

@@ -9,7 +9,7 @@
                 $statusMap = [
                     'pending' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-600', 'label' => 'Menunggu Pembayaran', 'short' => 'Bayar', 'icon' => 'fa-clock'],
                     'confirmed' => ['bg' => 'bg-blue-50', 'text' => 'text-blue-600', 'label' => 'Dikonfirmasi', 'short' => 'Konfirmasi', 'icon' => 'fa-check-circle'],
-                    'processing' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600', 'label' => 'Diproses', 'short' => 'Diproses', 'icon' => 'fa-box'],
+                    'processing' => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-600', 'label' => 'Sedang Dikemas', 'short' => 'Dikemas', 'icon' => 'fa-box'],
                     'shipped' => ['bg' => 'bg-cyan-50', 'text' => 'text-cyan-600', 'label' => 'Dalam Pengiriman', 'short' => 'Dikirim', 'icon' => 'fa-truck'],
                     'delivered' => ['bg' => 'bg-green-50', 'text' => 'text-green-600', 'label' => 'Selesai', 'short' => 'Selesai', 'icon' => 'fa-check-double'],
                     'cancelled' => ['bg' => 'bg-red-50', 'text' => 'text-red-600', 'label' => 'Dibatalkan', 'short' => 'Batal', 'icon' => 'fa-xmark'],
@@ -381,10 +381,9 @@
                                         class="w-16 h-16 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
                                         <i class="fa-solid fa-box-open text-indigo-400 text-2xl"></i>
                                     </div>
-                                    <h4 class="font-bold text-white text-sm mb-1">Pesanan Sedang Diproses</h4>
+                                    <h4 class="font-bold text-white text-sm mb-1">Pesanan Sedang Dikemas</h4>
                                     <p class="text-[10px] text-white/60 leading-relaxed">
-                                        Pembayaran berhasil diverifikasi. Penjual sedang menyiapkan hijab cantik Anda untuk
-                                        segera dikirim.
+                                        Pembayaran berhasil diverifikasi. Penjual sedang mengemas pesanan Anda untuk segera dikirim.
                                     </p>
 
                                     <div
@@ -433,7 +432,7 @@
                         </form>
                     @endif
 
-                    @if (in_array($order->status, ['pending', 'confirmed']))
+                    @if($order->status === 'pending')
                         <button type="button" onclick="openCancelOrderModal()"
                             class="w-full py-4 bg-red-50 text-red-600 font-black rounded-2xl border border-red-100 hover:bg-red-100 transition-all flex items-center justify-center gap-2">
                             <i class="fa-solid fa-ban"></i> Batalkan Pesanan
@@ -480,7 +479,7 @@
         </x-user.components.mobile-bottom-action-bar>
     @endif
 
-    @if (in_array($order->status, ['pending', 'confirmed']))
+    @if($order->status === 'pending')
         <div id="cancelOrderModal" class="fixed inset-0 z-[120] hidden items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeCancelOrderModal()"></div>
             <div class="relative w-full max-w-md bg-white rounded-[28px] shadow-2xl border border-gray-100 overflow-hidden">
@@ -534,7 +533,7 @@
         </script>
     @endif
 
-    @if(in_array($order->status, ['pending', 'confirmed']))
+    @if($order->status === 'pending')
         <script>
             window.openCancelOrderModal = function () {
                 $('#cancelOrderModal').removeClass('hidden').addClass('flex');
