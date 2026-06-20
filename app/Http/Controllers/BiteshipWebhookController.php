@@ -105,7 +105,18 @@ class BiteshipWebhookController extends Controller
                 $orderStatus = $this->orderStatus($shipmentStatus, $shipment->order->status);
 
                 if ($orderStatus) {
-                    $shipment->order->update(['status' => $orderStatus]);
+                    $orderUpdates = ['status' => $orderStatus];
+
+                    if ($orderStatus === 'cancelled' && !in_array($shipment->order->status, ['cancelled', 'refunded'], true)) {
+                        $cancelNote = $this->firstFilled($data, ['description', 'note', 'message', 'reason', 'cancellation_reason'])
+                            ?: 'Pengiriman dibatalkan oleh kurir. Silakan hubungi admin untuk informasi lebih lanjut.';
+
+                        $orderUpdates['cancellation_reason'] = $cancelNote;
+                        $orderUpdates['cancelled_at']        = now();
+                        $orderUpdates['cancelled_by']        = 'system';
+                    }
+
+                    $shipment->order->update($orderUpdates);
                 }
             }
         });

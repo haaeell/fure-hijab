@@ -88,7 +88,12 @@ class BiteshipService
         $response = $this->client()->post(self::BASE_URL . '/orders', array_filter($payload, fn ($value) => filled($value)));
 
         if ($response->failed()) {
-            throw new \RuntimeException($response->json('error') ?: $response->json('message') ?: 'Gagal membuat order Biteship.');
+            $errMsg = $response->json('error')
+                ?: $response->json('message')
+                ?: $response->json('error_message')
+                ?: $response->json('errors.0.message')
+                ?: ('Gagal membuat order Biteship. HTTP ' . $response->status());
+            throw new \RuntimeException($errMsg);
         }
 
         return $response->json();

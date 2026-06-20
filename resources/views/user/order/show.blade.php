@@ -578,7 +578,7 @@
                     } catch (e) {
                         console.error('Polling error:', e);
                     }
-                }, 3000);
+                }, 1500);
             }
 
             function stopPolling() {
@@ -589,6 +589,7 @@
             }
 
             function openSnapPayment() {
+                startPolling();
                 window.snap.pay('{{ $payment->snap_token }}', {
                     onSuccess: function (result) {
                         stopPolling();
@@ -596,7 +597,9 @@
                             icon: 'success',
                             title: 'Pembayaran Berhasil!',
                             text: 'Pesanan kamu sedang diproses.',
-                            confirmButtonText: 'Lihat Pesanan'
+                            timer: 2000,
+                            timerProgressBar: true,
+                            showConfirmButton: false,
                         }).then(() => {
                             window.location.reload();
                         });
@@ -617,7 +620,6 @@
                         startPolling();
                     }
                 });
-                setTimeout(() => startPolling(), 2000);
             }
 
             document.querySelectorAll('#pay-button, #pay-button-mobile').forEach(function (button) {

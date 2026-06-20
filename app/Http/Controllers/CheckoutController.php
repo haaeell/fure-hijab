@@ -488,6 +488,9 @@ class CheckoutController extends Controller
     {
         abort_if($order->user_id !== Auth::id(), 403);
 
+        // Release session lock early so concurrent polling requests don't queue
+        session()->save();
+
         $payment = Payment::where('order_id', $order->id)->first();
         return response()->json([
             'status' => $payment?->status,

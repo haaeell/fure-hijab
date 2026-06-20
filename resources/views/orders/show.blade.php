@@ -953,7 +953,7 @@
                                 <i class="fa-solid fa-gear"></i> Proses Pesanan
                             </button>
                         @endif
-                        @if($order->status === 'processing')
+                        @if($order->status === 'processing' && !$order->shipment?->resi)
                             <button onclick="openShipModal()"
                                 class="w-full py-3 bg-cyan-50 text-cyan-600 rounded-2xl text-xs font-black tracking-widest hover:bg-cyan-500 hover:text-white transition-all flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-truck"></i> Tandai Dikirim + Input Resi
