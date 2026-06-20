@@ -60,9 +60,19 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Keranjang belanja kosong.');
         }
 
+        // Filter by selected items from session (cart selection feature)
+        $selectedIds = session('checkout_selected_items');
+        $carts = ($selectedIds && count($selectedIds))
+            ? $cart->items->whereIn('id', $selectedIds)->values()
+            : $cart->items;
+
+        if ($carts->isEmpty()) {
+            session()->forget('checkout_selected_items');
+            return redirect()->route('cart.index')->with('error', 'Produk yang dipilih tidak ditemukan di keranjang.');
+        }
+
         $addresses = $user->addresses()->latest('is_default')->latest()->get();
         $address = $addresses->firstWhere('is_default', true);
-        $carts        = $cart->items;
         $total_price  = 0;
         $total_weight = 0;
 
@@ -262,10 +272,23 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Keranjang belanja kosong.');
         }
 
-        $subtotal = $cart->items->reduce(function ($carry, $item) {
+        // Filter by selected items from session
+        $selectedIds = session('checkout_selected_items');
+        $checkoutItems = ($selectedIds && count($selectedIds))
+            ? $cart->items->whereIn('id', $selectedIds)->values()
+            : $cart->items;
+
+        if ($checkoutItems->isEmpty()) {
+            session()->forget('checkout_selected_items');
+            return redirect()->route('cart.index')->with('error', 'Produk yang dipilih tidak ditemukan.');
+        }
+
+        $subtotal = $checkoutItems->reduce(function ($carry, $item) {
             return $carry + ($item->price * $item->qty);
         }, 0);
-        $totalWeight = $this->cartWeight($cart);
+        $totalWeight = $checkoutItems->reduce(function ($carry, $item) {
+            return $carry + $this->itemWeight($item) * $item->qty;
+        }, 0);
 
         $discountAmount = 0;
         $couponId       = null;
@@ -285,7 +308,24 @@ class CheckoutController extends Controller
         $grandTotal = $subtotal - $discountAmount + $request->shipping_cost;
         $orderNumber = Order::generateOrderNumber();
 
-        $order = DB::transaction(function () use ($request, $user, $cart, $subtotal, $grandTotal, $discountAmount, $couponId, $coupon, $orderNumber, $totalWeight) {
+        try {
+        $order = DB::transaction(function () use ($request, $user, $cart, $checkoutItems, $subtotal, $grandTotal, $discountAmount, $couponId, $coupon, $orderNumber, $totalWeight) {
+
+            // Validasi stok dengan pessimistic lock — cegah race condition
+            foreach ($checkoutItems as $item) {
+                if ($item->variant_id) {
+                    $variant = \App\Models\ProductVariant::lockForUpdate()->find($item->variant_id);
+                    if (!$variant || $variant->stock < $item->qty) {
+                        $name = $item->product->name . ($variant ? " ({$variant->name})" : '');
+                        throw new \Exception("Stok \"{$name}\" tidak mencukupi. Tersedia: " . ($variant->stock ?? 0));
+                    }
+                } else {
+                    $product = \App\Models\Product::lockForUpdate()->find($item->product_id);
+                    if (!$product || $product->stock < $item->qty) {
+                        throw new \Exception("Stok \"{$item->product->name}\" tidak mencukupi. Tersedia: " . ($product->stock ?? 0));
+                    }
+                }
+            }
 
             $order = Order::create([
                 'user_id'        => $user->id,
@@ -316,7 +356,7 @@ class CheckoutController extends Controller
                 'longitude'      => $userAddress->longitude,
             ]);
 
-            foreach ($cart->items as $item) {
+            foreach ($checkoutItems as $item) {
                 OrderItem::create([
                     'order_id'      => $order->id,
                     'product_id'    => $item->product_id,
@@ -352,7 +392,7 @@ class CheckoutController extends Controller
                     'email' => $user->email,
                     'phone' => $request->phone ?? $user->phone,
                 ],
-                'item_details' => $cart->items->map(function ($item) {
+                'item_details' => $checkoutItems->map(function ($item) {
                     return [
                         'id' => $item->product_id,
                         'price' => (int) $item->price,
@@ -382,11 +422,16 @@ class CheckoutController extends Controller
                 'expired_at' => now()->addMinutes(self::PAYMENT_WINDOW_MINUTES),
             ]);
 
-            $cart->items()->delete();
-            session()->forget('coupon_code');
+            // Hapus hanya item yang dicheckout, item lain tetap di keranjang
+            $cart->items()->whereIn('id', $checkoutItems->pluck('id'))->delete();
+            session()->forget(['coupon_code', 'checkout_selected_items']);
 
             return $order;
         });
+        } catch (\Exception $e) {
+            session()->forget('checkout_selected_items');
+            return redirect()->route('cart.index')->with('error', $e->getMessage());
+        }
 
         return redirect()->route('order.history.show', $order->order_number)->with('success', 'Pesanan berhasil dibuat! No. Pesanan: ' . $order->order_number);
     }

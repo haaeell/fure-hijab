@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class MidtransController extends Controller
@@ -33,23 +36,32 @@ class MidtransController extends Controller
             $transactionStatus == 'settlement' ||
             ($transactionStatus == 'capture' && $fraudStatus == 'accept')
         ) {
-
-            if ($order->status !== 'processing') {
-                foreach ($order->items as $item) {
-                    if ($item->variant_id) {
-                        $item->variant->decrement('stock', $item->qty);
-                    } else {
-                        $item->product->decrement('stock', $item->qty);
+            DB::transaction(function () use ($order, $payment, $request) {
+                if ($order->status !== 'processing') {
+                    foreach ($order->items as $item) {
+                        if ($item->variant_id) {
+                            $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
+                            if ($variant) {
+                                $variant->update(['stock' => max(0, $variant->stock - $item->qty)]);
+                                // Sync stok ke parent produk
+                                Product::where('id', $variant->product_id)
+                                    ->update(['stock' => ProductVariant::where('product_id', $variant->product_id)->sum('stock')]);
+                            }
+                        } else {
+                            $product = Product::lockForUpdate()->find($item->product_id);
+                            if ($product) {
+                                $product->update(['stock' => max(0, $product->stock - $item->qty)]);
+                            }
+                        }
                     }
                 }
-            }
-
-            $order->update(['status' => 'processing']);
-            $payment->update([
-                'status' => 'success',
-                'paid_at' => now(),
-                'payment_method' => $request->payment_type
-            ]);
+                $order->update(['status' => 'processing']);
+                $payment->update([
+                    'status'         => 'success',
+                    'paid_at'        => now(),
+                    'payment_method' => $request->payment_type,
+                ]);
+            });
         } elseif (in_array($transactionStatus, ['cancel', 'expire', 'deny'])) {
             $order->update([
                 'status' => 'cancelled',

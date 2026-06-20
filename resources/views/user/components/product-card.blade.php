@@ -10,7 +10,8 @@
         : $product->compare_price;
 
     $hasDiscount = $displayComparePrice > $displayPrice;
-    $diskon = $hasDiscount ? round((($displayComparePrice - $displayPrice) / $displayComparePrice) * 100) : 0;
+    $diskon      = $hasDiscount ? round((($displayComparePrice - $displayPrice) / $displayComparePrice) * 100) : 0;
+    $isOutOfStock = $product->stock <= 0;
 
     $primaryImage = $product->images->where('is_primary', true)->first() ?? $product->images->first();
 @endphp
@@ -18,7 +19,11 @@
 <a href="{{ route('collections.show', $product->slug) }}" class="product-card group block h-full">
     <div class="relative flex h-full flex-col bg-transparent">
 
-        @if($isFlashSale || $hasDiscount)
+        @if($isOutOfStock)
+            <div class="absolute left-2 top-2 z-10 bg-gray-500 px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest text-white md:text-[10px]">
+                Stok Habis
+            </div>
+        @elseif($isFlashSale || $hasDiscount)
             <div class="absolute left-2 top-2 z-10 flex items-center gap-1 bg-brand-dark px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest text-white md:text-[10px]">
                 <i class="fa-solid fa-tag text-[7px]"></i>
                 @if($hasDiscount)
@@ -29,17 +34,19 @@
             </div>
         @endif
 
-        <div class="relative mb-3 aspect-[3/4] overflow-hidden bg-[#eee5dc]">
+        <div class="relative mb-3 aspect-[3/4] overflow-hidden bg-[#eee5dc] {{ $isOutOfStock ? 'opacity-60' : '' }}">
             <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533?text=FURE' }}"
                 loading="lazy"
                 class="product-image w-full h-full object-cover"
                 alt="{{ $product->name }}">
 
+            @if(!$isOutOfStock)
             <div class="card-overlay absolute inset-0 flex items-center justify-center bg-brand-dark/18">
                 <div class="card-zoom-icon flex h-9 w-9 items-center justify-center bg-white/95 text-sm text-brand-dark">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </div>
             </div>
+            @endif
         </div>
 
         <div class="flex flex-grow flex-col">

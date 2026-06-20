@@ -35,6 +35,7 @@ class LandingPageController extends Controller
             ->where('is_active', true)
             ->whereNotNull('compare_price')
             ->where('compare_price', '>', DB::raw('price'))
+            ->where('stock', '>', 0)
             ->latest()
             ->take(4)
             ->get();
@@ -43,6 +44,7 @@ class LandingPageController extends Controller
             ->select($this->productCardColumns())
             ->with($productCardRelations)
             ->where('is_active', true)
+            ->orderByRaw('stock > 0 DESC')
             ->latest()
             ->take(8)
             ->get();
@@ -51,6 +53,7 @@ class LandingPageController extends Controller
             ->select($this->productCardColumns())
             ->with($productCardRelations)
             ->where('is_active', true)
+            ->orderByRaw('stock > 0 DESC')
             ->orderByDesc('sold_count')
             ->latest()
             ->take(4)

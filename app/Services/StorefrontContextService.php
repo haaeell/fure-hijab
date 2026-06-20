@@ -64,9 +64,9 @@ class StorefrontContextService
             $wishlistCount = Wishlist::where('user_id', $user->id)->count();
             $cart = Cart::query()
                 ->where('user_id', $user->id)
-                ->withSum('items as items_qty', 'qty')
+                ->withCount('items')
                 ->first(['id', 'user_id']);
-            $cartCount = (int) ($cart->items_qty ?? 0);
+            $cartCount = (int) ($cart->items_count ?? 0);
         }
 
         return [

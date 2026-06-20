@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Shipment;
 use App\Models\Setting;
 use App\Services\BiteshipService;
+use App\Traits\ExpiresUnpaidOrders;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ShipmentTrackingService;
 use Carbon\Carbon;
@@ -18,10 +19,13 @@ use Yajra\DataTables\Facades\DataTables;
 
 class OrderController extends Controller
 {
+    use ExpiresUnpaidOrders;
+
     // ─── Index ────────────────────────────────────────────────────────────────
 
     public function index(Request $request)
     {
+        $this->expireUnpaidOrders();
         [$startDate, $endDate, $status] = $this->resolveFilters($request);
 
         $ordersQuery = Order::query()

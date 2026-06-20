@@ -6,14 +6,18 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Review;
+use App\Traits\ExpiresUnpaidOrders;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class HomeController extends Controller
 {
+    use ExpiresUnpaidOrders;
+
     public function index()
     {
+        $this->expireUnpaidOrders();
         $paidStatuses = ['confirmed', 'processing', 'shipped', 'delivered'];
 
         $totalSales     = Order::whereIn('status', $paidStatuses)->sum('total');

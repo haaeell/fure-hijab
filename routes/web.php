@@ -274,6 +274,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/buy-now', 'buyNow')->name('cart.buy-now');
             Route::patch('/update/{id}', 'update')->name('cart.update');
             Route::delete('/delete/{id}', 'destroy')->name('cart.destroy');
+            Route::post('/checkout', 'checkout')->name('cart.checkout');
         });
 
         // Checkout
