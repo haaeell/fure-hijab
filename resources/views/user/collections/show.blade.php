@@ -18,6 +18,7 @@
 
         $primaryImage = $product->images->where('is_primary', true)->first() ?? $product->images->first();
         $galleryImages = $product->images->count() > 0 ? $product->images : collect([$primaryImage])->filter();
+        $isOutOfStock = $product->stock <= 0;
     @endphp
 
     @section('seo_title', $product->name)
@@ -44,13 +45,17 @@
             <div class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
                 <div class="space-y-4">
                     <div class="overflow-hidden bg-white">
-                        <div class="relative aspect-[4/5] bg-[#eee5dc]">
+                        <div class="relative aspect-[4/5] bg-[#eee5dc] {{ $isOutOfStock ? 'opacity-60' : '' }}">
                             <img id="mainImage"
                                 src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/900x1125?text=FURE' }}"
                                 class="h-full w-full object-cover transition-opacity duration-300" alt="{{ $product->name }}"
                                 fetchpriority="high">
 
-                            @if($displayComparePrice > $displayPrice)
+                            @if($isOutOfStock)
+                                <div class="absolute left-4 top-4 bg-gray-500 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+                                    Stok Habis
+                                </div>
+                            @elseif($displayComparePrice > $displayPrice)
                                 <div class="absolute left-4 top-4 bg-brand-dark px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
                                     Sale
                                 </div>
@@ -166,14 +171,16 @@
 
                             <div class="desktop-only-action grid gap-3 sm:grid-cols-2">
                                 <button type="submit" id="btnAddToCart"
-                                    class="js-add-to-cart inline-flex items-center justify-center gap-3 border border-brand-primary bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-dark transition hover:bg-[#eee5dc]">
+                                    {{ $isOutOfStock ? 'disabled' : '' }}
+                                    class="js-add-to-cart inline-flex items-center justify-center gap-3 border border-brand-primary bg-white px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-brand-dark transition hover:bg-[#eee5dc] {{ $isOutOfStock ? 'opacity-50 pointer-events-none' : '' }}">
                                     <i class="fa-solid fa-cart-shopping"></i>
-                                    <span class="js-add-text">Tambah ke Keranjang</span>
+                                    <span class="js-add-text">{{ $isOutOfStock ? 'Stok Habis' : 'Tambah ke Keranjang' }}</span>
                                 </button>
                                 <button type="button"
-                                    class="js-buy-now inline-flex items-center justify-center gap-3 bg-brand-primary px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-dark">
+                                    {{ $isOutOfStock ? 'disabled' : '' }}
+                                    class="js-buy-now inline-flex items-center justify-center gap-3 bg-brand-primary px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-dark {{ $isOutOfStock ? 'opacity-50 pointer-events-none' : '' }}">
                                     <i class="fa-solid fa-bolt"></i>
-                                    <span>Beli Sekarang</span>
+                                    <span>{{ $isOutOfStock ? 'Stok Habis' : 'Beli Sekarang' }}</span>
                                 </button>
                             </div>
 
@@ -386,14 +393,16 @@
     <x-user.components.mobile-bottom-action-bar>
         <div class="grid grid-cols-2 gap-3">
             <button type="submit" form="addToCartForm"
-                class="js-add-to-cart flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-brand-primary bg-white px-3 text-[11px] font-black uppercase tracking-tight text-brand-dark">
+                {{ $isOutOfStock ? 'disabled' : '' }}
+                class="js-add-to-cart flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-brand-primary bg-white px-3 text-[11px] font-black uppercase tracking-tight text-brand-dark {{ $isOutOfStock ? 'opacity-50 pointer-events-none' : '' }}">
                 <i class="fa-solid fa-cart-shopping"></i>
-                <span class="js-add-text">Masukkan Keranjang</span>
+                <span class="js-add-text">{{ $isOutOfStock ? 'Stok Habis' : 'Masukkan Keranjang' }}</span>
             </button>
             <button type="button"
-                class="js-buy-now flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-brand-primary px-3 text-[11px] font-black uppercase tracking-tight text-white shadow-lg shadow-brand-primary/25">
+                {{ $isOutOfStock ? 'disabled' : '' }}
+                class="js-buy-now flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-brand-primary px-3 text-[11px] font-black uppercase tracking-tight text-white shadow-lg shadow-brand-primary/25 {{ $isOutOfStock ? 'opacity-50 pointer-events-none' : '' }}">
                 <i class="fa-solid fa-bolt"></i>
-                <span>Pesan Sekarang</span>
+                <span>{{ $isOutOfStock ? 'Stok Habis' : 'Pesan Sekarang' }}</span>
             </button>
         </div>
     </x-user.components.mobile-bottom-action-bar>

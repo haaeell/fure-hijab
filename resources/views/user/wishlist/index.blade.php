@@ -31,6 +31,7 @@
                             ? $product->variants->first()->price
                             : $product->price;
                         $primaryImage = $product->images->first();
+                        $isOutOfStock = $product->stock <= 0;
                     @endphp
                     <div class="group relative bg-white p-2 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-3">
                         <button type="button"
@@ -41,10 +42,15 @@
                         </button>
 
                         <a href="{{ route('collections.show', $product->slug) }}" class="product-card block h-full">
-                            <div class="relative mb-3 aspect-[3/4] overflow-hidden bg-[#eee5dc]">
+                            <div class="relative mb-3 aspect-[3/4] overflow-hidden bg-[#eee5dc] {{ $isOutOfStock ? 'opacity-60' : '' }}">
+                                @if($isOutOfStock)
+                                    <div class="absolute left-2 top-2 z-10 bg-gray-500 px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest text-white md:text-[10px]">
+                                        Stok Habis
+                                    </div>
+                                @endif
                                 <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533?text=FURE' }}"
                                     loading="lazy"
-                                    class="product-image h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                                    class="product-image h-full w-full object-cover {{ $isOutOfStock ? '' : 'transition-transform duration-700 ease-out group-hover:scale-110' }}"
                                     alt="{{ $product->name }}">
                             </div>
 
