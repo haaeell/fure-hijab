@@ -672,7 +672,15 @@
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 <div class="rounded-2xl bg-white border border-cyan-100 px-4 py-3">
                                                     <p class="text-[9px] font-black text-cyan-400 tracking-widest">TELEPON</p>
-                                                    <p class="mt-1 text-xs font-bold text-brand-dark">{{ $driverPhone ?? '-' }}</p>
+                                                    @if($driverPhone ?? null)
+                                                        @php $waPhone = 'https://wa.me/' . preg_replace('/^0/', '62', preg_replace('/\D/', '', $driverPhone)); @endphp
+                                                        <a href="{{ $waPhone }}" target="_blank"
+                                                            class="mt-1 flex items-center gap-1.5 text-xs font-bold text-green-600 hover:text-green-700">
+                                                            <i class="fa-brands fa-whatsapp"></i> {{ $driverPhone }}
+                                                        </a>
+                                                    @else
+                                                        <p class="mt-1 text-xs font-bold text-brand-dark">-</p>
+                                                    @endif
                                                 </div>
                                                 <div class="rounded-2xl bg-white border border-cyan-100 px-4 py-3">
                                                     <p class="text-[9px] font-black text-cyan-400 tracking-widest">PLAT NOMOR</p>
@@ -723,7 +731,7 @@
                             @if($ship->tracking_history)
                                 @php
                                     $trackingPayload = is_string($ship->tracking_history) ? json_decode($ship->tracking_history, true) : $ship->tracking_history;
-                                    $history = $trackingPayload['manifest'] ?? $trackingPayload ?? [];
+                                    $history = array_reverse($trackingPayload['manifest'] ?? $trackingPayload ?? []);
                                 @endphp
                                 @if(count($history) > 0)
                                     <div class="mt-4">

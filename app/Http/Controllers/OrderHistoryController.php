@@ -92,7 +92,7 @@ class OrderHistoryController extends Controller
             'status' => 'delivered'
         ]);
 
-        return redirect()->back()->with('success', 'Pesanan selesai');
+        return redirect()->route('order.history.show', $orderNumber)->with('success', 'Pesanan berhasil dikonfirmasi sebagai selesai.');
     }
 
     public function cancel(Request $request, string $orderNumber)

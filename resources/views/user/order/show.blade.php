@@ -473,7 +473,7 @@
                 <button type="submit"
                     class="flex min-h-[54px] w-full items-center justify-center gap-3 rounded-2xl bg-green-500 px-5 text-sm font-black uppercase text-white shadow-lg shadow-green-500/20 transition active:scale-95">
                     <i class="fa-solid fa-box-open"></i>
-                    Konfirmasi Pembayaran
+                    Pesanan Diterima
                 </button>
             </form>
         </x-user.components.mobile-bottom-action-bar>
