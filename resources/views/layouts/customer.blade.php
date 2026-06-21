@@ -60,11 +60,10 @@
     <link rel="preload" as="font" type="font/woff2" crossorigin href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-regular-400.woff2">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-brands-400.woff2">
 
-    {{-- Select2 & Leaflet CSS async (dibutuhkan untuk checkout/address modal) --}}
+    {{-- Select2 CSS async (dibutuhkan untuk styling address inputs) --}}
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /></noscript>
-    <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" /></noscript>
+    {{-- Leaflet CSS + JS diload lazy saat address modal dibuka (via loadLeaflet()) --}}
 
     <style>
         /* font-display:swap override untuk Font Awesome (CDN tidak include ini) */
@@ -554,12 +553,12 @@
                             {{ $storeName }}
                         </span>
                     </div>
-                    <p class="text-brand-secondary/90 text-lg leading-relaxed max-w-sm">
+                    <p class="text-brand-secondary text-lg leading-relaxed max-w-sm">
                         Elegansi dalam kesantunan. Mewujudkan standar baru hijab premium untuk wanita yang menghargai
                         kualitas dan estetika.
                     </p>
                     @if($storeAddress || $storeEmail || $storePhone)
-                        <div class="space-y-2 text-sm text-brand-secondary/85">
+                        <div class="space-y-2 text-sm text-brand-secondary">
                             @if($storeAddress)<p>{{ $storeAddress }}</p>@endif
                             @if($storeEmail)<p>{{ $storeEmail }}</p>@endif
                             @if($storePhone)<p>{{ $storePhone }}</p>@endif
@@ -742,8 +741,35 @@
     @endif
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script>
+        function loadSwal() {
+            if (typeof Swal !== 'undefined') return Promise.resolve();
+            return new Promise(function(resolve) {
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+                s.onload = resolve;
+                document.head.appendChild(s);
+            });
+        }
+        function loadLeaflet() {
+            if (typeof L !== 'undefined') return Promise.resolve();
+            return new Promise(function(resolve) {
+                if (!document.querySelector('link[href*="leaflet"]')) {
+                    var css = document.createElement('link');
+                    css.rel = 'stylesheet';
+                    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                    document.head.appendChild(css);
+                }
+                var s = document.createElement('script');
+                s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                s.onload = resolve;
+                document.head.appendChild(s);
+            });
+        }
+    </script>
+    @if(session('register_success') || session('success') || session('error') || $errors->any())
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    @endif
     @stack('scripts')
 
     @if (session('register_success'))
@@ -940,7 +966,7 @@
                         success: load,
                         error: function (xhr) {
                             btn.prop('disabled', false);
-                            Swal.fire({ icon: 'warning', title: xhr.responseJSON?.message || 'Stok tidak mencukupi.', toast: true, position: 'top-end', showConfirmButton: false, timer: 2500 });
+                            loadSwal().then(function() { Swal.fire({ icon: 'warning', title: xhr.responseJSON?.message || 'Stok tidak mencukupi.', toast: true, position: 'top-end', showConfirmButton: false, timer: 2500 }); });
                         },
                     });
                 });
@@ -957,7 +983,7 @@
                         success: load,
                         error: function () {
                             $row.css({ opacity: 1, pointerEvents: '' });
-                            Swal.fire({ icon: 'error', title: 'Gagal menghapus.', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                            loadSwal().then(function() { Swal.fire({ icon: 'error', title: 'Gagal menghapus.', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }); });
                         },
                     });
                 });
@@ -994,24 +1020,22 @@
         const defaultLng = 110.3695;
 
         function initMap() {
-            if (map) return;
-
-            map = L.map('map').setView([defaultLat, defaultLng], 13);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap'
-            }).addTo(map);
-
-            marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
-
-            marker.on('dragend', function () {
-                const pos = marker.getLatLng();
-                setCoords(pos.lat, pos.lng);
-            });
-
-            map.on('click', function (e) {
-                marker.setLatLng(e.latlng);
-                setCoords(e.latlng.lat, e.latlng.lng);
+            if (map) return Promise.resolve();
+            return loadLeaflet().then(function() {
+                if (map) return;
+                map = L.map('map').setView([defaultLat, defaultLng], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+                marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+                marker.on('dragend', function () {
+                    const pos = marker.getLatLng();
+                    setCoords(pos.lat, pos.lng);
+                });
+                map.on('click', function (e) {
+                    marker.setLatLng(e.latlng);
+                    setCoords(e.latlng.lat, e.latlng.lng);
+                });
             });
         }
 
@@ -1029,33 +1053,28 @@
             _origSwitchTab(tab);
             if (tab === 'new') {
                 setTimeout(function () {
-                    initMap();
-                    map.invalidateSize();
+                    initMap().then(function() {
+                        if (map) map.invalidateSize();
+                    });
                 }, 100);
             }
         };
 
         $(document).on('click', '#btn-my-location', function () {
             if (!navigator.geolocation) return;
-
-            if (!map) {
-                initMap();
-            }
-
             const $btn = $(this).prop('disabled', true).html('<i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Mencari...');
-
-            navigator.geolocation.getCurrentPosition(function (pos) {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-
-                map.setView([lat, lng], 16);
-                marker.setLatLng([lat, lng]);
-                setCoords(lat, lng);
-
-                $btn.prop('disabled', false).html('<i class="fa-solid fa-location-crosshairs mr-1"></i> Lokasiku');
-            }, function () {
-                $btn.prop('disabled', false).html('<i class="fa-solid fa-location-crosshairs mr-1"></i> Lokasiku');
-                alert('Tidak bisa mendapatkan lokasi.');
+            initMap().then(function() {
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    map.setView([lat, lng], 16);
+                    marker.setLatLng([lat, lng]);
+                    setCoords(lat, lng);
+                    $btn.prop('disabled', false).html('<i class="fa-solid fa-location-crosshairs mr-1"></i> Lokasiku');
+                }, function () {
+                    $btn.prop('disabled', false).html('<i class="fa-solid fa-location-crosshairs mr-1"></i> Lokasiku');
+                    alert('Tidak bisa mendapatkan lokasi.');
+                });
             });
         });
     </script>
