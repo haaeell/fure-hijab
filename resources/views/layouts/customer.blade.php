@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=overlays-content">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="google-site-verification" content="Kwu8wz2Df1jkBlxtSEuxBVHT2vUMXLuwuUtrQ5uTS8I">
     @php
         $defaultSeoTitle = $seoDefaults['title'];
         $defaultSeoDescription = $seoDefaults['description'];
