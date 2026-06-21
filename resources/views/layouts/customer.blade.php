@@ -77,6 +77,15 @@
             animation: fure-shimmer 1.4s ease-in-out infinite;
         }
 
+        /* Cegah iOS Safari auto-zoom saat fokus ke input (font-size < 16px memicu zoom) */
+        @media screen and (max-width: 1023px) {
+            input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+            textarea,
+            select {
+                font-size: 16px;
+            }
+        }
+
         /* ─── Product card hover ────────────────────────────────────────────── */
         .product-card .product-image {
             transition: transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -1285,14 +1294,13 @@
                 if (img.complete && img.naturalHeight !== 0) return;
                 var parent = img.parentElement;
                 parent.classList.add('shimmer-loading');
-                img.style.opacity = '0';
-                img.style.transition = 'opacity 0.25s ease';
                 function done() {
                     parent.classList.remove('shimmer-loading');
-                    img.style.opacity = '1';
                 }
                 img.addEventListener('load',  done, { once: true });
                 img.addEventListener('error', done, { once: true });
+                // Guard race condition: image selesai load sebelum listener dipasang
+                if (img.complete) done();
             });
         }
         if (document.readyState === 'loading') {

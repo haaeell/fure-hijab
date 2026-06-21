@@ -60,6 +60,7 @@
                                 <div class="auth-field mt-2 flex items-center gap-3 border border-brand-secondary/70 bg-white px-4 transition-all">
                                     <i class="fa-brands fa-whatsapp text-brand-primary/70"></i>
                                     <input type="tel" name="phone" required autocomplete="tel"
+                                        inputmode="tel" pattern="[0-9+\-\s]*"
                                         class="w-full bg-transparent py-4 text-sm font-semibold text-brand-dark outline-none"
                                         placeholder="0812...">
                                 </div>

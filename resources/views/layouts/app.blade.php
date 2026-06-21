@@ -680,14 +680,12 @@
                 if (img.complete && img.naturalHeight !== 0) return;
                 var parent = img.parentElement;
                 parent.classList.add('shimmer-loading');
-                img.style.opacity = '0';
-                img.style.transition = 'opacity 0.25s ease';
                 function done() {
                     parent.classList.remove('shimmer-loading');
-                    img.style.opacity = '1';
                 }
                 img.addEventListener('load',  done, { once: true });
                 img.addEventListener('error', done, { once: true });
+                if (img.complete) done();
             });
         }
         if (document.readyState === 'loading') {

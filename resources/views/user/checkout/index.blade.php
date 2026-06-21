@@ -529,7 +529,8 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="text-xs font-bold text-gray-500 mb-1 block">Nomor WhatsApp</label>
-                                    <input type="text" name="phone" placeholder="08xxxxxxxxxx"
+                                    <input type="tel" name="phone" placeholder="08xxxxxxxxxx"
+                                        inputmode="tel" pattern="[0-9+\-\s]*"
                                         class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-primary transition-colors"
                                         required>
                                 </div>
