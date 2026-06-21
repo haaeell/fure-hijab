@@ -21,6 +21,13 @@ class CourierController extends Controller
         $courier->update(['is_active' => !$courier->is_active]);
         Cache::forget('checkout.active_couriers');
 
+        if (request()->expectsJson()) {
+            return response()->json([
+                'is_active' => $courier->is_active,
+                'message'   => "Kurir {$courier->name} berhasil " . ($courier->is_active ? 'diaktifkan' : 'dinonaktifkan') . '.',
+            ]);
+        }
+
         $label = $courier->is_active ? 'diaktifkan' : 'dinonaktifkan';
         return redirect()->back()->with('success', "Kurir {$courier->name} berhasil {$label}.");
     }

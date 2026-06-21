@@ -92,6 +92,13 @@ class AdminArticleController extends Controller
         return redirect()->back()->with('success', 'Artikel berhasil dihapus.');
     }
 
+    public function uploadImage(Request $request)
+    {
+        $request->validate(['image' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:4096']);
+        $path = $request->file('image')->store('articles/content', 'public');
+        return response()->json(['url' => asset('storage/' . $path)]);
+    }
+
     public function togglePublish(Article $article)
     {
         $article->update([

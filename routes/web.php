@@ -254,6 +254,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('admin/articles')->controller(AdminArticleController::class)->name('admin.articles.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
+            Route::post('/upload-image', 'uploadImage')->name('upload-image');
             Route::put('/{article}', 'update')->name('update');
             Route::delete('/{article}', 'destroy')->name('destroy');
             Route::patch('/{article}/toggle-publish', 'togglePublish')->name('toggle-publish');
