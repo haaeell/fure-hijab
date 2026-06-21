@@ -749,7 +749,7 @@
         </div>
     @endif
 
-    @vite('resources/js/customer.js')
+    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
     <script>
         function loadSwal() {
             if (typeof Swal !== 'undefined') return Promise.resolve();

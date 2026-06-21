@@ -1,6 +1,9 @@
 <IfModule mod_headers.c>
-    # Vite hashed assets (app-HASH.css, customer-HASH.js, dll) — immutable, 1 tahun
+    # Vite hashed assets (app-HASH.css, dll) + JS statis berversi — immutable, 1 tahun
     <FilesMatch "^[a-zA-Z0-9_-]+-[a-zA-Z0-9_-]+\.(css|js)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    <FilesMatch "jquery-[0-9.]+\.min\.js$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 

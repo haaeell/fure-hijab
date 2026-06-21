@@ -13,11 +13,5 @@
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
-  },
-  "resources/js/customer.js": {
-    "file": "assets/customer-BPJpJ4Ik.js",
-    "name": "customer",
-    "src": "resources/js/customer.js",
-    "isEntry": true
   }
 }
