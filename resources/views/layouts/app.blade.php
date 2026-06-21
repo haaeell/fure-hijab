@@ -278,131 +278,170 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+
+                {{-- ── NOTIFIKASI ── --}}
                 <div class="relative">
                     <button id="notifDropdownBtn"
-                        class="w-12 h-12 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-brand-primary transition-all relative">
-                        <i class="fa-regular fa-bell"></i>
-                        @if($adminHasNotif)
-                            <span class="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                        @endif
+                        class="relative w-11 h-11 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-brand-primary hover:border-brand-primary/30 transition-all shadow-sm">
+                        <i class="fa-regular fa-bell text-base"></i>
+                        {{-- Badge server-side (muncul saat halaman dimuat) --}}
+                        <span id="notifBadge"
+                            class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black border-2 border-white leading-none transition-transform duration-300
+                            {{ $adminNotifTotal > 0 ? '' : 'hidden' }}"
+                            data-count="{{ $adminNotifTotal }}">
+                            {{ $adminNotifTotal > 9 ? '9+' : $adminNotifTotal }}
+                        </span>
                     </button>
 
+                    {{-- Dropdown --}}
                     <div id="notifDropdown"
-                        class="absolute right-0 mt-3 w-80 md:w-96 bg-white rounded-[2rem] shadow-2xl border border-gray-50 overflow-hidden hidden z-50">
-                        <div class="p-5 border-b border-gray-50 flex justify-between items-center bg-soft-bg/50">
-                            <h3 class="font-extrabold text-brand-dark text-sm">Perlu Perhatian</h3>
-                            @if($adminNotifTotal > 0)
-                                <span class="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded-lg">
-                                    {{ $adminNotifTotal }} item
+                        class="absolute right-0 mt-2 w-[22rem] bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden hidden z-50">
+
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-xl bg-brand-primary/10 flex items-center justify-center">
+                                    <i class="fa-regular fa-bell text-brand-primary text-xs"></i>
+                                </div>
+                                <span class="font-extrabold text-brand-dark text-sm">Notifikasi</span>
+                                <span id="notifBadgeDropdown"
+                                    class="text-[10px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full {{ $adminNotifTotal > 0 ? '' : 'hidden' }}">
+                                    {{ $adminNotifTotal }}
                                 </span>
-                            @endif
+                            </div>
+                            <a href="{{ route('orders.index') }}"
+                                class="text-[10px] font-bold text-brand-primary hover:text-brand-dark transition-colors">
+                                Lihat semua
+                            </a>
                         </div>
 
-                        <div class="max-h-[400px] overflow-y-auto">
-                            {{-- Pending / confirmed orders --}}
+                        {{-- List --}}
+                        <div class="max-h-[380px] overflow-y-auto divide-y divide-gray-50" id="notifList">
+
                             @forelse($adminNotifPendingOrders as $notifOrder)
                                 <a href="{{ route('orders.show', $notifOrder->id) }}"
-                                    class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
-                                    <div class="w-11 h-11 rounded-xl bg-orange-100 text-orange-600 flex-shrink-0 flex items-center justify-center">
-                                        <i class="fa-solid fa-cart-shopping text-sm"></i>
+                                    class="flex items-start gap-3 px-5 py-3.5 hover:bg-amber-50/50 transition-colors group">
+                                    <div class="w-9 h-9 rounded-2xl bg-amber-100 text-amber-600 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                        <i class="fa-solid fa-bag-shopping text-xs"></i>
                                     </div>
-                                    <div>
-                                        <p class="text-[11px] font-bold text-brand-dark leading-tight mb-1">
-                                            Order {{ $notifOrder->status === 'pending' ? 'Menunggu Pembayaran' : 'Perlu Dikonfirmasi' }}
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-bold text-brand-dark leading-snug">
+                                            {{ $notifOrder->status === 'pending' ? 'Menunggu Pembayaran' : 'Perlu Dikonfirmasi' }}
                                         </p>
-                                        <p class="text-[10px] text-gray-500 line-clamp-2">
-                                            {{ $notifOrder->user->name }} — #{{ $notifOrder->order_number }}
-                                            · Rp{{ number_format($notifOrder->total, 0, ',', '.') }}
+                                        <p class="text-[11px] text-gray-500 mt-0.5 truncate">
+                                            {{ $notifOrder->user->name }} · #{{ $notifOrder->order_number }}
                                         </p>
-                                        <p class="text-[9px] text-gray-400 mt-1 font-medium">{{ $notifOrder->created_at->diffForHumans() }}</p>
+                                        <p class="text-[10px] font-bold text-amber-600 mt-0.5">
+                                            Rp{{ number_format($notifOrder->total, 0, ',', '.') }}
+                                        </p>
                                     </div>
+                                    <span class="text-[9px] text-gray-400 shrink-0 mt-1">{{ $notifOrder->created_at->diffForHumans(null, true) }}</span>
                                 </a>
                             @empty
                             @endforelse
 
-                            {{-- Low stock --}}
                             @forelse($adminNotifLowStock as $lowProd)
                                 <a href="/products"
-                                    class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
-                                    <div class="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex-shrink-0 flex items-center justify-center">
-                                        <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                                    class="flex items-start gap-3 px-5 py-3.5 hover:bg-red-50/50 transition-colors group">
+                                    <div class="w-9 h-9 rounded-2xl bg-red-100 text-red-500 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                        <i class="fa-solid fa-triangle-exclamation text-xs"></i>
                                     </div>
-                                    <div>
-                                        <p class="text-[11px] font-bold text-brand-dark leading-tight mb-1">Stok Menipis</p>
-                                        <p class="text-[10px] text-gray-500 line-clamp-2">
-                                            {{ $lowProd->name }} — sisa {{ $lowProd->stock }} pcs
-                                        </p>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-bold text-brand-dark leading-snug">Stok Menipis</p>
+                                        <p class="text-[11px] text-gray-500 mt-0.5 truncate">{{ $lowProd->name }}</p>
+                                        <p class="text-[10px] font-bold text-red-500 mt-0.5">Sisa {{ $lowProd->stock }} pcs</p>
                                     </div>
                                 </a>
                             @empty
                             @endforelse
 
-                            {{-- Unverified reviews --}}
                             @forelse($adminNotifNewReviews as $rev)
                                 <a href="/reviews"
-                                    class="flex gap-4 p-4 hover:bg-soft-mint/30 transition-all border-b border-gray-50">
-                                    <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center">
-                                        <i class="fa-solid fa-star text-sm"></i>
+                                    class="flex items-start gap-3 px-5 py-3.5 hover:bg-blue-50/50 transition-colors group">
+                                    <div class="w-9 h-9 rounded-2xl bg-blue-100 text-blue-500 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                        <i class="fa-solid fa-star text-xs"></i>
                                     </div>
-                                    <div>
-                                        <p class="text-[11px] font-bold text-brand-dark leading-tight mb-1">
-                                            Ulasan Baru ({{ $rev->rating }}★)
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-bold text-brand-dark leading-snug">Ulasan Baru
+                                            <span class="text-amber-500">{{ str_repeat('★', (int)$rev->rating) }}</span>
                                         </p>
-                                        <p class="text-[10px] text-gray-500 line-clamp-2">
-                                            {{ $rev->user->name }} — {{ $rev->product->name }}
+                                        <p class="text-[11px] text-gray-500 mt-0.5 truncate">
+                                            {{ $rev->user->name }} · {{ $rev->product->name }}
                                         </p>
-                                        <p class="text-[9px] text-gray-400 mt-1 font-medium">{{ $rev->created_at->diffForHumans() }}</p>
                                     </div>
+                                    <span class="text-[9px] text-gray-400 shrink-0 mt-1">{{ $rev->created_at->diffForHumans(null, true) }}</span>
                                 </a>
                             @empty
                             @endforelse
 
                             @if($adminNotifTotal === 0)
-                                <div class="py-10 text-center text-gray-400">
-                                    <i class="fa-solid fa-check-circle text-2xl text-green-300 mb-2 block"></i>
-                                    <p class="text-xs font-semibold">Semua beres!</p>
+                                <div id="notifEmpty" class="py-12 text-center">
+                                    <div class="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-3">
+                                        <i class="fa-solid fa-check text-green-400 text-lg"></i>
+                                    </div>
+                                    <p class="text-xs font-bold text-gray-500">Semua sudah ditangani!</p>
+                                    <p class="text-[10px] text-gray-400 mt-1">Tidak ada notifikasi baru.</p>
                                 </div>
                             @endif
                         </div>
 
-                        <a href="{{ route('orders.index') }}"
-                            class="block py-4 text-center text-[11px] font-bold text-brand-primary border-t border-gray-50 hover:bg-gray-50 tracking-wider uppercase">
-                            Lihat Semua Pesanan
-                        </a>
+                        {{-- Footer --}}
+                        <div class="px-5 py-3 border-t border-gray-50 bg-gray-50/40">
+                            <a href="{{ route('orders.index', ['status' => 'pending']) }}"
+                                class="flex items-center justify-center gap-2 text-[11px] font-bold text-brand-primary hover:text-brand-dark transition-colors">
+                                <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                                Buka halaman pesanan pending
+                            </a>
+                        </div>
                     </div>
                 </div>
 
+                {{-- ── USER DROPDOWN ── --}}
                 <div class="relative">
                     <button id="userDropdownBtn"
-                        class="flex items-center gap-3 bg-white p-1.5 pr-4 border border-gray-100 rounded-2xl shadow-sm hover:border-brand-primary transition-all">
+                        class="flex items-center gap-2.5 bg-white pl-1.5 pr-3 py-1.5 border border-gray-100 rounded-2xl shadow-sm hover:border-brand-primary/40 transition-all">
                         @if($adminUser->avatar)
                             <img src="{{ asset('storage/' . $adminUser->avatar) }}"
-                                class="w-9 h-9 rounded-xl shadow-sm">
+                                class="w-8 h-8 rounded-xl object-cover shadow-sm">
                         @else
-                            <i class="fa-solid fa-user-tie text-5xl text-brand-primary"></i>
+                            <div class="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center">
+                                <i class="fa-solid fa-user-tie text-brand-primary text-sm"></i>
+                            </div>
                         @endif
-                        <div class="text-left hidden xs:block">
-                            <p class="text-[12px] font-extrabold text-brand-dark leading-none mb-1">
-                                {{ $adminUser->name }}
-                            </p>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                                {{ $adminUser->role }}
-                            </p>
+                        <div class="text-left hidden sm:block">
+                            <p class="text-[11px] font-extrabold text-brand-dark leading-none">{{ $adminUser->name }}</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">{{ $adminUser->role }}</p>
                         </div>
-                        <i class="fa-solid fa-chevron-down text-[10px] text-gray-300 ml-1"></i>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-gray-300"></i>
                     </button>
 
                     <div id="userDropdown"
-                        class="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-xl border border-gray-50 p-2 hidden z-50">
+                        class="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 p-1.5 hidden z-50">
+                        <div class="px-4 py-3 border-b border-gray-50 mb-1">
+                            <p class="text-xs font-bold text-brand-dark truncate">{{ $adminUser->name }}</p>
+                            <p class="text-[10px] text-gray-400 truncate">{{ $adminUser->email }}</p>
+                        </div>
                         <a href="/profile"
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:bg-soft-mint transition-all">
-                            <i class="fa-regular fa-user"></i> Profil
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-soft-mint transition-all">
+                            <i class="fa-regular fa-user text-gray-400 w-4 text-center"></i>
+                            <span class="text-xs">Profil Saya</span>
                         </a>
                         <a href="{{ route('settings.index') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:bg-soft-mint transition-all">
-                            <i class="fa-solid fa-gear"></i> Pengaturan
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-soft-mint transition-all">
+                            <i class="fa-solid fa-gear text-gray-400 w-4 text-center"></i>
+                            <span class="text-xs">Pengaturan</span>
                         </a>
+                        <div class="border-t border-gray-50 mt-1 pt-1">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all">
+                                    <i class="fa-solid fa-right-from-bracket w-4 text-center text-sm"></i>
+                                    <span class="text-xs font-bold">Keluar</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -516,10 +555,9 @@
     {{-- ─── ADMIN ORDER NOTIFICATION POLLING ─────────────────────────────── --}}
     <script>
     (function () {
-        var POLL_INTERVAL = 30000; // 30 detik
+        var POLL_INTERVAL = 30000;
         var STORAGE_KEY   = 'fure_admin_notif_ts';
         var seenKey       = 'fure_admin_notif_seen';
-        var pollTimer     = null;
 
         function formatRp(amount) {
             return 'Rp' + new Intl.NumberFormat('id-ID').format(amount);
@@ -531,33 +569,50 @@
 
         function markSeen(ids) {
             var seen = loadSeen().concat(ids);
-            // Simpan max 200 ID terakhir agar tidak membengkak
             if (seen.length > 200) seen = seen.slice(-200);
             localStorage.setItem(seenKey, JSON.stringify(seen));
         }
 
+        // Update badge angka di tombol bell
+        function bumpBadge(delta) {
+            var $badge = $('#notifBadge');
+            var $badgeInner = $('#notifBadgeDropdown');
+            var cur  = parseInt($badge.data('count') || $badge.text()) || 0;
+            var next = Math.max(0, cur + delta);
+
+            if (next > 0) {
+                var label = next > 9 ? '9+' : String(next);
+                $badge.text(label).data('count', next).removeClass('hidden');
+                $badgeInner.text(next).removeClass('hidden');
+                // Animasi pulse singkat
+                $badge.addClass('scale-125');
+                setTimeout(function () { $badge.removeClass('scale-125'); }, 400);
+            } else {
+                $badge.addClass('hidden').data('count', 0);
+                $badgeInner.addClass('hidden');
+            }
+        }
+
         function showToast(icon, title, html, onClick) {
-            var toast = Swal.mixin({
+            Swal.mixin({
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: true,
-                confirmButtonText: 'Lihat',
+                confirmButtonText: 'Lihat →',
                 showCloseButton: true,
-                timer: 12000,
+                timer: 15000,
                 timerProgressBar: true,
                 customClass: {
                     popup: 'rounded-2xl shadow-xl text-sm',
-                    confirmButton: 'rounded-xl text-xs font-bold px-3 py-1.5',
+                    confirmButton: 'rounded-xl text-xs font-bold px-3 py-1.5 bg-brand-primary text-white',
                 },
-                didOpen: function (popup) {
-                    popup.addEventListener('click', function (e) {
-                        if (e.target.classList.contains('swal2-confirm')) {
-                            if (typeof onClick === 'function') onClick();
-                        }
-                    });
-                },
+            }).fire({
+                icon: icon,
+                title: title,
+                html: html,
+            }).then(function (result) {
+                if (result.isConfirmed && typeof onClick === 'function') onClick();
             });
-            toast.fire({ icon: icon, title: title, html: html });
         }
 
         function poll() {
@@ -565,53 +620,56 @@
             var seen  = loadSeen();
 
             $.getJSON("{{ route('orders.notifications.poll') }}", { since: since }, function (res) {
-                // Simpan timestamp server untuk ronde berikutnya
                 if (res.server_ts) localStorage.setItem(STORAGE_KEY, res.server_ts);
 
                 var newIds = [];
+                var newOrderCount = 0;
+
                 (res.events || []).forEach(function (ev) {
                     var uid = ev.type + '_' + ev.order_id;
-                    if (seen.indexOf(uid) !== -1) return; // sudah ditampilkan
+                    if (seen.indexOf(uid) !== -1) return;
                     newIds.push(uid);
 
                     if (ev.type === 'new_order') {
+                        newOrderCount++;
                         showToast(
                             'info',
                             '🛍️ Pesanan Baru Masuk!',
-                            '<b>' + ev.order_number + '</b><br>' + ev.customer + ' — ' + formatRp(ev.total),
+                            '<b>' + ev.order_number + '</b><br>'
+                            + '<span style="font-size:12px;color:#555">' + ev.customer + ' — ' + formatRp(ev.total) + '</span>',
                             function () { window.location.href = '/orders/' + ev.order_id; }
                         );
                     } else if (ev.type === 'paid') {
                         showToast(
                             'success',
-                            '💳 Pembayaran Berhasil!',
-                            '<b>' + ev.order_number + '</b><br>' + ev.customer + ' — ' + formatRp(ev.total) + '<br><span style="font-size:11px;color:#888">' + (ev.method || '') + '</span>',
+                            '💳 Pembayaran Diterima!',
+                            '<b>' + ev.order_number + '</b><br>'
+                            + '<span style="font-size:12px;color:#555">' + ev.customer + ' — ' + formatRp(ev.total) + '</span>'
+                            + (ev.method ? '<br><span style="font-size:11px;color:#999">' + ev.method + '</span>' : ''),
                             function () { window.location.href = '/orders/' + ev.order_id; }
                         );
                     } else if (ev.type === 'cancelled') {
                         showToast(
                             'warning',
                             '❌ Pesanan Dibatalkan',
-                            '<b>' + ev.order_number + '</b><br>' + ev.customer + ' — ' + formatRp(ev.total),
+                            '<b>' + ev.order_number + '</b><br>'
+                            + '<span style="font-size:12px;color:#555">' + ev.customer + ' — ' + formatRp(ev.total) + '</span>',
                             function () { window.location.href = '/orders/' + ev.order_id; }
                         );
                     }
                 });
 
-                if (newIds.length) markSeen(newIds);
-            }).fail(function () {
-                // Gagal poll — diam saja, coba lagi di interval berikutnya
+                if (newIds.length) {
+                    markSeen(newIds);
+                    if (newOrderCount > 0) bumpBadge(newOrderCount);
+                }
             });
         }
 
-        // Mulai polling hanya di halaman admin (bukan halaman login/non-auth)
-        if (document.body) {
-            // Tunda 3 detik setelah halaman load agar tidak bentrok dengan render awal
-            setTimeout(function () {
-                poll();
-                pollTimer = setInterval(poll, POLL_INTERVAL);
-            }, 3000);
-        }
+        setTimeout(function () {
+            poll();
+            setInterval(poll, POLL_INTERVAL);
+        }, 3000);
     })();
     </script>
 
