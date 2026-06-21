@@ -13,7 +13,7 @@
 
             <div class="grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
                 <div class="relative min-h-[520px] overflow-hidden bg-brand-dark">
-                    <img src="/banner2.png"
+                    <img src="/banner2.webp"
                         alt="Tentang FURE"
                         class="absolute inset-0 h-full w-full object-cover opacity-80">
                     <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/85 via-brand-dark/20 to-transparent"></div>

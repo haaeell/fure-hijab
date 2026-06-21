@@ -156,7 +156,7 @@
                                 @endif
                                 <h2 class="mt-3 text-3xl font-semibold leading-tight">{{ $section->title }}</h2>
                                 @if($section->subtitle)
-                                    <p class="mt-3 text-sm leading-6 opacity-90">{{ $section->subtitle }}</p>
+                                    <p class="mt-3 text-sm leading-6">{{ $section->subtitle }}</p>
                                 @endif
                             </div>
                             <span class="mt-6 inline-flex w-fit border border-current px-4 py-2 text-xs font-bold uppercase tracking-[0.16em]">

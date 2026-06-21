@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=overlays-content">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- LCP image preload — harus di atas CSS agar browser fetch gambar lebih awal --}}
+    @stack('preload')
     <meta name="google-site-verification" content="lNinuCbvQ82rAKlJfOIHIzxFMYMdeuxrH4Ni5a8Y7gI" />
     @php
         $defaultSeoTitle = $seoDefaults['title'];
@@ -310,7 +312,6 @@
         }
     </style>
     @stack('seo')
-    @stack('preload')
     @stack('styles')
     @yield('styles')
 </head>
@@ -360,42 +361,42 @@
 
             <div class="hidden lg:flex items-center gap-7 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-dark/80">
                 <a href="/"
-                    class="transition-colors relative {{ request()->is('/') ? 'text-brand-primary after:scale-x-100' : 'hover:text-brand-primary after:scale-x-0' }} after:content-[''] after:absolute after:bottom-[-6px] after:left-0 after:w-full after:h-px after:bg-brand-primary hover:after:scale-x-100 after:transition-transform">
+                    class="transition-colors relative {{ request()->is('/') ? 'text-brand-dark after:scale-x-100' : 'hover:text-brand-primary after:scale-x-0' }} after:content-[''] after:absolute after:bottom-[-6px] after:left-0 after:w-full after:h-px after:bg-brand-primary hover:after:scale-x-100 after:transition-transform">
                     Home
                 </a>
 
                 <a href="{{ route('best-seller.index') }}"
-                    class="transition-colors {{ request()->routeIs('best-seller.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    class="transition-colors {{ request()->routeIs('best-seller.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
                     Best Seller
                 </a>
 
                 <a href="{{ route('hijab.index') }}"
-                    class="transition-colors {{ request()->routeIs('hijab.*') || request()->routeIs('collections.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    class="transition-colors {{ request()->routeIs('hijab.*') || request()->routeIs('collections.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
                     Hijab
                 </a>
 
                 <a href="{{ route('syari.index') }}"
-                    class="transition-colors {{ request()->routeIs('syari.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    class="transition-colors {{ request()->routeIs('syari.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
                     Syar'i
                 </a>
 
                 <a href="{{ route('new-arrived.index') }}"
-                    class="transition-colors {{ request()->routeIs('new-arrived.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    class="transition-colors {{ request()->routeIs('new-arrived.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
                     New Arrived
                 </a>
 
                 <a href="{{ route('about.index') }}"
-                    class="transition-colors {{ request()->routeIs('about.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    class="transition-colors {{ request()->routeIs('about.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
                     Store Locator
                 </a>
 
                 <a href="{{ route('articles.index') }}"
-                    class="transition-colors {{ request()->routeIs('articles.*') ? 'text-brand-primary' : 'hover:text-brand-primary' }}">
+                    class="transition-colors {{ request()->routeIs('articles.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
                     Journal
                 </a>
             </div>
             <div class="flex min-w-0 items-center justify-end gap-1 sm:gap-2 lg:gap-3">
-                <button type="button" data-search-trigger class="hidden p-2 text-brand-dark transition-colors hover:text-brand-primary md:block">
+                <button type="button" data-search-trigger aria-label="Cari produk" class="hidden p-2 text-brand-dark transition-colors hover:text-brand-primary md:block">
                     <i class="fa-solid fa-magnifying-glass text-lg"></i>
                 </button>
                 @if($isCustomer)
@@ -479,7 +480,7 @@
                     <a href="/login"
                         class="hidden md:block text-sm font-semibold text-brand-dark hover:text-brand-primary transition-colors">Masuk</a>
                     <a href="/register"
-                        class="hidden px-6 py-3 bg-brand-primary text-white text-sm font-bold shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 hover:-translate-y-0.5 transition-all active:scale-95 md:inline-flex">Daftar</a>
+                        class="hidden px-6 py-3 bg-brand-dark text-white text-sm font-bold shadow-lg shadow-brand-dark/20 hover:bg-brand-primary hover:shadow-brand-primary/40 hover:-translate-y-0.5 transition-all active:scale-95 md:inline-flex">Daftar</a>
                     <a href="/login" aria-label="Masuk" class="p-2 text-brand-dark md:hidden">
                         <i class="fa-regular fa-user text-lg"></i>
                     </a>
@@ -571,7 +572,7 @@
 
                 <div class="md:col-span-2 space-y-6">
                     <h4 class="text-sm font-bold uppercase tracking-widest text-brand-secondary">Koleksi</h4>
-                    <ul class="space-y-4 text-brand-secondary/60">
+                    <ul class="space-y-4 text-brand-secondary">
                         <li><a href="#" class="hover:text-white transition-colors duration-200">Best Seller</a></li>
                         <li><a href="#" class="hover:text-white transition-colors duration-200">Hijab Instan</a></li>
                         <li><a href="#" class="hover:text-white transition-colors duration-200">Pashmina</a></li>
@@ -582,7 +583,7 @@
                 <div class="md:col-span-5 space-y-6">
                     <h4 class="text-sm font-bold uppercase tracking-widest text-brand-secondary">Dapatkan Update Terbaru
                     </h4>
-                    <p class="text-brand-secondary/60 text-sm">Berlangganan newsletter untuk info promo eksklusif.</p>
+                    <p class="text-brand-secondary text-sm">Berlangganan newsletter untuk info promo eksklusif.</p>
                     <form
                         class="flex gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl focus-within:border-brand-primary/50 transition-all">
                         <input type="email" placeholder="Email Anda"
@@ -596,12 +597,12 @@
             </div>
 
             <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-                <p class="text-brand-secondary/65 text-xs tracking-widest uppercase">
+                <p class="text-brand-secondary text-xs tracking-widest uppercase">
                     &copy; 2026 {{ $storeName }}. Crafted with Grace.
                 </p>
-                <div class="flex gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-secondary/60">
-                    <a href="#" class="hover:text-brand-secondary transition-colors">Privacy Policy</a>
-                    <a href="#" class="hover:text-brand-secondary transition-colors">Terms of Service</a>
+                <div class="flex gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-secondary">
+                    <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
                 </div>
             </div>
         </div>
@@ -730,8 +731,6 @@
     @endif
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

@@ -13,8 +13,8 @@ class LandingPageViewDataService
     public function homeData(Collection $landingBanners, Collection $landingSections, Collection $shopLookProducts): array
     {
         $store = $this->storefrontContext->store();
-        $fallbackHero = 'banner2.png';
-        $fallbackEditorial = 'banner2.png';
+        $fallbackHero = 'banner2.webp';
+        $fallbackEditorial = 'banner2.webp';
         $defaultBanners = collect([
             (object) [
                 'eyebrow' => 'New Collection',
@@ -76,7 +76,7 @@ class LandingPageViewDataService
                 'subtitle' => 'Hijab premium dengan warna lembut, mudah dipadukan, dan nyaman dipakai sepanjang hari.',
                 'button_text' => 'Explore Collection',
                 'button_url' => route('collections.index'),
-                'image' => '/banner3.png',
+                'image' => '/banner3.webp',
                 'align' => 'left',
             ],
             (object) [
@@ -85,7 +85,7 @@ class LandingPageViewDataService
                 'subtitle' => 'Temukan pilihan bahan ringan untuk aktivitas harian sampai momen spesial.',
                 'button_text' => 'Shop New Arrival',
                 'button_url' => route('new-arrived.index'),
-                'image' => '/banner2.png',
+                'image' => '/banner2.webp',
                 'align' => 'right',
             ],
             (object) [
@@ -94,7 +94,7 @@ class LandingPageViewDataService
                 'subtitle' => 'Koleksi favorit dengan penawaran khusus untuk tampilan modest yang rapi.',
                 'button_text' => 'Claim Promo',
                 'button_url' => route('promo.index'),
-                'image' => '/banner2.png',
+                'image' => '/banner2.webp',
                 'align' => 'left',
             ],
         ]);
