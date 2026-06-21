@@ -125,11 +125,13 @@
             @endforeach
 
             @if($heroBanners->count() > 1)
-                <div class="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2 md:bottom-8">
+                <div class="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 md:bottom-8">
                     @foreach($heroBanners as $index => $banner)
                         <button type="button" aria-label="Banner {{ $index + 1 }}"
-                            class="landing-dot h-2.5 w-2.5 border border-white transition {{ $index === 0 ? 'bg-white' : 'bg-white/20' }}"
-                            data-target="{{ $index }}"></button>
+                            class="landing-dot p-3 flex items-center justify-center"
+                            data-target="{{ $index }}">
+                            <span class="block h-2.5 w-2.5 border border-white transition {{ $index === 0 ? 'bg-white' : 'bg-white/20' }}"></span>
+                        </button>
                     @endforeach
                 </div>
             @endif
@@ -150,11 +152,11 @@
                         <div class="relative z-10 flex h-full max-w-[16rem] flex-col justify-between">
                             <div>
                                 @if($section->eyebrow)
-                                    <p class="text-[10px] font-bold uppercase tracking-[0.24em] opacity-75">{{ $section->eyebrow }}</p>
+                                    <p class="text-[10px] font-bold uppercase tracking-[0.24em]">{{ $section->eyebrow }}</p>
                                 @endif
                                 <h2 class="mt-3 text-3xl font-semibold leading-tight">{{ $section->title }}</h2>
                                 @if($section->subtitle)
-                                    <p class="mt-3 text-sm leading-6 opacity-75">{{ $section->subtitle }}</p>
+                                    <p class="mt-3 text-sm leading-6 opacity-90">{{ $section->subtitle }}</p>
                                 @endif
                             </div>
                             <span class="mt-6 inline-flex w-fit border border-current px-4 py-2 text-xs font-bold uppercase tracking-[0.16em]">
@@ -423,8 +425,9 @@
                     slide.classList.toggle('pointer-events-none', slideIndex !== active);
                 });
                 dots.forEach(function (dot, dotIndex) {
-                    dot.classList.toggle('bg-white', dotIndex === active);
-                    dot.classList.toggle('bg-white/20', dotIndex !== active);
+                    const span = dot.querySelector('span');
+                    span.classList.toggle('bg-white', dotIndex === active);
+                    span.classList.toggle('bg-white/20', dotIndex !== active);
                 });
             };
 

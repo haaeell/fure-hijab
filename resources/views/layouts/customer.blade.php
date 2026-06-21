@@ -542,29 +542,29 @@
                             {{ $storeName }}
                         </span>
                     </div>
-                    <p class="text-brand-secondary/70 text-lg leading-relaxed max-w-sm">
+                    <p class="text-brand-secondary/90 text-lg leading-relaxed max-w-sm">
                         Elegansi dalam kesantunan. Mewujudkan standar baru hijab premium untuk wanita yang menghargai
                         kualitas dan estetika.
                     </p>
                     @if($storeAddress || $storeEmail || $storePhone)
-                        <div class="space-y-2 text-sm text-brand-secondary/60">
+                        <div class="space-y-2 text-sm text-brand-secondary/85">
                             @if($storeAddress)<p>{{ $storeAddress }}</p>@endif
                             @if($storeEmail)<p>{{ $storeEmail }}</p>@endif
                             @if($storePhone)<p>{{ $storePhone }}</p>@endif
                         </div>
                     @endif
                     <div class="flex gap-4">
-                        <a href="{{ $storeInstagram ?: '#' }}"
+                        <a href="{{ $storeInstagram ?: '#' }}" aria-label="Instagram {{ $storeName }}"
                             class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-primary hover:scale-110 transition-all duration-300 group">
-                            <i class="fa-brands fa-instagram text-xl group-hover:text-white"></i>
+                            <i class="fa-brands fa-instagram text-xl group-hover:text-white" aria-hidden="true"></i>
                         </a>
-                        <a href="{{ $storeTiktok ?: '#' }}"
+                        <a href="{{ $storeTiktok ?: '#' }}" aria-label="TikTok {{ $storeName }}"
                             class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-primary hover:scale-110 transition-all duration-300 group">
-                            <i class="fa-brands fa-tiktok text-xl group-hover:text-white"></i>
+                            <i class="fa-brands fa-tiktok text-xl group-hover:text-white" aria-hidden="true"></i>
                         </a>
-                        <a href="{{ $storeWhatsapp ? 'https://api.whatsapp.com/send?phone=' . preg_replace('/\D+/', '', str_starts_with($storeWhatsapp, '0') ? '62' . substr($storeWhatsapp, 1) : $storeWhatsapp) : '#' }}"
+                        <a href="{{ $storeWhatsapp ? 'https://api.whatsapp.com/send?phone=' . preg_replace('/\D+/', '', str_starts_with($storeWhatsapp, '0') ? '62' . substr($storeWhatsapp, 1) : $storeWhatsapp) : '#' }}" aria-label="WhatsApp {{ $storeName }}"
                             class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-primary hover:scale-110 transition-all duration-300 group">
-                            <i class="fa-brands fa-whatsapp text-xl group-hover:text-white"></i>
+                            <i class="fa-brands fa-whatsapp text-xl group-hover:text-white" aria-hidden="true"></i>
                         </a>
                     </div>
                 </div>
@@ -596,10 +596,10 @@
             </div>
 
             <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-                <p class="text-brand-secondary/40 text-xs tracking-widest uppercase">
+                <p class="text-brand-secondary/65 text-xs tracking-widest uppercase">
                     &copy; 2026 {{ $storeName }}. Crafted with Grace.
                 </p>
-                <div class="flex gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-secondary/30">
+                <div class="flex gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-secondary/60">
                     <a href="#" class="hover:text-brand-secondary transition-colors">Privacy Policy</a>
                     <a href="#" class="hover:text-brand-secondary transition-colors">Terms of Service</a>
                 </div>

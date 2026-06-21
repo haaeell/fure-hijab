@@ -5,6 +5,7 @@ namespace App\Traits;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 
 trait UploadsImages
@@ -16,7 +17,8 @@ trait UploadsImages
         }
 
         $path = $directory . '/' . Str::uuid() . '.webp';
-        Storage::disk('public')->put($path, Image::read($file)->toWebp($quality));
+        $encoded = Image::decode($file)->encode(new WebpEncoder(quality: $quality));
+        Storage::disk('public')->put($path, (string) $encoded);
 
         return $path;
     }
