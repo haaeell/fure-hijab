@@ -475,6 +475,9 @@
 
             if (slides.length <= 1) return;
 
+            // Pre-cache span elements — reads DOM once before any writes
+            const dotSpans = dots.map(function(dot) { return dot.querySelector('span'); });
+
             let active = 0;
             const showSlide = function(index) {
                 active = index;
@@ -483,8 +486,7 @@
                     slide.classList.toggle('opacity-0', slideIndex !== active);
                     slide.classList.toggle('pointer-events-none', slideIndex !== active);
                 });
-                dots.forEach(function(dot, dotIndex) {
-                    const span = dot.querySelector('span');
+                dotSpans.forEach(function(span, dotIndex) {
                     span.classList.toggle('bg-white', dotIndex === active);
                     span.classList.toggle('bg-white/20', dotIndex !== active);
                 });
