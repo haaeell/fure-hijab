@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=overlays-content">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
         $defaultSeoTitle = $seoDefaults['title'];
@@ -305,6 +305,7 @@
         }
     </style>
     @stack('seo')
+    @stack('preload')
     @yield('styles')
 </head>
 
@@ -730,7 +731,17 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     @stack('scripts')
 
-    @if (session('success') || session('error'))
+    @if (session('register_success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Akun Berhasil Dibuat!',
+                html: 'Selamat datang di FURE 🛍️<br><span style="font-size:0.9em;color:#888">Selamat berbelanja koleksi hijab premium kami.</span>',
+                confirmButtonColor: '#A78B6F',
+                confirmButtonText: 'Mulai Belanja',
+            });
+        </script>
+    @elseif (session('success') || session('error'))
         <script>
             Swal.fire({
                 icon: @json(session('success') ? 'success' : 'error'),

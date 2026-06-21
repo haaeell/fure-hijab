@@ -13,7 +13,7 @@
 
 @section('content')
     <section class="bg-[#f8f3ee] text-brand-dark">
-        <div class="mx-auto grid min-h-[calc(100vh-7.25rem)] max-w-7xl grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
+        <div class="mx-auto grid lg:min-h-[calc(100vh-7.25rem)] max-w-7xl grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
             <div class="relative order-2 min-h-[420px] overflow-hidden bg-brand-dark lg:order-1 lg:min-h-[calc(100vh-7.25rem)]">
                 <img src="/login-bg.png"
                     alt="Koleksi hijab FURE"
@@ -116,6 +116,11 @@
 @push('scripts')
     <script>
         $(function () {
+            // Simpan halaman sebelumnya untuk redirect setelah login
+            const referrer = document.referrer;
+            const sameOrigin = referrer && referrer.startsWith(window.location.origin);
+            const notAuthPage = sameOrigin && !referrer.includes('/login') && !referrer.includes('/register');
+
             $('.toggle-password').on('click', function () {
                 const target = $($(this).data('target'));
                 const nextType = target.attr('type') === 'password' ? 'text' : 'password';
@@ -127,7 +132,7 @@
                 $('#alertContainer').html(`
                     <div class="mb-5 border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                         <div class="flex gap-3">
-                            <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+                            <i class="fa-solid fa-circle-exclamation mt-0.5 shrink-0"></i>
                             <span>${message}</span>
                         </div>
                     </div>
@@ -137,11 +142,12 @@
             $('#ajaxLoginForm').on('submit', function (e) {
                 e.preventDefault();
                 const btn = $('#loginBtn');
+                const extraData = notAuthPage ? '&_referrer=' + encodeURIComponent(referrer) : '';
 
                 $.ajax({
                     url: "{{ route('login') }}",
                     method: "POST",
-                    data: $(this).serialize(),
+                    data: $(this).serialize() + extraData,
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                         'Accept': 'application/json',
@@ -150,7 +156,7 @@
                         btn.prop('disabled', true).addClass('opacity-80');
                         $('#btnLoader').removeClass('hidden');
                         $('#btnIcon').addClass('hidden');
-                        $('#btnText').text('Memverifikasi');
+                        $('#btnText').text('Memverifikasi...');
                         $('#alertContainer').empty();
                     },
                     success: function (response) {
@@ -161,7 +167,13 @@
                         $('#btnLoader').addClass('hidden');
                         $('#btnIcon').removeClass('hidden');
                         $('#btnText').text('Masuk');
-                        showAlert(xhr.responseJSON?.message || 'Email atau password salah.');
+                        const status = xhr.status;
+                        let msg = xhr.responseJSON?.message || 'Terjadi kesalahan. Coba lagi.';
+                        if (status === 422 && xhr.responseJSON?.errors) {
+                            const errs = xhr.responseJSON.errors;
+                            msg = Object.values(errs).map(e => e[0]).join('<br>');
+                        }
+                        showAlert(msg);
                     }
                 });
             });

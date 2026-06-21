@@ -214,6 +214,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{id}/biteship-label', 'printBiteshipLabel')->name('orders.biteship-label');
             Route::get('/{id}/biteship-label/download', 'downloadBiteshipLabel')->name('orders.biteship-label.download');
             Route::get('/{id}/label/pdf', 'downloadLabelPdf')->name('orders.label.pdf');
+            Route::get('/notifications/poll', 'pollNotifications')->name('orders.notifications.poll');
             Route::patch('/{id}/status', 'updateStatus')->name('orders.status');
             Route::patch('/{id}/resi', 'updateResi')->name('orders.resi');
             Route::post('/{id}/biteship-waybill', 'generateBiteshipWaybill')->name('orders.biteship-waybill');
@@ -262,6 +263,9 @@ Route::middleware(['auth'])->group(function () {
     // Wishlist (auth required, any role)
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+
+    // Customer profile update
+    Route::put('/user/profile/update', [LandingPageController::class, 'updateProfile'])->name('customer.profile.update');
 
     // CUSTOMER ONLY ROUTES
     Route::middleware(['customer'])->group(function () {

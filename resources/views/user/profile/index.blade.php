@@ -97,12 +97,20 @@
                             <i class="fa-solid fa-user-pen text-brand-primary/30 text-2xl"></i>
                         </div>
 
-                        <form action="#" method="POST" class="space-y-6">
+                        @if(session('success'))
+                            <div class="mb-6 flex items-center gap-3 rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span>{{ session('success') }}</span>
+                            </div>
+                        @endif
+
+                        <form action="{{ route('customer.profile.update') }}" method="POST" class="space-y-6">
                             @csrf
+                            @method('PUT')
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-2">
                                     <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nama Lengkap</label>
-                                    <input type="text" value="{{ $profileUser->name }}"
+                                    <input type="text" name="name" value="{{ $profileUser->name }}"
                                         class="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition text-sm font-medium">
                                 </div>
                                 <div class="space-y-2">
@@ -110,14 +118,9 @@
                                     <input type="email" value="{{ $profileUser->email }}" disabled
                                         class="w-full px-5 py-3 bg-gray-100 border border-gray-200 rounded-2xl text-gray-400 text-sm font-medium cursor-not-allowed">
                                 </div>
-                                <div class="space-y-2">
+                                <div class="space-y-2 md:col-span-2">
                                     <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nomor WhatsApp</label>
-                                    <input type="text" placeholder="62812..."
-                                        class="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition text-sm font-medium">
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="text-xs font-bold text-gray-500 uppercase ml-1">Ubah Password</label>
-                                    <input type="password" placeholder="Isi untuk ubah password"
+                                    <input type="tel" name="phone" value="{{ $profileUser->phone }}" placeholder="6281234..."
                                         class="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition text-sm font-medium">
                                 </div>
                             </div>

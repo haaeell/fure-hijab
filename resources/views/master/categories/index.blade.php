@@ -30,7 +30,6 @@
                         <th class="px-4 py-4 text-left">No</th>
                         <th class="px-4 py-4 text-left">Gambar</th>
                         <th class="px-4 py-4 text-left">Kategori</th>
-                        <th class="px-4 py-4 text-left">Parent</th>
                         <th class="px-4 py-4 text-left">Status</th>
                         <th class="px-4 py-4 text-center">Aksi</th>
                     </tr>
@@ -50,15 +49,6 @@
                                 @endif
                             </td>
                             <td class="px-4 py-5 font-bold text-brand-dark">{{ $cat->name }}</td>
-                            <td class="px-4 py-5">
-                                @if($cat->parent)
-                                    <span class="px-2 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-bold">
-                                        {{ $cat->parent->name }}
-                                    </span>
-                                @else
-                                    <span class="text-gray-300 text-xs italic">Utama</span>
-                                @endif
-                            </td>
                             <td class="px-4 py-5">
                                 <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider {{ $cat->is_active ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }}">
                                     {{ $cat->is_active ? 'Aktif' : 'Non-Aktif' }}
@@ -113,20 +103,6 @@
                             <i class="fa-solid fa-tag absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-primary transition-colors text-xs"></i>
                             <input type="text" name="name" id="catName" required placeholder="Contoh: Elektronik"
                                 class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary outline-none transition-all text-sm font-semibold">
-                        </div>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Parent Kategori (Opsional)</label>
-                        <div class="relative group">
-                            <i class="fa-solid fa-sitemap absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-primary transition-colors text-xs"></i>
-                            <select name="parent_id" id="catParent" 
-                                class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary outline-none transition-all text-sm font-semibold appearance-none">
-                                <option value="">-- Kategori Utama --</option>
-                                @foreach($parentCategories as $parent)
-                                    <option value="{{ $parent->id }}">{{ $parent->name }}</option>
-                                @endforeach
-                            </select>
                         </div>
                     </div>
 
@@ -197,7 +173,6 @@
                     $('#methodField').val('PUT');
 
                     $('#catName').val(data.name);
-                    $('#catParent').val(data.parent_id);
                     $('#catDescription').val(data.description);
                     $('#catStatus').prop('checked', data.is_active == 1);
                 }

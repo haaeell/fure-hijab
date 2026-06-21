@@ -513,6 +513,108 @@
             });
         </script>
     @endif
+    {{-- ─── ADMIN ORDER NOTIFICATION POLLING ─────────────────────────────── --}}
+    <script>
+    (function () {
+        var POLL_INTERVAL = 30000; // 30 detik
+        var STORAGE_KEY   = 'fure_admin_notif_ts';
+        var seenKey       = 'fure_admin_notif_seen';
+        var pollTimer     = null;
+
+        function formatRp(amount) {
+            return 'Rp' + new Intl.NumberFormat('id-ID').format(amount);
+        }
+
+        function loadSeen() {
+            try { return JSON.parse(localStorage.getItem(seenKey) || '[]'); } catch (e) { return []; }
+        }
+
+        function markSeen(ids) {
+            var seen = loadSeen().concat(ids);
+            // Simpan max 200 ID terakhir agar tidak membengkak
+            if (seen.length > 200) seen = seen.slice(-200);
+            localStorage.setItem(seenKey, JSON.stringify(seen));
+        }
+
+        function showToast(icon, title, html, onClick) {
+            var toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: true,
+                confirmButtonText: 'Lihat',
+                showCloseButton: true,
+                timer: 12000,
+                timerProgressBar: true,
+                customClass: {
+                    popup: 'rounded-2xl shadow-xl text-sm',
+                    confirmButton: 'rounded-xl text-xs font-bold px-3 py-1.5',
+                },
+                didOpen: function (popup) {
+                    popup.addEventListener('click', function (e) {
+                        if (e.target.classList.contains('swal2-confirm')) {
+                            if (typeof onClick === 'function') onClick();
+                        }
+                    });
+                },
+            });
+            toast.fire({ icon: icon, title: title, html: html });
+        }
+
+        function poll() {
+            var since = localStorage.getItem(STORAGE_KEY) || (Date.now() - 35000);
+            var seen  = loadSeen();
+
+            $.getJSON("{{ route('orders.notifications.poll') }}", { since: since }, function (res) {
+                // Simpan timestamp server untuk ronde berikutnya
+                if (res.server_ts) localStorage.setItem(STORAGE_KEY, res.server_ts);
+
+                var newIds = [];
+                (res.events || []).forEach(function (ev) {
+                    var uid = ev.type + '_' + ev.order_id;
+                    if (seen.indexOf(uid) !== -1) return; // sudah ditampilkan
+                    newIds.push(uid);
+
+                    if (ev.type === 'new_order') {
+                        showToast(
+                            'info',
+                            '🛍️ Pesanan Baru Masuk!',
+                            '<b>' + ev.order_number + '</b><br>' + ev.customer + ' — ' + formatRp(ev.total),
+                            function () { window.location.href = '/orders/' + ev.order_id; }
+                        );
+                    } else if (ev.type === 'paid') {
+                        showToast(
+                            'success',
+                            '💳 Pembayaran Berhasil!',
+                            '<b>' + ev.order_number + '</b><br>' + ev.customer + ' — ' + formatRp(ev.total) + '<br><span style="font-size:11px;color:#888">' + (ev.method || '') + '</span>',
+                            function () { window.location.href = '/orders/' + ev.order_id; }
+                        );
+                    } else if (ev.type === 'cancelled') {
+                        showToast(
+                            'warning',
+                            '❌ Pesanan Dibatalkan',
+                            '<b>' + ev.order_number + '</b><br>' + ev.customer + ' — ' + formatRp(ev.total),
+                            function () { window.location.href = '/orders/' + ev.order_id; }
+                        );
+                    }
+                });
+
+                if (newIds.length) markSeen(newIds);
+            }).fail(function () {
+                // Gagal poll — diam saja, coba lagi di interval berikutnya
+            });
+        }
+
+        // Mulai polling hanya di halaman admin (bukan halaman login/non-auth)
+        if (document.body) {
+            // Tunda 3 detik setelah halaman load agar tidak bentrok dengan render awal
+            setTimeout(function () {
+                poll();
+                pollTimer = setInterval(poll, POLL_INTERVAL);
+            }, 3000);
+        }
+    })();
+    </script>
+
     <script>
     (function () {
         function initShimmer() {

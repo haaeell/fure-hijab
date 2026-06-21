@@ -387,23 +387,38 @@
                 </div>
 
                 <div class="overflow-y-auto p-5 md:p-6">
+                    @php
+                        $courierBadge = [
+                            'jne'       => ['icon' => 'fa-box',        'color' => 'text-red-600',    'bg' => 'bg-red-50'],
+                            'jnt'       => ['icon' => 'fa-truck-fast', 'color' => 'text-red-700',    'bg' => 'bg-red-50'],
+                            'sicepat'   => ['icon' => 'fa-bolt',       'color' => 'text-orange-500', 'bg' => 'bg-orange-50'],
+                            'anteraja'  => ['icon' => 'fa-paper-plane','color' => 'text-blue-600',   'bg' => 'bg-blue-50'],
+                            'tiki'      => ['icon' => 'fa-cube',       'color' => 'text-purple-600', 'bg' => 'bg-purple-50'],
+                            'pos'       => ['icon' => 'fa-envelope',   'color' => 'text-green-600',  'bg' => 'bg-green-50'],
+                            'lion'      => ['icon' => 'fa-paw',        'color' => 'text-yellow-700', 'bg' => 'bg-yellow-50'],
+                            'ninja'     => ['icon' => 'fa-star',       'color' => 'text-gray-700',   'bg' => 'bg-gray-100'],
+                            'gosend'    => ['icon' => 'fa-motorcycle', 'color' => 'text-green-500',  'bg' => 'bg-green-50'],
+                            'grab'      => ['icon' => 'fa-motorcycle', 'color' => 'text-green-600',  'bg' => 'bg-green-50'],
+                            'wahana'    => ['icon' => 'fa-ship',       'color' => 'text-cyan-600',   'bg' => 'bg-cyan-50'],
+                            'rpx'       => ['icon' => 'fa-globe',      'color' => 'text-indigo-600', 'bg' => 'bg-indigo-50'],
+                            'idexpress' => ['icon' => 'fa-id-card',    'color' => 'text-red-600',    'bg' => 'bg-red-50'],
+                        ];
+                    @endphp
                     <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                         @foreach($couriers as $code => $name)
+                            @php $badge = $courierBadge[$code] ?? ['icon' => 'fa-truck', 'color' => 'text-brand-primary', 'bg' => 'bg-soft-mint']; @endphp
                             <label class="relative cursor-pointer">
                                 <input type="checkbox" name="courier_check[]" value="{{ $code }}"
                                     class="courier-checkbox peer sr-only">
-                                <div
-                                    class="flex h-full min-h-[58px] items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/70 px-3 py-3 text-center transition-all peer-checked:border-brand-primary peer-checked:bg-soft-mint peer-checked:shadow-sm hover:border-brand-primary/40">
-                                    <span class="text-[11px] font-black uppercase tracking-widest text-gray-500 peer-checked:text-brand-dark">{{ $name }}</span>
+                                <div class="flex h-full min-h-[64px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-gray-100 bg-gray-50/70 px-3 py-3 text-center transition-all peer-checked:border-brand-primary peer-checked:bg-soft-mint peer-checked:shadow-sm hover:border-brand-primary/40">
+                                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl {{ $badge['bg'] }} {{ $badge['color'] }}">
+                                        <i class="fa-solid {{ $badge['icon'] }} text-sm"></i>
+                                    </span>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-gray-500 peer-checked:text-brand-dark">{{ $name }}</span>
                                 </div>
                             </label>
                         @endforeach
                     </div>
-
-                    <button type="button" id="btn-cek-ongkir"
-                        class="mt-4 w-full rounded-2xl border border-brand-primary/20 bg-soft-mint py-3 text-sm font-black text-brand-primary transition-all active:scale-95">
-                        <i class="fa-solid fa-bolt mr-2"></i> Cek Ongkir Otomatis
-                    </button>
 
                     <div id="shipping-services" class="mt-5 space-y-3">
                         <div class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-8 text-center">
@@ -521,17 +536,21 @@
                                 <div>
                                     <label class="text-xs font-bold text-gray-500 mb-1 block">Kode Pos</label>
                                     <input type="text" name="postal_code" id="new_postal_code" placeholder="Terisi otomatis"
-                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-primary transition-colors">
+                                        readonly
+                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-500 cursor-not-allowed focus:outline-none transition-colors">
                                 </div>
                             </div>
 
                             <div class="relative">
-                                <label class="text-xs font-bold text-gray-500 mb-1 block">Cari Area Pengiriman</label>
+                                <label class="text-xs font-bold text-gray-500 mb-1 block">
+                                    Cari Area Pengiriman
+                                    <span class="ml-1 font-normal text-gray-400">— ketik nama kecamatan</span>
+                                </label>
                                 <div class="relative">
                                     <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
                                         <i class="fa-solid fa-magnifying-glass text-sm"></i>
                                     </div>
-                                    <input type="text" id="destination_search" placeholder="Contoh: Jakarta Selatan"
+                                    <input type="text" id="destination_search" placeholder="Contoh: Coblong, Buah Batu, Cilandak..."
                                         autocomplete="off"
                                         class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-primary transition-colors">
                                 </div>
@@ -728,10 +747,18 @@
             // ─── DESTINATION SEARCH ──────────────────────────────────────────────
 
             let searchTimer;
+            let searchXhr    = null; // referensi XHR in-flight
+            let activeQuery  = '';   // query yang sedang ditampilkan hasilnya
 
             $('#destination_search').on('input', function () {
                 const query = $(this).val().trim();
                 clearTimeout(searchTimer);
+
+                // Batalkan request lama SEKETIKA agar tidak overwrite hasil baru
+                if (searchXhr) {
+                    searchXhr.abort();
+                    searchXhr = null;
+                }
 
                 if (query.length < 3) {
                     $('#destination_results').addClass('hidden').empty();
@@ -739,17 +766,22 @@
                 }
 
                 searchTimer = setTimeout(function () {
-                    $('#destination_results').removeClass('hidden').html(`
-                                                    <div class="px-4 py-3 text-xs text-gray-400 flex items-center gap-2">
-                                                        <i class="fa-solid fa-circle-notch fa-spin"></i> Mencari lokasi...
-                                                    </div>
-                                                `);
+                    activeQuery = query; // catat query yang sedang diproses
 
-                    $.ajax({
+                    $('#destination_results').removeClass('hidden').html(`
+                        <div class="px-4 py-3 text-xs text-gray-400 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Mencari lokasi...
+                        </div>
+                    `);
+
+                    searchXhr = $.ajax({
                         url: "{{ route('checkout.search-destination') }}",
                         method: 'GET',
                         data: { search: query },
                         success: function (results) {
+                            // Abaikan respons jika user sudah mengetik query berbeda
+                            if (query !== activeQuery) return;
+
                             const $list = $('#destination_results').empty();
 
                             if (!results?.length) {
@@ -758,50 +790,76 @@
                             }
 
                             results.forEach(function (item) {
-                                $list.append(`
-                                    <div class="px-4 py-3 hover:bg-soft-mint/20 cursor-pointer transition-colors"
-                                         data-id="${escapeHtml(item.id)}"
-                                         data-label="${escapeHtml(item.label)}"
-                                         data-province="${escapeHtml(item.province)}"
-                                         data-city="${escapeHtml(item.city)}"
-                                         data-district="${escapeHtml(item.district)}"
-                                         data-subdistrict="${escapeHtml(item.subdistrict)}"
-                                         data-postal-code="${escapeHtml(item.postal_code)}"
-                                         data-latitude="${escapeHtml(item.latitude)}"
-                                         data-longitude="${escapeHtml(item.longitude)}">
-                                        <p class="font-bold text-brand-dark text-xs">${escapeHtml(item.label || '-')}</p>
-                                        <p class="text-[10px] text-gray-400">Area ID: ${escapeHtml(item.id || '-')}${item.postal_code ? ' | ' + escapeHtml(item.postal_code) : ''}</p>
-                                    </div>
-                                `);
+                                // Simpan data asli langsung di elemen — tidak di-escape sebagai HTML entity
+                                // agar jQuery .data() membaca nilai yang benar
+                                const $row = $('<div>', {
+                                    class: 'px-4 py-3 hover:bg-soft-mint/20 cursor-pointer border-b border-gray-50 last:border-0 transition-colors',
+                                }).html(
+                                    '<p class="font-bold text-brand-dark text-xs">' + escapeHtml(item.label || '-') + '</p>'
+                                    + '<p class="text-[10px] text-gray-400 mt-0.5">'
+                                    + (item.postal_code ? 'Kode Pos: ' + escapeHtml(item.postal_code) : 'Kode pos tidak tersedia')
+                                    + '</p>'
+                                );
+
+                                // Set data via .data() langsung — tidak lewat atribut HTML
+                                // Ini mencegah HTML-entity decoding yang bisa mengubah nilai
+                                $row.data('id',          item.id          ?? '');
+                                $row.data('label',       item.label       ?? '');
+                                $row.data('province',    item.province    ?? '');
+                                $row.data('city',        item.city        ?? '');
+                                $row.data('district',    item.district    ?? '');
+                                $row.data('subdistrict', item.subdistrict ?? '');
+                                $row.data('postal-code', item.postal_code ?? '');
+                                $row.data('latitude',    item.latitude    ?? '');
+                                $row.data('longitude',   item.longitude   ?? '');
+
+                                $list.append($row);
                             });
                         },
                         error: function (xhr) {
+                            if (xhr.statusText === 'abort') return; // diabaikan jika sengaja di-abort
                             $('#destination_results').html(`<div class="px-4 py-3 text-xs text-red-500">${xhr.responseJSON?.message || 'Gagal mencari lokasi.'}</div>`);
+                        },
+                        complete: function () {
+                            searchXhr = null;
                         },
                     });
                 }, 400);
             });
 
-            $(document).on('click', '#destination_results > div[data-id]', function () {
+            $(document).on('click', '#destination_results > div', function () {
                 const $el = $(this);
 
-                $('#dest_province').val($el.data('province'));
-                $('#dest_city').val($el.data('city'));
-                $('#dest_district').val($el.data('district'));
-                $('#dest_subdistrict').val($el.data('subdistrict'));
-                $('#new_postal_code').val($el.data('postal-code'));
-                $('#biteship_area_id').val($el.data('id'));
+                // Baca dari jQuery .data() — nilainya di-set langsung via .data(), bukan dari atribut HTML
+                const province    = $el.data('province')    || '';
+                const city        = $el.data('city')        || '';
+                const district    = $el.data('district')    || '';
+                const subdistrict = $el.data('subdistrict') || '';
+                const postalCode  = $el.data('postal-code') || '';
+                const areaId      = $el.data('id')          || '';
+                const label       = $el.data('label')       || '';
+                const lat         = $el.data('latitude')    || '';
+                const lng         = $el.data('longitude')   || '';
 
-                $('#destination_search').val($el.data('label'));
+                // Validasi — jangan proses jika areaId kosong (klik pada elemen loading/error)
+                if (!areaId) return;
+
+                $('#dest_province').val(province);
+                $('#dest_city').val(city);
+                $('#dest_district').val(district);
+                $('#dest_subdistrict').val(subdistrict);
+                $('#new_postal_code').val(postalCode);
+                $('#biteship_area_id').val(areaId);
+
+                $('#destination_search').val(label);
                 $('#destination_results').addClass('hidden').empty();
+                activeQuery = ''; // reset agar respons in-flight lama tidak overwrite
 
-                $('#dest_preview_label').text('Lokasi valid');
-                $('#dest_preview_detail').text(`Area ID: ${$el.data('id')}${$el.data('postal-code') ? ' | Kode Pos: ' + $el.data('postal-code') : ''}`);
+                $('#dest_preview_label').text('Lokasi ditemukan');
+                $('#dest_preview_detail').text(label + (postalCode ? ' — Kode Pos: ' + postalCode : ''));
                 $('#dest_preview').removeClass('hidden');
 
-                if ($el.data('latitude') && $el.data('longitude')) {
-                    const lat = $el.data('latitude');
-                    const lng = $el.data('longitude');
+                if (lat && lng) {
 
                     if (typeof setCoords === 'function') {
                         setCoords(lat, lng);
@@ -823,13 +881,31 @@
                 }
             });
 
-            // ─── SHIPPING ────────────────────────────────────────────────────────
+            // ─── COURIER LOGO MAPPING ────────────────────────────────────────────
+            const courierMeta = {
+                'jne':       { icon: 'fa-box',         color: '#DC2626', bg: '#FEE2E2' },
+                'jnt':       { icon: 'fa-truck-fast',  color: '#B91C1C', bg: '#FEE2E2' },
+                'sicepat':   { icon: 'fa-bolt',        color: '#D97706', bg: '#FEF3C7' },
+                'anteraja':  { icon: 'fa-paper-plane', color: '#2563EB', bg: '#DBEAFE' },
+                'tiki':      { icon: 'fa-cube',        color: '#7C3AED', bg: '#EDE9FE' },
+                'pos':       { icon: 'fa-envelope',    color: '#059669', bg: '#D1FAE5' },
+                'lion':      { icon: 'fa-paw',         color: '#B45309', bg: '#FEF3C7' },
+                'ninja':     { icon: 'fa-star',        color: '#374151', bg: '#F3F4F6' },
+                'gosend':    { icon: 'fa-motorcycle',  color: '#16A34A', bg: '#DCFCE7' },
+                'grab':      { icon: 'fa-motorcycle',  color: '#15803D', bg: '#DCFCE7' },
+                'wahana':    { icon: 'fa-ship',        color: '#0891B2', bg: '#CFFAFE' },
+                'rpx':       { icon: 'fa-globe',       color: '#4F46E5', bg: '#E0E7FF' },
+                'idexpress': { icon: 'fa-id-card',     color: '#DC2626', bg: '#FEE2E2' },
+            };
 
-            // Nonaktifkan tombol cek ongkir (sudah auto)
-            $('#btn-cek-ongkir')
-                .prop('disabled', true)
-                .html('<i class="fa-solid fa-bolt text-brand-primary mr-2"></i><span class="font-bold">Otomatis aktif</span>')
-                .addClass('bg-soft-mint border-brand-primary/20 text-brand-primary cursor-default');
+            function getCourierBadge(code) {
+                const m = courierMeta[String(code).toLowerCase()] || { icon: 'fa-truck', color: '#A78B6F', bg: '#F5EDE4' };
+                return `<span class="inline-flex h-8 w-8 items-center justify-center rounded-xl shrink-0" style="background:${m.bg};color:${m.color}">
+                            <i class="fa-solid ${m.icon} text-sm"></i>
+                        </span>`;
+            }
+
+            // ─── SHIPPING ────────────────────────────────────────────────────────
 
             $('.courier-checkbox').on('change', function () {
                 const selected = $('.courier-checkbox:checked').map(function () {
@@ -842,7 +918,7 @@
             function instantCheckOngkir(couriers) {
                 if (isCheckingOngkir) return;
                 isCheckingOngkir = true;
-                showLoading('Mengecek ongkir secara instan...');
+                showLoading('Mengecek ongkir...');
 
                 $.ajax({
                     url: "{{ route('checkout.check-ongkir') }}",
@@ -875,55 +951,65 @@
                 services.sort((a, b) => parseInt(a.cost) - parseInt(b.cost));
 
                 let html = `
-                                                <div class="flex items-center gap-2 mb-3 p-3 bg-soft-mint border border-brand-primary/20 rounded-2xl">
-                                                    <i class="fa-solid fa-bolt text-brand-primary"></i>
-                                                    <p class="text-xs font-bold text-brand-dark">
-                                                        ${services.length} ongkir tersedia
-                                                        <span class="text-brand-primary">(mulai ${formatRupiah(services[0].cost)})</span>
-                                                    </p>
-                                                </div>
-                                            `;
+                    <div class="flex items-center gap-2 mb-3 p-3 bg-soft-mint border border-brand-primary/20 rounded-2xl">
+                        <i class="fa-solid fa-list-check text-brand-primary"></i>
+                        <p class="text-xs font-bold text-brand-dark">
+                            ${services.length} layanan tersedia
+                            <span class="text-brand-primary ml-1">— termurah otomatis dipilih</span>
+                        </p>
+                    </div>
+                `;
 
                 services.forEach(function (svc, index) {
                     const cost = parseInt(svc.cost);
                     const isCheapest = index === 0;
+                    const badge = getCourierBadge(svc.code);
 
                     html += `
-                                                    <label class="block cursor-pointer transition-all">
-                                                        <input type="radio" name="shipping_service_radio" value="${cost}"
-                                                               data-code="${svc.code}" data-service="${svc.service}"
-                                                               data-name="${svc.name}" data-etd="${svc.etd}"
-                                                               class="peer sr-only shipping-option">
-                                                        <div class="relative p-4 border rounded-2xl flex justify-between items-center
-                                                                    ${isCheapest ? 'border-brand-primary/40 bg-soft-mint/60 shadow-sm' : 'border-gray-100 hover:border-brand-primary/30'}
-                                                                    peer-checked:border-brand-primary peer-checked:bg-soft-mint">
+                        <label class="block cursor-pointer transition-all">
+                            <input type="radio" name="shipping_service_radio" value="${cost}"
+                                   data-code="${escapeHtml(svc.code)}" data-service="${escapeHtml(svc.service)}"
+                                   data-name="${escapeHtml(svc.name)}" data-etd="${escapeHtml(svc.etd)}"
+                                   class="peer sr-only shipping-option"
+                                   ${isCheapest ? 'id="shipping-cheapest"' : ''}>
+                            <div class="relative p-4 border rounded-2xl flex items-center gap-3
+                                        ${isCheapest ? 'border-brand-primary bg-soft-mint shadow-sm' : 'border-gray-100 hover:border-brand-primary/30'}
+                                        peer-checked:border-brand-primary peer-checked:bg-soft-mint peer-checked:shadow-sm">
 
-                                                            ${isCheapest ? `
-                                                            <div class="absolute -top-2 -right-2 bg-brand-primary text-white px-2 py-1 rounded-full text-[9px] font-bold shadow-lg">
-                                                                TERMURAH
-                                                            </div>` : ''}
+                                ${isCheapest ? `
+                                <div class="absolute -top-2.5 left-3 bg-brand-primary text-white px-2.5 py-0.5 rounded-full text-[9px] font-black shadow">
+                                    TERMURAH
+                                </div>` : ''}
 
-                                                            <div class="flex-1">
-                                                                <div class="flex items-center gap-2 mb-1">
-                                                                    <span class="text-sm font-bold text-brand-dark">${svc.name}</span>
-                                                                    <span class="text-xs bg-white text-brand-primary border border-brand-primary/20 px-2 py-0.5 rounded-full">${svc.service}</span>
-                                                                </div>
-                                                                <p class="text-[10px] text-gray-500">${svc.description}</p>
-                                                                <p class="text-[10px] font-medium text-brand-primary mt-1">Estimasi ${svc.etd} hari</p>
-                                                            </div>
+                                ${badge}
 
-                                                            <div class="text-right ml-3">
-                                                                <p class="text-lg font-black ${isCheapest ? 'text-brand-dark' : 'text-brand-primary'}">
-                                                                    ${formatRupiah(cost)}
-                                                                </p>
-                                                                ${isCheapest ? '<p class="text-[9px] text-brand-primary font-bold mt-0.5">Paling hemat</p>' : ''}
-                                                            </div>
-                                                        </div>
-                                                    </label>
-                                                `;
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-wrap items-center gap-1.5 mb-0.5">
+                                        <span class="text-sm font-bold text-brand-dark">${escapeHtml(svc.name)}</span>
+                                        <span class="text-[10px] bg-white text-brand-primary border border-brand-primary/20 px-2 py-0.5 rounded-full font-bold">${escapeHtml(svc.service)}</span>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400 truncate">${escapeHtml(svc.description || '')}</p>
+                                    <p class="text-[10px] font-semibold text-brand-primary mt-0.5">Estimasi ${escapeHtml(String(svc.etd))} hari</p>
+                                </div>
+
+                                <div class="text-right shrink-0">
+                                    <p class="text-base font-black ${isCheapest ? 'text-brand-dark' : 'text-brand-primary'}">
+                                        ${formatRupiah(cost)}
+                                    </p>
+                                    ${isCheapest ? '<p class="text-[9px] text-brand-primary font-bold mt-0.5">Paling hemat</p>' : ''}
+                                </div>
+                            </div>
+                        </label>
+                    `;
                 });
 
                 $('#shipping-services').html(html);
+
+                // Auto-select yang termurah
+                const $cheapest = $('#shipping-cheapest');
+                if ($cheapest.length) {
+                    $cheapest.prop('checked', true).trigger('change');
+                }
             }
 
             function resetShippingDisplay() {
@@ -1064,18 +1150,97 @@
 
             // ─── FORM SUBMIT ─────────────────────────────────────────────────────
 
+            let formSubmitting = false;
+
+            function submitCheckout() {
+                formSubmitting = true;
+                $('#checkoutForm')[0].submit();
+            }
+
+            $('#checkoutForm, #mobile-btn-submit').on('click', function (e) { /* handled below */ });
+
             $('#checkoutForm').on('submit', function (e) {
+                if (formSubmitting) return; // izinkan submit manual
+                e.preventDefault();
+
                 if (!$('#selected_shipping_cost').val()) {
-                    e.preventDefault();
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Pilih Ongkir Dulu',
+                        title: 'Pilih Pengiriman Dulu',
                         text: 'Silakan pilih kurir dan layanan pengiriman sebelum membuat pesanan.',
                         confirmButtonText: 'Mengerti',
-                        confirmButtonColor: '#81C784',
+                        confirmButtonColor: '#A78B6F',
                     });
                     toggleShippingModal(true);
+                    return;
                 }
+
+                const grandTotal = subtotal - currentDiscount + currentShipping;
+                const courierLabel = $('#selected_service_label').text() || '-';
+                const etd = $('#selected_service_etd').text() || '-';
+                const itemCount = {{ $carts->count() }};
+
+                @php
+                    $confirmItems = '';
+                    foreach ($carts as $item) {
+                        $confirmItems .= '<div class="flex justify-between text-xs py-1 border-b border-gray-100">'
+                            . '<span class="text-gray-600 truncate max-w-[60%]">' . e($item->product->name)
+                            . ($item->variant ? ' <span class="text-gray-400">(' . e(collect($item->variant->attributes)->pluck('attribute_value')->implode('/')) . ')</span>' : '')
+                            . ' ×' . $item->qty . '</span>'
+                            . '<span class="font-bold text-gray-800">Rp' . number_format($item->price * $item->qty, 0, ',', '.') . '</span>'
+                            . '</div>';
+                    }
+                @endphp
+
+                const itemsHtml = `{!! addslashes($confirmItems) !!}`;
+
+                const discountRow = currentDiscount > 0
+                    ? `<div class="flex justify-between text-xs py-1.5 text-purple-600">
+                            <span>Diskon Voucher</span>
+                            <span class="font-bold">-${formatRupiah(currentDiscount)}</span>
+                       </div>`
+                    : '';
+
+                Swal.fire({
+                    title: '<span class="text-lg font-black text-brand-dark">Konfirmasi Pesanan</span>',
+                    html: `
+                        <div class="text-left space-y-1 max-h-48 overflow-y-auto pr-1 mb-3">
+                            ${itemsHtml}
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-3 space-y-1.5">
+                            <div class="flex justify-between text-xs py-1">
+                                <span class="text-gray-500">Subtotal Produk</span>
+                                <span class="font-bold text-gray-800">${formatRupiah(subtotal)}</span>
+                            </div>
+                            ${discountRow}
+                            <div class="flex justify-between text-xs py-1">
+                                <span class="text-gray-500">Ongkos Kirim</span>
+                                <span class="font-bold text-gray-800">${formatRupiah(currentShipping)}</span>
+                            </div>
+                            <div class="text-[10px] text-gray-400 pb-1">${courierLabel} · ${etd}</div>
+                            <div class="flex justify-between pt-2 border-t border-gray-200">
+                                <span class="text-sm font-black text-brand-dark">Total Pembayaran</span>
+                                <span class="text-sm font-black text-brand-primary">${formatRupiah(grandTotal)}</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-gray-400 mt-3">Dengan melanjutkan, kamu setuju untuk membayar pesanan ini.</p>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fa-solid fa-check mr-1"></i> Ya, Buat Pesanan',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#A78B6F',
+                    cancelButtonColor: '#9CA3AF',
+                    reverseButtons: false,
+                    customClass: {
+                        popup: 'rounded-3xl',
+                        confirmButton: 'rounded-xl font-bold text-sm',
+                        cancelButton: 'rounded-xl font-bold text-sm',
+                    },
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        submitCheckout();
+                    }
+                });
             });
 
         });

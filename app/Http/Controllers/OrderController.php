@@ -645,6 +645,15 @@ class OrderController extends Controller
 
     private function renderActions(Order $order): string
     {
+        // Pesanan yang sudah dibatalkan: hanya tampilkan tombol lihat detail
+        if ($order->status === 'cancelled') {
+            return '<div class="flex items-center justify-center gap-2">'
+                . '<a href="' . route('orders.show', $order->id) . '" class="w-9 h-9 flex items-center justify-center bg-brand-primary/10 text-brand-primary rounded-xl hover:bg-brand-primary hover:text-white transition-all shadow-sm" title="Lihat Detail">'
+                . '<i class="fa-solid fa-eye text-xs"></i></a>'
+                . '<span class="px-2 py-1 rounded-lg bg-red-50 text-red-400 text-[10px] font-black">Dibatalkan</span>'
+                . '</div>';
+        }
+
         $html = '<div class="flex items-center justify-center gap-2">'
             . '<a href="' . route('orders.show', $order->id) . '" class="w-9 h-9 flex items-center justify-center bg-brand-primary/10 text-brand-primary rounded-xl hover:bg-brand-primary hover:text-white transition-all shadow-sm" title="Lihat Detail">'
             . '<i class="fa-solid fa-eye text-xs"></i></a>'
@@ -657,5 +666,79 @@ class OrderController extends Controller
         }
 
         return $html . '</div>';
+    }
+
+    public function pollNotifications(Request $request)
+    {
+        $since = $request->input('since')
+            ? Carbon::createFromTimestampMs((int) $request->input('since'))
+            : now()->subSeconds(35);
+
+        // Batas maksimal lookback agar tidak flood event lama
+        if ($since->lt(now()->subMinutes(5))) {
+            $since = now()->subMinutes(5);
+        }
+
+        $events = [];
+
+        // Pesanan baru masuk (pending, dibuat setelah $since)
+        Order::with('user:id,name')
+            ->where('status', 'pending')
+            ->where('created_at', '>', $since)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->each(function (Order $order) use (&$events) {
+                $events[] = [
+                    'type'         => 'new_order',
+                    'order_id'     => $order->id,
+                    'order_number' => $order->order_number,
+                    'customer'     => $order->user?->name ?? 'Guest',
+                    'total'        => $order->total_price,
+                    'at'           => $order->created_at->toIso8601String(),
+                ];
+            });
+
+        // Pesanan baru saja dibayar (payment berubah jadi success/settlement setelah $since)
+        Order::with(['user:id,name', 'payment'])
+            ->whereHas('payment', fn ($q) => $q->whereIn('status', ['success', 'settlement'])->where('updated_at', '>', $since))
+            ->whereNotIn('status', ['cancelled', 'refunded'])
+            ->orderByDesc('updated_at')
+            ->limit(10)
+            ->get()
+            ->each(function (Order $order) use (&$events) {
+                $events[] = [
+                    'type'         => 'paid',
+                    'order_id'     => $order->id,
+                    'order_number' => $order->order_number,
+                    'customer'     => $order->user?->name ?? 'Guest',
+                    'total'        => $order->total_price,
+                    'method'       => $order->payment?->payment_method ?? '-',
+                    'at'           => $order->payment?->updated_at->toIso8601String(),
+                ];
+            });
+
+        // Pesanan baru dibatalkan (oleh customer) setelah $since
+        Order::with('user:id,name')
+            ->where('status', 'cancelled')
+            ->where('updated_at', '>', $since)
+            ->orderByDesc('updated_at')
+            ->limit(10)
+            ->get()
+            ->each(function (Order $order) use (&$events) {
+                $events[] = [
+                    'type'         => 'cancelled',
+                    'order_id'     => $order->id,
+                    'order_number' => $order->order_number,
+                    'customer'     => $order->user?->name ?? 'Guest',
+                    'total'        => $order->total_price,
+                    'at'           => $order->updated_at->toIso8601String(),
+                ];
+            });
+
+        return response()->json([
+            'events'    => $events,
+            'server_ts' => now()->getTimestampMs(),
+        ]);
     }
 }

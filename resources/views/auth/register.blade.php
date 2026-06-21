@@ -13,7 +13,7 @@
 
 @section('content')
     <section class="bg-[#f8f3ee] text-brand-dark">
-        <div class="mx-auto grid min-h-[calc(100vh-7.25rem)] max-w-7xl grid-cols-1 lg:grid-cols-[0.9fr_1.1fr]">
+        <div class="mx-auto grid lg:min-h-[calc(100vh-7.25rem)] max-w-7xl grid-cols-1 lg:grid-cols-[0.9fr_1.1fr]">
             <div class="relative min-h-[360px] overflow-hidden bg-brand-dark lg:min-h-[calc(100vh-7.25rem)]">
                 <img src="/login-bg.png"
                     alt="Koleksi modest FURE"
@@ -198,8 +198,8 @@
                 $('#alertContainer').html(`
                     <div class="mb-5 border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                         <div class="flex gap-3">
-                            <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
-                            <ul class="space-y-1">${items}</ul>
+                            <i class="fa-solid fa-circle-exclamation mt-0.5 shrink-0"></i>
+                            <ul class="list-disc list-inside space-y-1">${items}</ul>
                         </div>
                     </div>
                 `);

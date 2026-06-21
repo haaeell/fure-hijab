@@ -24,13 +24,21 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'phone' => ['required', 'string', 'max:20'],
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'phone'    => ['required', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'terms' => ['accepted'],
+            'terms'    => ['accepted'],
         ], [
-            'terms.accepted' => 'Anda harus menyetujui Syarat & Ketentuan untuk membuat akun.',
+            'name.required'       => 'Nama lengkap wajib diisi.',
+            'email.required'      => 'Email wajib diisi.',
+            'email.email'         => 'Format email tidak valid.',
+            'email.unique'        => 'Email ini sudah terdaftar. Silakan masuk atau gunakan email lain.',
+            'phone.required'      => 'Nomor WhatsApp wajib diisi.',
+            'password.required'   => 'Password wajib diisi.',
+            'password.min'        => 'Password minimal 8 karakter.',
+            'password.confirmed'  => 'Konfirmasi password tidak cocok.',
+            'terms.accepted'      => 'Kamu harus menyetujui Syarat & Ketentuan untuk membuat akun.',
         ]);
 
         if ($validator->fails()) {
@@ -50,10 +58,12 @@ class RegisterController extends Controller
 
         Auth::login($user);
 
+        session()->flash('register_success', true);
+
         return response()->json([
-            'status' => 'success',
+            'status'   => 'success',
             'redirect' => url('/'),
-            'message' => 'Pendaftaran berhasil!'
+            'message'  => 'Pendaftaran berhasil!',
         ]);
     }
 }

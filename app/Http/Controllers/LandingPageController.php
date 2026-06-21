@@ -375,4 +375,20 @@ class LandingPageController extends Controller
             'schema' => $schema,
         ];
     }
+
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $user->name  = $request->name;
+        $user->phone = $request->phone;
+        $user->save();
+
+        return back()->with('success', 'Profil berhasil diperbarui.');
+    }
 }

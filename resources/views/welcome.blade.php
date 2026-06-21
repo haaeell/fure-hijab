@@ -13,6 +13,16 @@
     <script type="application/ld+json">{!! json_encode($websiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @endpush
 
+@push('preload')
+    @php
+        $firstBanner = $heroBanners->first();
+        $preloadDesktop = $firstBanner?->image ? asset('storage/' . $firstBanner->image) : $fallbackHero;
+        $preloadMobile  = $firstBanner?->mobile_image ? asset('storage/' . $firstBanner->mobile_image) : $preloadDesktop;
+    @endphp
+    <link rel="preload" as="image" href="{{ $preloadDesktop }}" media="(min-width: 768px)">
+    <link rel="preload" as="image" href="{{ $preloadMobile }}" media="(max-width: 767px)">
+@endpush
+
 @section('content')
     <div class="bg-[#f8f3ee] text-brand-dark">
         <div class="fixed bottom-5 right-5 z-[70] flex flex-col items-end gap-3 md:bottom-7 md:right-7">
@@ -69,7 +79,8 @@
                     <picture>
                         <source media="(max-width: 767px)" srcset="{{ $bannerMobileImage }}">
                         <img src="{{ $bannerImage }}" alt="{{ $banner->title ?: 'Banner FURE' }}"
-                            class="absolute inset-0 h-full w-full object-cover object-center {{ $hasHeroText ? 'opacity-85 md:opacity-80' : 'opacity-100' }}">
+                            class="absolute inset-0 h-full w-full object-cover object-center {{ $hasHeroText ? 'opacity-85 md:opacity-80' : 'opacity-100' }}"
+                            @if($index === 0) fetchpriority="high" loading="eager" @else loading="lazy" @endif>
                     </picture>
                     @if($hasHeroText)
                         <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/88 via-brand-dark/25 to-transparent md:bg-gradient-to-r md:from-brand-dark/90 md:via-brand-dark/38 md:to-transparent"></div>

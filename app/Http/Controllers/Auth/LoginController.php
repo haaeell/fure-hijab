@@ -27,12 +27,20 @@ class LoginController extends Controller
         if ($this->attemptLogin($request)) {
             $user = auth()->user();
 
-            $redirectPath = $user->role === 'admin' ? '/home' : '/';
+            if ($user->role === 'admin') {
+                $redirectPath = '/home';
+            } else {
+                // Prioritas: session intended (dari middleware auth) → referrer dari request → homepage
+                $intendedUrl = session()->pull('url.intended');
+                $referrer    = $request->input('_referrer');
+                $redirectPath = $intendedUrl
+                    ?: ($referrer && str_starts_with($referrer, url('/')) ? $referrer : '/');
+            }
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'status' => 'success',
-                    'redirect' => $redirectPath
+                    'status'   => 'success',
+                    'redirect' => $redirectPath,
                 ]);
             }
             return redirect($redirectPath);
@@ -41,20 +49,33 @@ class LoginController extends Controller
         return $this->sendFailedLoginResponse($request);
     }
 
-    /**
-     * Override respons gagal untuk JSON
-     */
     protected function sendFailedLoginResponse(Request $request)
     {
+        $errors = $request->get('password')
+            ? 'Email atau password yang kamu masukkan salah. Periksa kembali dan coba lagi.'
+            : 'Email tidak terdaftar. Silakan daftar terlebih dahulu.';
+
         if ($request->expectsJson()) {
             return response()->json([
-                'status' => 'error',
-                'message' => trans('auth.failed'),
+                'status'  => 'error',
+                'message' => $errors,
             ], 422);
         }
 
         return redirect()->back()
             ->withInput($request->only($this->username(), 'remember'))
-            ->withErrors([$this->username() => trans('auth.failed')]);
+            ->withErrors([$this->username() => $errors]);
+    }
+
+    protected function validateLogin(Request $request)
+    {
+        $request->validate([
+            $this->username() => ['required', 'string', 'email'],
+            'password'        => ['required', 'string'],
+        ], [
+            $this->username() . '.required' => 'Email wajib diisi.',
+            $this->username() . '.email'    => 'Format email tidak valid.',
+            'password.required'             => 'Password wajib diisi.',
+        ]);
     }
 }
