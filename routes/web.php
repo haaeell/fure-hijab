@@ -23,6 +23,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AdminArticleController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\WishlistController;
+use App\Models\Article;
 use App\Models\Category;
 use App\Models\Collection as ProductCollection;
 use App\Models\Product;
@@ -84,6 +85,14 @@ Route::get('/sitemap.xml', function () {
         ->cursor()
         ->each(fn($product) => $pushUrl(route('collections.show', $product->slug), $product->updated_at, 'weekly', '0.9'));
 
+    $pushUrl(route('articles.index'), now(), 'weekly', '0.7');
+
+    Article::where('is_published', true)
+        ->select(['slug', 'updated_at'])
+        ->latest('updated_at')
+        ->cursor()
+        ->each(fn($article) => $pushUrl(route('articles.show', $article->slug), $article->updated_at, 'weekly', '0.7'));
+
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
     $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 
@@ -98,7 +107,10 @@ Route::get('/sitemap.xml', function () {
 
     $xml .= '</urlset>';
 
-    return response($xml, 200, ['Content-Type' => 'application/xml']);
+    return response($xml, 200, [
+        'Content-Type'  => 'application/xml; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
 })->name('sitemap');
 
 Route::get('/', [LandingPageController::class, 'index']);
