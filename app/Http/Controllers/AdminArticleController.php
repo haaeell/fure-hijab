@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Traits\UploadsImages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AdminArticleController extends Controller
 {
+    use UploadsImages;
     public function index()
     {
         $articles = Article::orderByDesc('id')->get();
@@ -39,7 +41,7 @@ class AdminArticleController extends Controller
         $data['tags']         = $this->parseTags($request->input('tags'));
 
         if ($request->hasFile('thumbnail')) {
-            $data['thumbnail'] = $request->file('thumbnail')->store('articles', 'public');
+            $data['thumbnail'] = $this->uploadAsWebp($request->file('thumbnail'), 'articles');
         }
 
         Article::create($data);
@@ -74,7 +76,7 @@ class AdminArticleController extends Controller
             if ($article->thumbnail) {
                 Storage::disk('public')->delete($article->thumbnail);
             }
-            $data['thumbnail'] = $request->file('thumbnail')->store('articles', 'public');
+            $data['thumbnail'] = $this->uploadAsWebp($request->file('thumbnail'), 'articles');
         }
 
         $article->update($data);

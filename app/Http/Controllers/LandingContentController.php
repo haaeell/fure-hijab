@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\LandingBanner;
 use App\Models\LandingSection;
+use App\Traits\UploadsImages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class LandingContentController extends Controller
 {
+    use UploadsImages;
+
     public function index()
     {
         $banners = LandingBanner::orderBy('sort_order')->latest()->get();
@@ -22,11 +25,11 @@ class LandingContentController extends Controller
         $data = $this->validateBanner($request);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('landing/banners', 'public');
+            $data['image'] = $this->uploadAsWebp($request->file('image'), 'landing/banners');
         }
 
         if ($request->hasFile('mobile_image')) {
-            $data['mobile_image'] = $request->file('mobile_image')->store('landing/banners', 'public');
+            $data['mobile_image'] = $this->uploadAsWebp($request->file('mobile_image'), 'landing/banners');
         }
 
         $data['is_active'] = $request->has('is_active');
@@ -42,12 +45,12 @@ class LandingContentController extends Controller
 
         if ($request->hasFile('image')) {
             $this->deletePublicFile($banner->image);
-            $data['image'] = $request->file('image')->store('landing/banners', 'public');
+            $data['image'] = $this->uploadAsWebp($request->file('image'), 'landing/banners');
         }
 
         if ($request->hasFile('mobile_image')) {
             $this->deletePublicFile($banner->mobile_image);
-            $data['mobile_image'] = $request->file('mobile_image')->store('landing/banners', 'public');
+            $data['mobile_image'] = $this->uploadAsWebp($request->file('mobile_image'), 'landing/banners');
         }
 
         $data['is_active'] = $request->has('is_active');
@@ -71,7 +74,7 @@ class LandingContentController extends Controller
         $data = $this->validateSection($request);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('landing/sections', 'public');
+            $data['image'] = $this->uploadAsWebp($request->file('image'), 'landing/sections');
         }
 
         $data['is_active'] = $request->has('is_active');
@@ -87,7 +90,7 @@ class LandingContentController extends Controller
 
         if ($request->hasFile('image')) {
             $this->deletePublicFile($section->image);
-            $data['image'] = $request->file('image')->store('landing/sections', 'public');
+            $data['image'] = $this->uploadAsWebp($request->file('image'), 'landing/sections');
         }
 
         $data['is_active'] = $request->has('is_active');
@@ -108,34 +111,34 @@ class LandingContentController extends Controller
     private function validateBanner(Request $request, bool $isUpdate = false): array
     {
         return $request->validate([
-            'eyebrow' => 'nullable|string|max:120',
-            'title' => 'nullable|string|max:160',
-            'subtitle' => 'nullable|string|max:500',
-            'image' => ($isUpdate ? 'nullable' : 'nullable') . '|image|mimes:jpeg,png,jpg,webp|max:4096',
-            'mobile_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
-            'primary_button_text' => 'nullable|string|max:60',
-            'primary_button_url' => 'nullable|string|max:255',
+            'eyebrow'              => 'nullable|string|max:120',
+            'title'                => 'nullable|string|max:160',
+            'subtitle'             => 'nullable|string|max:500',
+            'image'                => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'mobile_image'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'primary_button_text'  => 'nullable|string|max:60',
+            'primary_button_url'   => 'nullable|string|max:255',
             'secondary_button_text' => 'nullable|string|max:60',
             'secondary_button_url' => 'nullable|string|max:255',
-            'sort_order' => 'nullable|integer|min:0',
-            'is_active' => 'nullable',
+            'sort_order'           => 'nullable|integer|min:0',
+            'is_active'            => 'nullable',
         ]);
     }
 
     private function validateSection(Request $request, bool $isUpdate = false): array
     {
         return $request->validate([
-            'eyebrow' => 'nullable|string|max:120',
-            'title' => 'required|string|max:160',
-            'subtitle' => 'nullable|string|max:500',
-            'button_text' => 'nullable|string|max:60',
-            'button_url' => 'nullable|string|max:255',
-            'image' => ($isUpdate ? 'nullable' : 'nullable') . '|image|mimes:jpeg,png,jpg,webp|max:4096',
-            'icon' => 'nullable|string|max:80',
+            'eyebrow'          => 'nullable|string|max:120',
+            'title'            => 'required|string|max:160',
+            'subtitle'         => 'nullable|string|max:500',
+            'button_text'      => 'nullable|string|max:60',
+            'button_url'       => 'nullable|string|max:255',
+            'image'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'icon'             => 'nullable|string|max:80',
             'background_color' => 'required|string|max:20',
-            'text_color' => 'required|string|max:20',
-            'sort_order' => 'nullable|integer|min:0',
-            'is_active' => 'nullable',
+            'text_color'       => 'required|string|max:20',
+            'sort_order'       => 'nullable|integer|min:0',
+            'is_active'        => 'nullable',
         ]);
     }
 

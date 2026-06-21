@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Traits\UploadsImages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class BrandController extends Controller
 {
+    use UploadsImages;
     public function index()
     {
         $brands = Brand::all();
@@ -30,7 +32,7 @@ class BrandController extends Controller
         ]);
 
         if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('brands', 'public');
+            $data['logo'] = $this->uploadAsWebp($request->file('logo'), 'brands');
         }
 
         Brand::create([
@@ -64,7 +66,7 @@ class BrandController extends Controller
             if ($brand->logo) {
                 Storage::disk('public')->delete($brand->logo);
             }
-            $data['logo'] = $request->file('logo')->store('brands', 'public');
+            $data['logo'] = $this->uploadAsWebp($request->file('logo'), 'brands');
         }
 
         $brand->update([

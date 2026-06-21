@@ -11,12 +11,14 @@ use App\Models\ProductVariant;
 use App\Models\VariantAttribute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Traits\UploadsImages;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+    use UploadsImages;
     public function index()
     {
         $products = Product::query()
@@ -119,7 +121,7 @@ class ProductController extends Controller
             // Handle images
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $index => $image) {
-                    $path = $image->store('products', 'public');
+                    $path = $this->uploadAsWebp($image, 'products');
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_url'  => $path,
@@ -205,7 +207,7 @@ class ProductController extends Controller
                 $hasPrimary = $product->images()->where('is_primary', true)->exists();
 
                 foreach ($request->file('images') as $index => $image) {
-                    $path = $image->store('products', 'public');
+                    $path = $this->uploadAsWebp($image, 'products');
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_url'  => $path,

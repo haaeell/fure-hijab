@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Traits\UploadsImages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
+    use UploadsImages;
     public function index()
     {
         $categories = Category::with('parent')->get();
@@ -27,7 +29,7 @@ class CategoryController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('categories', 'public');
+            $data['image'] = $this->uploadAsWebp($request->file('image'), 'categories');
         }
 
         Category::create([
@@ -58,7 +60,7 @@ class CategoryController extends Controller
             if ($category->image) {
                 Storage::disk('public')->delete($category->image);
             }
-            $data['image'] = $request->file('image')->store('categories', 'public');
+            $data['image'] = $this->uploadAsWebp($request->file('image'), 'categories');
         }
 
         $category->update([
