@@ -21,17 +21,8 @@
         $preloadDesktop = $firstBanner?->image ? asset('storage/' . $firstBanner->image) : $fallbackHero;
         $preloadMobile = $firstBanner?->mobile_image ? asset('storage/' . $firstBanner->mobile_image) : $preloadDesktop;
     @endphp
-   <link
-    rel="preload"
-    as="image"
-    imagesrcset="{{ $preloadMobile }}"
-    media="(max-width: 767px)">
-
-<link
-    rel="preload"
-    as="image"
-    imagesrcset="{{ $preloadDesktop }}"
-    media="(min-width: 768px)">
+    <link rel="preload" as="image" href="{{ $preloadMobile }}" fetchpriority="high" media="(max-width: 767px)">
+    <link rel="preload" as="image" href="{{ $preloadDesktop }}" fetchpriority="high" media="(min-width: 768px)">
 @endpush
 
 @section('content')

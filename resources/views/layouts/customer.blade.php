@@ -45,6 +45,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
     {{-- Tailwind CSS via Vite build (menggantikan CDN yang render-blocking) --}}
     @vite('resources/css/app.css')
@@ -75,12 +76,20 @@
             src:url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-brands-400.woff2") format("woff2"); }
 
         @keyframes fure-shimmer {
-            0%   { background-position: -200% 0; }
-            100% { background-position:  200% 0; }
+            to { transform: translateX(200%); }
         }
         .shimmer-loading {
-            background: linear-gradient(90deg, #f0ece8 25%, #e8e3de 50%, #f0ece8 75%);
-            background-size: 200% 100%;
+            position: relative;
+            overflow: hidden;
+            background: #f0ece8;
+        }
+        .shimmer-loading::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            width: 50%;
+            background: linear-gradient(90deg, transparent, rgba(232,227,222,0.8), transparent);
+            transform: translateX(-100%);
             animation: fure-shimmer 1.4s ease-in-out infinite;
         }
 
@@ -740,7 +749,7 @@
         </div>
     @endif
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    @vite('resources/js/customer.js')
     <script>
         function loadSwal() {
             if (typeof Swal !== 'undefined') return Promise.resolve();
