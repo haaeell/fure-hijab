@@ -139,6 +139,141 @@
         </div>
     </div>
 
+    {{-- ─── PROMO SECTIONS ──────────────────────────────────────────── --}}
+    <div class="grid gap-8 xl:grid-cols-2">
+        {{-- Form Tambah Section --}}
+        <form action="{{ route('landing-content.sections.store') }}" method="POST" enctype="multipart/form-data"
+            class="rounded-[32px] border border-gray-50 bg-white p-6 shadow-sm md:p-8">
+            @csrf
+            <div class="mb-6 flex items-center gap-4">
+                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-dark text-white">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-extrabold text-brand-dark">Tambah Promo Section</h2>
+                    <p class="text-xs font-medium text-gray-400">Kartu promo berwarna di bawah banner.</p>
+                </div>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Label kecil</label>
+                    <input name="eyebrow" placeholder="New Collection"
+                        class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Urutan</label>
+                    <input type="number" name="sort_order" value="0" min="0"
+                        class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5 md:col-span-2">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Judul <span class="text-red-400">*</span></label>
+                    <input name="title" required placeholder="Hijab Instan"
+                        class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5 md:col-span-2">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Deskripsi</label>
+                    <textarea name="subtitle" rows="2"
+                        class="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary"></textarea>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Teks Tombol</label>
+                    <input name="button_text" placeholder="Shop Now"
+                        class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Link Tombol</label>
+                    <input name="button_url" placeholder="/collections"
+                        class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Background Color <span class="text-red-400">*</span></label>
+                    <div class="flex gap-2">
+                        <input type="color" name="background_color" value="#A78B6F"
+                            class="h-12 w-14 cursor-pointer rounded-xl border border-gray-200 bg-gray-50/50 p-1">
+                        <input type="text" name="background_color_text" value="#A78B6F" placeholder="#A78B6F"
+                            class="flex-1 rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary section-color-text">
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Text Color <span class="text-red-400">*</span></label>
+                    <div class="flex gap-2">
+                        <input type="color" name="text_color" value="#FFFFFF"
+                            class="h-12 w-14 cursor-pointer rounded-xl border border-gray-200 bg-gray-50/50 p-1">
+                        <input type="text" name="text_color_text" value="#FFFFFF" placeholder="#FFFFFF"
+                            class="flex-1 rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary section-color-text">
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Icon (Font Awesome)</label>
+                    <input name="icon" placeholder="fa-solid fa-bag-shopping"
+                        class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Foto (opsional)</label>
+                    <input type="file" name="image" accept="image/*"
+                        class="block w-full cursor-pointer rounded-2xl border border-gray-200 bg-gray-50/50 p-1 text-xs text-gray-400 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-dark file:px-5 file:py-2.5 file:text-[10px] file:font-black file:uppercase file:text-white hover:file:bg-brand-primary">
+                </div>
+                <label class="flex items-center gap-3 px-1">
+                    <input type="checkbox" name="is_active" value="1" checked class="h-4 w-4 rounded border-gray-300 text-brand-primary">
+                    <span class="text-sm font-bold text-gray-600">Aktif</span>
+                </label>
+            </div>
+
+            <button class="mt-6 rounded-2xl bg-brand-dark px-6 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-brand-primary">
+                Simpan Section
+            </button>
+        </form>
+
+        {{-- List Sections --}}
+        <div class="rounded-[32px] border border-gray-50 bg-white p-6 shadow-sm">
+            <h2 class="mb-5 text-lg font-extrabold text-brand-dark">Promo Sections</h2>
+            <div class="space-y-4">
+                @forelse($sections as $section)
+                    <div class="flex gap-4 rounded-3xl border border-gray-100 p-4">
+                        <div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl text-2xl text-white"
+                            style="background: {{ $section->background_color }}; color: {{ $section->text_color }};">
+                            @if($section->image)
+                                <img src="{{ asset('storage/' . $section->image) }}" class="h-full w-full rounded-2xl object-cover" alt="">
+                            @else
+                                <i class="{{ $section->icon ?: 'fa-solid fa-bag-shopping' }}"></i>
+                            @endif
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    @if($section->eyebrow)
+                                        <p class="text-[10px] font-black uppercase tracking-widest text-brand-primary">{{ $section->eyebrow }}</p>
+                                    @endif
+                                    <h3 class="truncate text-sm font-extrabold text-brand-dark">{{ $section->title }}</h3>
+                                </div>
+                                <span class="rounded-full px-3 py-1 text-[10px] font-black uppercase {{ $section->is_active ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }}">
+                                    {{ $section->is_active ? 'Aktif' : 'Off' }}
+                                </span>
+                            </div>
+                            @if($section->subtitle)
+                                <p class="mt-1 line-clamp-1 text-xs text-gray-400">{{ $section->subtitle }}</p>
+                            @endif
+                            <div class="mt-3 flex gap-2">
+                                <button type="button"
+                                    data-section="{{ htmlspecialchars(json_encode($section), ENT_QUOTES, 'UTF-8') }}"
+                                    onclick="editSection(this)"
+                                    class="rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-600">Edit</button>
+                                <form action="{{ route('landing-content.sections.destroy', $section) }}" method="POST" onsubmit="return confirm('Hapus section ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-600">Hapus</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="rounded-3xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-400">Belum ada section. Tambahkan promo card di form kiri.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
     {{-- Edit Banner Modal --}}
     <div id="editModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
         <div class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[32px] bg-white p-6 shadow-2xl md:p-8">
@@ -204,10 +339,87 @@
             </form>
         </div>
     </div>
+
+    {{-- Edit Section Modal --}}
+    <div id="editSectionModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+        <div class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[32px] bg-white p-6 shadow-2xl md:p-8">
+            <div class="mb-6 flex items-center justify-between">
+                <h2 class="text-lg font-extrabold text-brand-dark">Edit Promo Section</h2>
+                <button type="button" onclick="closeEditSectionModal()" class="text-gray-400 hover:text-red-500">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <form id="editSectionForm" method="POST" enctype="multipart/form-data" class="grid gap-4 md:grid-cols-2">
+                @csrf
+                @method('PUT')
+
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Label kecil</label>
+                    <input name="eyebrow" id="esEyebrow" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Urutan</label>
+                    <input type="number" min="0" name="sort_order" id="esSort" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5 md:col-span-2">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Judul <span class="text-red-400">*</span></label>
+                    <input name="title" id="esTitle" required class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5 md:col-span-2">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Deskripsi</label>
+                    <textarea name="subtitle" id="esSubtitle" rows="2" class="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary"></textarea>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Teks Tombol</label>
+                    <input name="button_text" id="esBtnText" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Link Tombol</label>
+                    <input name="button_url" id="esBtnUrl" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Background Color <span class="text-red-400">*</span></label>
+                    <div class="flex gap-2">
+                        <input type="color" id="esBgColor" name="background_color"
+                            class="h-12 w-14 cursor-pointer rounded-xl border border-gray-200 bg-gray-50/50 p-1">
+                        <input type="text" id="esBgText" placeholder="#A78B6F"
+                            class="flex-1 rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Text Color <span class="text-red-400">*</span></label>
+                    <div class="flex gap-2">
+                        <input type="color" id="esTxtColor" name="text_color"
+                            class="h-12 w-14 cursor-pointer rounded-xl border border-gray-200 bg-gray-50/50 p-1">
+                        <input type="text" id="esTxtText" placeholder="#FFFFFF"
+                            class="flex-1 rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Icon (Font Awesome)</label>
+                    <input name="icon" id="esIcon" placeholder="fa-solid fa-bag-shopping" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Ganti Foto</label>
+                    <input type="file" name="image" accept="image/*" class="block w-full cursor-pointer rounded-2xl border border-gray-200 bg-gray-50/50 p-1 text-xs text-gray-400 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-primary file:px-5 file:py-2.5 file:text-[10px] file:font-black file:uppercase file:text-white hover:file:bg-brand-dark">
+                </div>
+                <label class="flex items-center gap-3 px-1">
+                    <input type="checkbox" name="is_active" id="esActive" value="1" class="h-4 w-4 rounded border-gray-300 text-brand-primary">
+                    <span class="text-sm font-bold text-gray-600">Aktif</span>
+                </label>
+                <div class="md:col-span-2 flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="closeEditSectionModal()" class="rounded-2xl px-6 py-3 text-xs font-black uppercase tracking-widest text-gray-400 hover:bg-gray-100">Batal</button>
+                    <button class="rounded-2xl bg-brand-dark px-8 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-brand-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
+        /* ── Banner Edit ── */
         const editModal = document.getElementById('editModal');
         const editForm  = document.getElementById('editForm');
 
@@ -221,15 +433,15 @@
 
             editForm.action = '/landing-content/banners/' + data.id;
 
-            document.getElementById('editEyebrow').value      = data.eyebrow || '';
-            document.getElementById('editSort').value         = data.sort_order || 0;
-            document.getElementById('editMainTitle').value    = data.title || '';
-            document.getElementById('editSubtitle').value     = data.subtitle || '';
-            document.getElementById('editPrimaryText').value  = data.primary_button_text || '';
-            document.getElementById('editPrimaryUrl').value   = data.primary_button_url || '';
+            document.getElementById('editEyebrow').value       = data.eyebrow || '';
+            document.getElementById('editSort').value          = data.sort_order || 0;
+            document.getElementById('editMainTitle').value     = data.title || '';
+            document.getElementById('editSubtitle').value      = data.subtitle || '';
+            document.getElementById('editPrimaryText').value   = data.primary_button_text || '';
+            document.getElementById('editPrimaryUrl').value    = data.primary_button_url || '';
             document.getElementById('editSecondaryText').value = data.secondary_button_text || '';
-            document.getElementById('editSecondaryUrl').value = data.secondary_button_url || '';
-            document.getElementById('editActive').checked     = Boolean(data.is_active);
+            document.getElementById('editSecondaryUrl').value  = data.secondary_button_url || '';
+            document.getElementById('editActive').checked      = Boolean(data.is_active);
 
             editModal.classList.remove('hidden');
             editModal.classList.add('flex');
@@ -237,6 +449,50 @@
 
         editModal.addEventListener('click', function (e) {
             if (e.target === editModal) closeEditModal();
+        });
+
+        /* ── Section Edit ── */
+        const editSectionModal = document.getElementById('editSectionModal');
+        const editSectionForm  = document.getElementById('editSectionForm');
+
+        function closeEditSectionModal() {
+            editSectionModal.classList.add('hidden');
+            editSectionModal.classList.remove('flex');
+        }
+
+        function editSection(btn) {
+            const data = JSON.parse(btn.getAttribute('data-section'));
+
+            editSectionForm.action = '/landing-content/sections/' + data.id;
+
+            document.getElementById('esBgColor').value    = data.background_color || '#A78B6F';
+            document.getElementById('esBgText').value     = data.background_color || '#A78B6F';
+            document.getElementById('esTxtColor').value   = data.text_color || '#FFFFFF';
+            document.getElementById('esTxtText').value    = data.text_color || '#FFFFFF';
+            document.getElementById('esEyebrow').value    = data.eyebrow || '';
+            document.getElementById('esSort').value       = data.sort_order || 0;
+            document.getElementById('esTitle').value      = data.title || '';
+            document.getElementById('esSubtitle').value   = data.subtitle || '';
+            document.getElementById('esBtnText').value    = data.button_text || '';
+            document.getElementById('esBtnUrl').value     = data.button_url || '';
+            document.getElementById('esIcon').value       = data.icon || '';
+            document.getElementById('esActive').checked   = Boolean(data.is_active);
+
+            editSectionModal.classList.remove('hidden');
+            editSectionModal.classList.add('flex');
+        }
+
+        editSectionModal.addEventListener('click', function (e) {
+            if (e.target === editSectionModal) closeEditSectionModal();
+        });
+
+        /* ── Color picker sync ── */
+        document.querySelectorAll('input[type="color"]').forEach(function (picker) {
+            var textInput = picker.nextElementSibling;
+            picker.addEventListener('input', function () { textInput.value = picker.value; });
+            textInput.addEventListener('input', function () {
+                if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) picker.value = textInput.value;
+            });
         });
     </script>
 @endpush
