@@ -120,8 +120,8 @@
                         transform 0.72s cubic-bezier(0.22, 1, 0.36, 1);
             will-change: opacity, transform;
         }
-        .reveal.from-left  { transform: translateX(-44px); }
-        .reveal.from-right { transform: translateX(44px); }
+        .reveal.from-left  { transform: translateX(-28px); }
+        .reveal.from-right { transform: translateX(28px); }
         .reveal.from-scale { transform: scale(0.93) translateY(16px); }
         .reveal.revealed {
             opacity: 1;
@@ -130,6 +130,7 @@
 
         html {
             scroll-behavior: smooth;
+            overflow-x: hidden; /* iOS Safari: body overflow-x:hidden saja tidak cukup karena html adalah scroll container asli */
         }
 
         .no-scrollbar::-webkit-scrollbar {
