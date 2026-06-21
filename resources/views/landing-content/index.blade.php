@@ -275,7 +275,7 @@
     </div>
 
     {{-- Edit Banner Modal --}}
-    <div id="editModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+    <div id="editModal" style="display:none" class="fixed inset-0 z-[100] items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
         <div class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[32px] bg-white p-6 shadow-2xl md:p-8">
             <div class="mb-6 flex items-center justify-between">
                 <h2 class="text-lg font-extrabold text-brand-dark">Edit Banner Slider</h2>
@@ -341,7 +341,7 @@
     </div>
 
     {{-- Edit Section Modal --}}
-    <div id="editSectionModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+    <div id="editSectionModal" style="display:none" class="fixed inset-0 z-[100] items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
         <div class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[32px] bg-white p-6 shadow-2xl md:p-8">
             <div class="mb-6 flex items-center justify-between">
                 <h2 class="text-lg font-extrabold text-brand-dark">Edit Promo Section</h2>
@@ -424,8 +424,7 @@
         const editForm  = document.getElementById('editForm');
 
         function closeEditModal() {
-            editModal.classList.add('hidden');
-            editModal.classList.remove('flex');
+            editModal.style.display = 'none';
         }
 
         function editBanner(btn) {
@@ -443,8 +442,7 @@
             document.getElementById('editSecondaryUrl').value  = data.secondary_button_url || '';
             document.getElementById('editActive').checked      = Boolean(data.is_active);
 
-            editModal.classList.remove('hidden');
-            editModal.classList.add('flex');
+            editModal.style.display = 'flex';
         }
 
         editModal.addEventListener('click', function (e) {
@@ -456,8 +454,7 @@
         const editSectionForm  = document.getElementById('editSectionForm');
 
         function closeEditSectionModal() {
-            editSectionModal.classList.add('hidden');
-            editSectionModal.classList.remove('flex');
+            editSectionModal.style.display = 'none';
         }
 
         function editSection(btn) {
@@ -478,8 +475,7 @@
             document.getElementById('esIcon').value       = data.icon || '';
             document.getElementById('esActive').checked   = Boolean(data.is_active);
 
-            editSectionModal.classList.remove('hidden');
-            editSectionModal.classList.add('flex');
+            editSectionModal.style.display = 'flex';
         }
 
         editSectionModal.addEventListener('click', function (e) {
