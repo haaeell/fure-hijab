@@ -257,6 +257,8 @@ class CheckoutController extends Controller
             'shipping_cost'   => 'required|integer|min:0',
             'shipping_etd'    => 'nullable|string',
             'notes'           => 'nullable|string',
+            'item_notes'      => 'nullable|array',
+            'item_notes.*'    => 'nullable|string|max:500',
         ]);
 
         $user = Auth::user();
@@ -356,6 +358,8 @@ class CheckoutController extends Controller
                 'longitude'      => $userAddress->longitude,
             ]);
 
+            $itemNotes = $request->input('item_notes', []);
+
             foreach ($checkoutItems as $item) {
                 OrderItem::create([
                     'order_id'      => $order->id,
@@ -366,6 +370,7 @@ class CheckoutController extends Controller
                     'qty'           => $item->qty,
                     'price'         => $item->price,
                     'subtotal'      => $item->price * $item->qty,
+                    'note'          => isset($itemNotes[$item->id]) ? trim($itemNotes[$item->id]) ?: null : null,
                 ]);
             }
 

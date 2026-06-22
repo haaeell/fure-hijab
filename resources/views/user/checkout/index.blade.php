@@ -118,21 +118,34 @@
                                             <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533' }}"
                                                 class="w-full h-full object-cover" alt="{{ $item->product->name }}">
                                         </div>
-                                        <div class="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-                                            <div class="min-w-0">
-                                                <h3 class="font-extrabold text-brand-dark text-sm md:text-base truncate">{{ $item->product->name }}</h3>
-                                                @if($item->variant)
-                                                    <p class="text-xs text-gray-400 mt-1">
-                                                        @foreach($item->variant->attributes as $attr)
-                                                            {{ $attr->attribute_value }}{{ !$loop->last ? ' | ' : '' }}
-                                                        @endforeach
-                                                    </p>
-                                                @endif
-                                                <p class="text-xs text-gray-500 mt-2">{{ $item->qty }} x Rp{{ number_format($item->price, 0, ',', '.') }}</p>
+                                        <div class="flex-1 min-w-0 space-y-3">
+                                            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+                                                <div class="min-w-0">
+                                                    <h3 class="font-extrabold text-brand-dark text-sm md:text-base truncate">{{ $item->product->name }}</h3>
+                                                    @if($item->variant)
+                                                        <p class="text-xs text-gray-400 mt-1">
+                                                            @foreach($item->variant->attributes as $attr)
+                                                                {{ $attr->attribute_value }}{{ !$loop->last ? ' | ' : '' }}
+                                                            @endforeach
+                                                        </p>
+                                                    @endif
+                                                    <p class="text-xs text-gray-500 mt-2">{{ $item->qty }} x Rp{{ number_format($item->price, 0, ',', '.') }}</p>
+                                                </div>
+                                                <div class="md:text-right">
+                                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Subtotal</p>
+                                                    <p class="font-extrabold text-brand-primary">Rp{{ number_format($itemSubtotal, 0, ',', '.') }}</p>
+                                                </div>
                                             </div>
-                                            <div class="md:text-right">
-                                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Subtotal</p>
-                                                <p class="font-extrabold text-brand-primary">Rp{{ number_format($itemSubtotal, 0, ',', '.') }}</p>
+                                            {{-- Catatan per produk --}}
+                                            <div class="relative">
+                                                <textarea
+                                                    name="item_notes[{{ $item->id }}]"
+                                                    rows="2"
+                                                    maxlength="500"
+                                                    placeholder="Catatan untuk produk ini (opsional)…"
+                                                    class="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50/70 px-4 py-3 text-xs text-brand-dark placeholder-gray-400 outline-none transition focus:border-brand-primary/50 focus:bg-white focus:ring-2 focus:ring-brand-primary/10"
+                                                ></textarea>
+                                                <i class="fa-regular fa-note-sticky absolute right-3 top-3 text-gray-300 text-xs pointer-events-none"></i>
                                             </div>
                                         </div>
                                     </div>

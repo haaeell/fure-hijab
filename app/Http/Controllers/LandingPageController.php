@@ -10,6 +10,8 @@ use App\Models\Coupon;
 use App\Models\LandingBanner;
 use App\Models\LandingSection;
 use App\Models\Order;
+use App\Models\Review;
+use App\Models\UserAddress;
 use App\Models\Wishlist;
 use App\Services\LandingPageViewDataService;
 use App\Services\StorefrontContextService;
@@ -163,8 +165,17 @@ class LandingPageController extends Controller
     }
     public function profile(Request $request)
     {
+        $uid         = Auth::id();
         $profileUser = Auth::user();
-        $orderCount = Order::where('user_id', Auth::id())->count();
+
+        $orderCount     = Order::where('user_id', $uid)->count();
+        $deliveredCount = Order::where('user_id', $uid)->where('status', 'delivered')->count();
+        $reviewCount    = Review::where('user_id', $uid)->count();
+        $wishlistCount  = Wishlist::where('user_id', $uid)->count();
+        $totalSpent     = Order::where('user_id', $uid)
+            ->whereIn('status', ['delivered', 'processing', 'shipped', 'confirmed'])
+            ->sum('total');
+
         $voucherCount = Coupon::where('is_active', true)
             ->where(function ($q) {
                 $q->whereNull('started_at')->orWhere('started_at', '<=', now());
@@ -174,7 +185,19 @@ class LandingPageController extends Controller
             })
             ->count();
 
-        return view('user.profile.index', compact('profileUser', 'orderCount', 'voucherCount'));
+        $recentOrders = Order::with(['items.product.images'])
+            ->where('user_id', $uid)
+            ->latest()
+            ->take(3)
+            ->get();
+
+        $addresses = UserAddress::where('user_id', $uid)->orderByDesc('is_default')->get();
+
+        return view('user.profile.index', compact(
+            'profileUser', 'orderCount', 'deliveredCount',
+            'reviewCount', 'wishlistCount', 'totalSpent',
+            'voucherCount', 'recentOrders', 'addresses'
+        ));
     }
 
     public function promo()
@@ -386,9 +409,28 @@ class LandingPageController extends Controller
         ]);
 
         $user->name  = $request->name;
-        $user->phone = $request->phone;
+        $user->phone = $request->phone ? '62' . ltrim(preg_replace('/[\s\-]/', '', $request->phone), '0') : null;
         $user->save();
 
         return back()->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'password'         => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = auth()->user();
+
+        if (!\Hash::check($request->current_password, $user->password)) {
+            return back()->with('password_error', 'Password saat ini tidak sesuai.')->with('tab', 'security');
+        }
+
+        $user->password = \Hash::make($request->password);
+        $user->save();
+
+        return back()->with('password_success', 'Password berhasil diperbarui.')->with('tab', 'security');
     }
 }

@@ -385,6 +385,12 @@
                                     <p class="text-[11px] text-gray-400 mt-0.5">Rp
                                         {{ number_format($item->price, 0, ',', '.') }} × {{ $item->qty }}
                                     </p>
+                                    @if($item->note)
+                                        <p class="mt-1.5 flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-700">
+                                            <i class="fa-regular fa-note-sticky mt-px flex-shrink-0"></i>
+                                            {{ $item->note }}
+                                        </p>
+                                    @endif
                                 </div>
                                 {{-- Subtotal --}}
                                 <div class="text-right flex-shrink-0">

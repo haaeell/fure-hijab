@@ -139,7 +139,6 @@ Route::get('/artikel/{slug}', [ArticleController::class, 'show'])->name('article
 Route::post('/midtrans/callback', [App\Http\Controllers\MidtransController::class, 'callback']);
 Route::post('/webhooks/biteship', [App\Http\Controllers\BiteshipWebhookController::class, 'handle'])->name('webhooks.biteship.web');
 Route::get('/order/{order:order_number}/payment-status', [CheckoutController::class, 'checkPaymentStatus'])->middleware('auth');
-Route::post('/order/{order:order_number}/review', [OrderHistoryController::class, 'submitReview'])->middleware('auth')->name('order.review.store');
 
 Route::middleware(['auth'])->group(function () {
 
@@ -279,6 +278,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Customer profile update
     Route::put('/user/profile/update', [LandingPageController::class, 'updateProfile'])->name('customer.profile.update');
+    Route::put('/user/profile/password', [LandingPageController::class, 'updatePassword'])->name('customer.password.update');
 
     // CUSTOMER ONLY ROUTES
     Route::middleware(['customer'])->group(function () {
@@ -307,7 +307,10 @@ Route::middleware(['auth'])->group(function () {
 
         // Addresses
         Route::prefix('addresses')->controller(AddressController::class)->group(function () {
+            Route::get('/', 'index')->name('addresses.index');
             Route::post('/', 'store')->name('addresses.store');
+            Route::patch('/{address}/default', 'setDefault')->name('addresses.default');
+            Route::delete('/{address}', 'destroy')->name('addresses.destroy');
         });
 
         // Order History
@@ -318,5 +321,8 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{orderNumber}/complete', 'markAsCompleted')->name('order.history.complete');
             Route::patch('/{orderNumber}/cancel', 'cancel')->name('order.history.cancel');
         });
+
+        // Review submission (customer only)
+        Route::post('/order/{order:order_number}/review', [OrderHistoryController::class, 'submitReview'])->name('order.review.store');
     });
 });

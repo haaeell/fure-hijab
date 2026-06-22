@@ -151,12 +151,12 @@
                                     <div class="py-6 first:pt-0 last:pb-0" id="review-item-{{ $item->id }}">
                                         <div class="flex gap-4 items-start">
                                             <div class="w-14 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-                                                @php $img = $item->product->images->where('is_primary', true)->first(); @endphp
+                                                @php $img = $item->product?->images?->where('is_primary', true)->first(); @endphp
                                                 <img src="{{ $img ? asset('storage/' . $img->image_url) : 'https://via.placeholder.com/100' }}"
                                                     loading="lazy" class="w-full h-full object-cover">
                                             </div>
                                             <div class="flex-1">
-                                                <p class="font-bold text-brand-dark text-sm">{{ $item->product->name }}</p>
+                                                <p class="font-bold text-brand-dark text-sm">{{ $item->product?->name ?? $item->product_name }}</p>
                                                 @if($item->variant)
                                                     <p class="text-[10px] text-gray-400 font-bold uppercase mb-2">
                                                         {{ $item->variant->name }}</p>
@@ -707,12 +707,14 @@
                     const res = await fetch(`/order/${orderNumber}/review`, {
                         method: 'POST',
                         headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
                         },
                         body: formData
                     });
 
-                    const data = await res.json();
+                    let data = {};
+                    try { data = await res.json(); } catch (_) {}
 
                     if (res.ok) {
                         Swal.fire({
@@ -723,10 +725,10 @@
                             showConfirmButton: false
                         }).then(() => window.location.reload());
                     } else {
-                        Swal.fire({ icon: 'error', title: 'Gagal', text: data.message });
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: data.message || 'Gagal mengirim ulasan.' });
                     }
                 } catch (e) {
-                    Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan.' });
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan jaringan.' });
                 }
             }
         </script>
