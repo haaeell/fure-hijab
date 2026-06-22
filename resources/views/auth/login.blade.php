@@ -98,7 +98,7 @@
                             class="flex w-full items-center justify-center gap-3 bg-brand-primary px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-white shadow-lg shadow-brand-primary/20 transition hover:bg-brand-dark active:scale-[0.99]">
                             <span id="btnText">Masuk</span>
                             <i id="btnIcon" class="fa-solid fa-arrow-right-long"></i>
-                            <i id="btnLoader" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                            <i id="btnLoader" class="fa-solid fa-circle-notch fa-spin" style="display:none"></i>
                         </button>
 
                         <p class="text-center text-sm text-brand-dark/60">
@@ -139,6 +139,15 @@
                 `);
             }
 
+            window.addEventListener('pageshow', function (e) {
+                if (e.persisted) {
+                    $('#loginBtn').prop('disabled', false).removeClass('opacity-80');
+                    $('#btnLoader').hide();
+                    $('#btnIcon').show();
+                    $('#btnText').text('Masuk');
+                }
+            });
+
             $('#ajaxLoginForm').on('submit', function (e) {
                 e.preventDefault();
                 const btn = $('#loginBtn');
@@ -154,8 +163,8 @@
                     },
                     beforeSend: function () {
                         btn.prop('disabled', true).addClass('opacity-80');
-                        $('#btnLoader').removeClass('hidden');
-                        $('#btnIcon').addClass('hidden');
+                        $('#btnLoader').show();
+                        $('#btnIcon').hide();
                         $('#btnText').text('Memverifikasi...');
                         $('#alertContainer').empty();
                     },
@@ -164,8 +173,8 @@
                     },
                     error: function (xhr) {
                         btn.prop('disabled', false).removeClass('opacity-80');
-                        $('#btnLoader').addClass('hidden');
-                        $('#btnIcon').removeClass('hidden');
+                        $('#btnLoader').hide();
+                        $('#btnIcon').show();
                         $('#btnText').text('Masuk');
                         const status = xhr.status;
                         let msg = xhr.responseJSON?.message || 'Terjadi kesalahan. Coba lagi.';

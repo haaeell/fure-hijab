@@ -126,7 +126,7 @@
                             class="flex w-full items-center justify-center gap-3 bg-brand-primary px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-white shadow-lg shadow-brand-primary/20 transition hover:bg-brand-dark active:scale-[0.99]">
                             <span id="regText">Daftar</span>
                             <i id="regIcon" class="fa-solid fa-arrow-right-long"></i>
-                            <i id="regLoader" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                            <i id="regLoader" class="fa-solid fa-circle-notch fa-spin" style="display:none"></i>
                         </button>
 
                         <p class="text-center text-sm text-brand-dark/60">
@@ -206,6 +206,15 @@
                 `);
             }
 
+            window.addEventListener('pageshow', function (e) {
+                if (e.persisted) {
+                    $('#regBtn').prop('disabled', false).removeClass('opacity-80');
+                    $('#regLoader').hide();
+                    $('#regIcon').show();
+                    $('#regText').text('Daftar');
+                }
+            });
+
             $('#ajaxRegisterForm').on('submit', function (e) {
                 e.preventDefault();
                 const btn = $('#regBtn');
@@ -220,8 +229,8 @@
                     },
                     beforeSend: function () {
                         btn.prop('disabled', true).addClass('opacity-80');
-                        $('#regLoader').removeClass('hidden');
-                        $('#regIcon').addClass('hidden');
+                        $('#regLoader').show();
+                        $('#regIcon').hide();
                         $('#regText').text('Mendaftarkan');
                         $('#alertContainer').empty();
                     },
@@ -230,8 +239,8 @@
                     },
                     error: function (xhr) {
                         btn.prop('disabled', false).removeClass('opacity-80');
-                        $('#regLoader').addClass('hidden');
-                        $('#regIcon').removeClass('hidden');
+                        $('#regLoader').hide();
+                        $('#regIcon').show();
                         $('#regText').text('Daftar');
                         showErrors(xhr.responseJSON?.errors, xhr.responseJSON?.message || 'Pendaftaran gagal.');
                     }

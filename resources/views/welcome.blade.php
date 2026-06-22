@@ -159,7 +159,7 @@
             @endif
         </section>
 
-        <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        {{-- <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
             <div class="grid gap-3 md:grid-cols-3">
                 @foreach ($promoSections as $section)
                     <a href="{{ $section->button_url ?: route('collections.index') }}"
@@ -196,7 +196,7 @@
             </div>
         </section>
 
-        @include('user.components.landing-feature-banner', ['banner' => $featureBanners->get(0)])
+        @include('user.components.landing-feature-banner', ['banner' => $featureBanners->get(0)]) --}}
 
         @if ($bestSellerProducts->count() > 0)
             <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

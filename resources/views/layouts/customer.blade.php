@@ -346,7 +346,7 @@
 
     <body class="bg-[#f8f3ee] font-sans text-gray-900 antialiased overflow-x-hidden">
 
-    <nav class="sticky top-0 z-50 border-b border-brand-secondary/40 bg-white">
+    <nav id="mainNav" class="top-0 z-50 border-b border-brand-secondary/40 bg-white" style="position:sticky">
         <div class="bg-brand-dark text-white overflow-hidden">
             <div class="flex w-max animate-marquee whitespace-nowrap px-4 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] sm:px-6 sm:py-2 sm:text-[10px] sm:tracking-[0.24em] lg:px-8">
                 <div class="flex shrink-0 items-center">
@@ -1326,6 +1326,35 @@
 
         // Exposed so inline onclick handlers can call it
         window.saveSearchAndGo = function (q) { saveSearch(q); closeSearch(); };
+    })();
+    </script>
+    <script>
+    (function () {
+        var nav  = document.getElementById('mainNav');
+        var main = document.querySelector('main');
+        var LG   = 1024;
+
+        function applyNav() {
+            if (window.innerWidth >= LG) {
+                nav.style.position = 'fixed';
+                nav.style.top      = '0';
+                nav.style.left     = '0';
+                nav.style.right    = '0';
+                var h = nav.offsetHeight;
+                main.style.paddingTop = h + 'px';
+                document.documentElement.style.setProperty('--nav-h', h + 'px');
+            } else {
+                nav.style.position = 'sticky';
+                nav.style.top      = '0';
+                nav.style.left     = '';
+                nav.style.right    = '';
+                main.style.paddingTop = '';
+                document.documentElement.style.setProperty('--nav-h', '0px');
+            }
+        }
+
+        applyNav();
+        window.addEventListener('resize', applyNav);
     })();
     </script>
     <script>

@@ -218,7 +218,7 @@
                 </div>
             </div>
 
-            <div class="mt-16 grid gap-8 lg:grid-cols-[1fr_340px]">
+            <div class="mt-16">
                 <div class="space-y-8">
                     <section class="bg-white p-6 sm:p-8">
                         <div class="flex items-end justify-between gap-4">
@@ -310,21 +310,21 @@
                         @endforelse
                     </section>
                 </div>
-
-                @if($relatedProducts->count() > 0)
-                    <aside class="space-y-4">
-                        <div class="bg-white p-6">
-                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">Related</p>
-                            <h2 class="mt-2 text-2xl font-semibold">Produk Terkait</h2>
-                        </div>
-                        <div class="grid gap-4">
-                            @foreach($relatedProducts as $rel)
-                                @include('user.components.product-card', ['product' => $rel, 'isFlashSale' => $rel->compare_price > $rel->price])
-                            @endforeach
-                        </div>
-                    </aside>
-                @endif
             </div>
+
+            @if($relatedProducts->count() > 0)
+                <div class="mt-16">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">Related</p>
+                    <h2 class="mt-2 text-2xl font-semibold text-brand-dark">Produk Terkait</h2>
+                    <div class="mt-6 grid grid-cols-2 gap-px bg-[#e8e0d8] sm:grid-cols-3 lg:grid-cols-4">
+                        @foreach($relatedProducts as $rel)
+                            <div class="bg-white p-4 sm:p-5">
+                                @include('user.components.product-card', ['product' => $rel, 'isFlashSale' => $rel->compare_price > $rel->price])
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
     </section>
 
