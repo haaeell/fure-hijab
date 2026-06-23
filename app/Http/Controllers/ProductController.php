@@ -249,11 +249,13 @@ class ProductController extends Controller
         try {
             foreach ($product->images as $image) {
                 Storage::disk('public')->delete($image->image_url);
+                $image->delete();
             }
             foreach ($product->variants as $variant) {
                 if ($variant->image) {
                     Storage::disk('public')->delete($variant->image);
                 }
+                $variant->delete();
             }
             $product->delete();
             DB::commit();

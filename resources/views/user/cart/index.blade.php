@@ -48,7 +48,7 @@
                             </label>
 
                             <div class="w-20 h-28 md:w-24 md:h-32 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-100">
-                                @php $primaryImage = $item->product->images->where('is_primary', true)->first(); @endphp
+                                @php $primaryImage = $item->product?->images?->where('is_primary', true)->first(); @endphp
                                 <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533' }}"
                                     loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                             </div>
@@ -56,12 +56,16 @@
                             <div class="flex-grow">
                                 <div class="flex justify-between items-start">
                                     <div>
+                                        @if(!$item->product)
+                                        <p class="text-[10px] md:text-xs font-bold text-red-400 uppercase tracking-widest mb-1">Produk tidak tersedia</p>
+                                        @else
                                         <p
                                             class="text-[10px] md:text-xs font-bold text-brand-primary uppercase tracking-widest mb-1">
-                                            {{ $item->product->category->name }}
+                                            {{ $item->product->category?->name }}
                                         </p>
+                                        @endif
                                         <h3 class="font-bold text-brand-dark text-sm md:text-lg leading-tight mb-2">
-                                            {{ $item->product->name }}
+                                            {{ $item->product?->name ?? '(Produk dihapus)' }}
                                         </h3>
 
                                         @if($item->variant)
@@ -89,7 +93,7 @@
                                     </p>
 
                                     <div class="flex items-center gap-1 bg-soft-mint rounded-xl p-1 w-fit border border-brand-primary/10"
-                                         data-stock="{{ $item->variant ? $item->variant->stock : $item->product->stock }}">
+                                         data-stock="{{ $item->variant ? $item->variant->stock : ($item->product?->stock ?? 0) }}">
                                         <button type="button"
                                             class="update-qty w-8 h-8 rounded-lg flex items-center justify-center text-brand-dark hover:bg-white transition-all disabled:opacity-40"
                                             data-id="{{ $item->id }}" data-action="minus">

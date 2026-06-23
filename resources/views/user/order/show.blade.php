@@ -115,12 +115,12 @@
                                 <div class="flex gap-4 py-5 first:pt-0 last:pb-0 sm:gap-6 sm:py-6">
                                     <div
                                         class="h-24 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-gray-100 border border-gray-100 sm:h-24 sm:w-20">
-                                        @php $primaryImage = $item->product->images->where('is_primary', true)->first(); @endphp
+                                        @php $primaryImage = $item->product?->images?->where('is_primary', true)->first(); @endphp
                                         <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533' }}"
                                             loading="lazy" class="w-full h-full object-cover">
                                     </div>
                                     <div class="min-w-0 flex-grow">
-                                        <h4 class="mb-1 text-sm font-bold leading-snug text-brand-dark sm:text-base">{{ $item->product->name }}</h4>
+                                        <h4 class="mb-1 text-sm font-bold leading-snug text-brand-dark sm:text-base">{{ $item->product_name }}</h4>
                                         @if ($item->variant)
                                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">
                                                 VARIAN: {{ $item->variant->name ?? 'Default' }}
