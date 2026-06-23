@@ -72,8 +72,7 @@
                                                 </div>
                                                 <p class="font-extrabold text-brand-dark">{{ $address->receiver_name }} <span class="font-semibold text-gray-400">| {{ $address->phone }}</span></p>
                                                 <p class="text-sm text-gray-600 leading-relaxed mt-2">
-                                                    {{ $address->address }}, {{ $address->subdistrict }}, {{ $address->district }},
-                                                    {{ $address->city }}, {{ $address->province }}, {{ $address->postal_code }}
+                                                    {{ collect([$address->address, $address->subdistrict, $address->district, $address->city, $address->province, $address->postal_code])->filter()->implode(', ') }}
                                                 </p>
                                             </div>
                                         </div>
@@ -517,6 +516,7 @@
                     <div id="address-new-section" class="hidden">
                         <form action="{{ route('addresses.store') }}" method="POST" class="space-y-4">
                             @csrf
+                            <input type="hidden" name="is_default" value="1">
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
@@ -734,9 +734,15 @@
 
             // ─── ADDRESS MODAL ───────────────────────────────────────────────────
 
+            function syncBottomBar() {
+                const anyModalOpen = !$('#addressModal').hasClass('hidden') || !$('#shippingModal').hasClass('hidden');
+                $('.mobile-bottom-action-bar').toggleClass('hidden', anyModalOpen);
+            }
+
             window.toggleAddressModal = function () {
                 $('#addressModal').toggleClass('hidden');
                 $('body').toggleClass('overflow-hidden');
+                syncBottomBar();
             };
 
             window.toggleShippingModal = function (forceOpen) {
@@ -746,6 +752,7 @@
 
                 $('#shippingModal').toggleClass('hidden', !shouldOpen);
                 $('body').toggleClass('overflow-hidden', shouldOpen || !$('#addressModal').hasClass('hidden'));
+                syncBottomBar();
             };
 
             window.switchAddressTab = function (tab) {

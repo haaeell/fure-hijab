@@ -134,7 +134,7 @@ class BiteshipService
             $province = $area['administrative_division_level_1_name'] ?? $area['province_name'] ?? $area['province'] ?? null;
             $city = $area['administrative_division_level_2_name'] ?? $area['city_name'] ?? $area['city'] ?? null;
             $district = $area['administrative_division_level_3_name'] ?? $area['district_name'] ?? $area['district'] ?? null;
-            $subdistrict = $area['administrative_division_level_4_name'] ?? $area['subdistrict_name'] ?? $area['village_name'] ?? $area['name'] ?? null;
+            $subdistrict = $area['administrative_division_level_4_name'] ?? $area['subdistrict_name'] ?? $area['village_name'] ?? null;
 
             return [
                 'id' => (string) ($area['id'] ?? $area['area_id'] ?? ''),

@@ -132,6 +132,11 @@
                                             <p class="font-black text-brand-dark">
                                                 Rp{{ number_format($item->qty * $item->price, 0, ',', '.') }}</p>
                                         </div>
+                                        @if($item->note)
+                                            <p class="mt-2 text-xs text-gray-500 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 italic">
+                                                <i class="fa-regular fa-note-sticky mr-1 text-gray-400"></i>{{ $item->note }}
+                                            </p>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
@@ -200,7 +205,7 @@
                                                             </label>
                                                         </div>
 
-                                                        <button onclick="submitReview('{{ $order->order_number }}', {{ $item->id }})"
+                                                        <button type="button" onclick="submitReview({{ $order->id }}, {{ $item->id }})"
                                                             class="mt-3 px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition-all">
                                                             Kirim Ulasan
                                                         </button>
@@ -415,8 +420,7 @@
                             <p class="text-gray-500 mb-3">{{ $order->address->phone }}</p>
                             <p
                                 class="text-xs text-gray-600 leading-relaxed italic bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                {{ $order->address->address }}, {{ $order->address->subdistrict }},
-                                {{ $order->address->city }}, {{ $order->address->province }}
+                                {{ collect([$order->address->address, $order->address->subdistrict, $order->address->district ?? null, $order->address->city, $order->address->province])->filter()->implode(', ') }}
                             </p>
                         </div>
                     </div>
@@ -683,7 +687,7 @@
                 });
             });
 
-            async function submitReview(orderNumber, itemId) {
+            async function submitReview(orderId, itemId) {
                 const rating = document.getElementById('rating-' + itemId).value;
                 const comment = document.getElementById('comment-' + itemId).value;
                 const imageInput = document.getElementById('images-' + itemId);
@@ -704,7 +708,7 @@
                 }
 
                 try {
-                    const res = await fetch(`/order/${orderNumber}/review`, {
+                    const res = await fetch(`/order/${orderId}/review`, {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
