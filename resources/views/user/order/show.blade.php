@@ -205,7 +205,7 @@
                                                             </label>
                                                         </div>
 
-                                                        <button type="button" onclick="submitReview({{ $order->id }}, {{ $item->id }})"
+                                                        <button type="button" onclick="submitReview({{ $item->id }})"
                                                             class="mt-3 px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition-all">
                                                             Kirim Ulasan
                                                         </button>
@@ -415,14 +415,19 @@
                             class="font-bold text-brand-dark mb-4 text-xs uppercase tracking-widest flex items-center gap-2">
                             <i class="fa-solid fa-location-dot text-brand-primary"></i> Alamat Pengiriman
                         </h4>
-                        <div class="text-sm">
+                        @if($order->address)
+                        <div class="text-sm space-y-1">
                             <p class="font-black text-brand-dark">{{ $order->address->receiver_name }}</p>
-                            <p class="text-gray-500 mb-3">{{ $order->address->phone }}</p>
-                            <p
-                                class="text-xs text-gray-600 leading-relaxed italic bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                {{ collect([$order->address->address, $order->address->subdistrict, $order->address->district ?? null, $order->address->city, $order->address->province])->filter()->implode(', ') }}
-                            </p>
+                            <p class="text-gray-500">{{ $order->address->phone }}</p>
+                            <div class="mt-3 bg-gray-50 rounded-xl border border-gray-100 p-3 space-y-0.5 text-xs text-gray-600 leading-relaxed">
+                                <p>{{ $order->address->address }}</p>
+                                <p>{{ collect([$order->address->subdistrict, $order->address->district, $order->address->city])->filter()->implode(', ') }}</p>
+                                <p>{{ $order->address->province }}{{ $order->address->postal_code ? ' ' . $order->address->postal_code : '' }}</p>
+                            </div>
                         </div>
+                        @else
+                        <p class="text-xs text-gray-400">Alamat tidak tersedia.</p>
+                        @endif
                     </div>
 
                     {{-- KONFIRMASI SELESAI --}}
@@ -687,7 +692,7 @@
                 });
             });
 
-            async function submitReview(orderId, itemId) {
+            async function submitReview(itemId) {
                 const rating = document.getElementById('rating-' + itemId).value;
                 const comment = document.getElementById('comment-' + itemId).value;
                 const imageInput = document.getElementById('images-' + itemId);
@@ -708,7 +713,7 @@
                 }
 
                 try {
-                    const res = await fetch(`/order/${orderId}/review`, {
+                    const res = await fetch('/reviews/submit', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,

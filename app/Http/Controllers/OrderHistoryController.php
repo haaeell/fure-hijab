@@ -116,11 +116,8 @@ class OrderHistoryController extends Controller
         return redirect()->route('order.history.show', $order->order_number)->with('success', 'Pesanan berhasil dibatalkan.');
     }
 
-    public function submitReview(Request $request, Order $order)
+    public function submitReview(Request $request)
     {
-        abort_if($order->user_id !== Auth::id(), 403);
-        abort_if($order->status !== 'delivered', 403);
-
         $request->validate([
             'order_item_id' => 'required|exists:order_items,id',
             'rating'        => 'required|integer|min:1|max:5',
@@ -129,7 +126,8 @@ class OrderHistoryController extends Controller
             'images.*'      => 'image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $item = $order->items()->findOrFail($request->order_item_id);
+        $item = \App\Models\OrderItem::findOrFail($request->order_item_id);
+        $order = $item->order;
 
         if (Review::where('order_item_id', $item->id)->exists()) {
             return response()->json(['message' => 'Sudah pernah direview'], 422);

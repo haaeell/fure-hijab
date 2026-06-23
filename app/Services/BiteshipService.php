@@ -72,12 +72,13 @@ class BiteshipService
             'delivery_type' => 'now',
             'order_note' => $order->notes,
             'items' => $order->items->map(function ($item) {
+                $weight = max(1, (int) ceil((float) ($item->variant?->weight ?: $item->product?->weight ?: 10)));
                 return [
                     'name' => $item->product_name,
                     'description' => $item->variant_name ?: $item->product_name,
                     'value' => (int) $item->price,
                     'quantity' => (int) $item->qty,
-                    'weight' => (int) ($item->product->weight ?: 1000),
+                    'weight' => $weight,
                     'length' => 20,
                     'width' => 20,
                     'height' => 5,

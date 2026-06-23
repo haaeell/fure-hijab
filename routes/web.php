@@ -323,6 +323,6 @@ Route::middleware(['auth'])->group(function () {
         });
 
         // Review submission (customer only)
-        Route::post('/order/{order}/review', [OrderHistoryController::class, 'submitReview'])->name('order.review.store');
+        Route::post('/reviews/submit', [OrderHistoryController::class, 'submitReview'])->name('reviews.submit');
     });
 });
