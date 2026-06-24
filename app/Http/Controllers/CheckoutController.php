@@ -192,6 +192,12 @@ class CheckoutController extends Controller
             ->where('user_id', Auth::id())
             ->first();
 
+        // Filter to only selected items — must match what goes into the order
+        $selectedIds = session('checkout_selected_items');
+        if ($cart && $selectedIds && count($selectedIds)) {
+            $cart->setRelation('items', $cart->items->whereIn('id', $selectedIds)->values());
+        }
+
         $weight = $cart ? $this->cartWeight($cart) : 0;
 
         if ($weight <= 0) {
