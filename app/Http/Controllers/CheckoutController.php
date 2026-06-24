@@ -169,14 +169,19 @@ class CheckoutController extends Controller
             'couriers' => 'required|array|min:1',
         ]);
 
+        $originAreaId = \App\Models\Setting::getValue('biteship_origin_area_id', config('services.biteship.origin_area_id'));
+        if (blank($originAreaId)) {
+            return response()->json(['error' => 'Konfigurasi asal pengiriman (Origin Area ID) belum diatur. Hubungi admin.'], 503);
+        }
+
         $address = Auth::user()->addresses()->where('is_default', true)->first();
 
         if (!$address) {
             return response()->json(['error' => 'Alamat pengiriman belum dipilih.'], 400);
         }
 
-        if (!$address->postal_code) {
-            return response()->json(['error' => 'Kode pos alamat belum diisi. Biteship membutuhkan kode pos tujuan.'], 400);
+        if (!$address->biteship_area_id && !$address->postal_code) {
+            return response()->json(['error' => 'Alamat tujuan belum lengkap. Pastikan kode pos atau area tersedia.'], 400);
         }
 
         $cart = Cart::with([
@@ -518,7 +523,7 @@ class CheckoutController extends Controller
 
     private function itemWeight($item): int
     {
-        $weight = $item->variant?->weight ?: $item->product?->weight ?: 10;
+        $weight = $item->variant?->weight ?: $item->product?->weight ?: 300;
 
         return max(1, (int) ceil((float) $weight));
     }

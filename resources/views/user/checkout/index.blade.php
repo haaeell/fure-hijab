@@ -400,6 +400,61 @@
 
                 <div class="overflow-y-auto p-5 md:p-6">
                     @php
+                        $originName    = \App\Models\Setting::getValue('biteship_origin_contact_name', config('services.biteship.origin_contact_name'));
+                        $originAddress = \App\Models\Setting::getValue('biteship_origin_address', config('services.biteship.origin_address'));
+                        $originPostal  = \App\Models\Setting::getValue('biteship_origin_postal_code', config('services.biteship.origin_postal_code'));
+                        $originLabel   = \App\Models\Setting::getValue('biteship_origin_area_label');
+                    @endphp
+
+                    @if($address)
+                    <div class="mb-5 rounded-2xl bg-gradient-to-r from-blue-50 to-soft-mint border border-brand-primary/15 p-4">
+                        <p class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-primary mb-3">Rute Pengiriman</p>
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <span class="w-5 h-5 rounded-lg bg-brand-primary/10 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-store text-brand-primary" style="font-size:9px"></i>
+                                    </span>
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-gray-400">Dari</span>
+                                </div>
+                                <p class="text-xs font-bold text-brand-dark truncate">{{ $originName ?: 'Toko' }}</p>
+                                <p class="text-[10px] text-gray-500 truncate leading-relaxed">
+                                    {{ collect([$originLabel ?: $originAddress, $originPostal])->filter()->implode(' · ') ?: '—' }}
+                                </p>
+                            </div>
+
+                            <div class="shrink-0 flex flex-col items-center gap-1">
+                                <div class="w-px h-4 bg-gray-200"></div>
+                                <span class="w-6 h-6 rounded-full bg-brand-dark flex items-center justify-center">
+                                    <i class="fa-solid fa-arrow-right text-white" style="font-size:8px"></i>
+                                </span>
+                                <div class="w-px h-4 bg-gray-200"></div>
+                            </div>
+
+                            <div class="flex-1 min-w-0 text-right">
+                                <div class="flex items-center justify-end gap-1.5 mb-1">
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-gray-400">Ke</span>
+                                    <span class="w-5 h-5 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-location-dot text-emerald-500" style="font-size:9px"></i>
+                                    </span>
+                                </div>
+                                <p class="text-xs font-bold text-brand-dark truncate">{{ $address->receiver_name }}</p>
+                                <p class="text-[10px] text-gray-500 truncate leading-relaxed">
+                                    {{ collect([$address->district, $address->city, $address->province])->filter()->implode(', ') ?: $address->address }}
+                                </p>
+                            </div>
+                        </div>
+
+                        @if(!$address->biteship_area_id)
+                        <div class="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xs shrink-0"></i>
+                            <p class="text-[10px] font-semibold text-amber-700">Alamat tujuan bersifat manual — ongkir dihitung berdasarkan kode pos.</p>
+                        </div>
+                        @endif
+                    </div>
+                    @endif
+
+                    @php
                         $courierBadge = [
                             'jne'       => ['icon' => 'fa-box',        'color' => 'text-red-600',    'bg' => 'bg-red-50'],
                             'jnt'       => ['icon' => 'fa-truck-fast', 'color' => 'text-red-700',    'bg' => 'bg-red-50'],
