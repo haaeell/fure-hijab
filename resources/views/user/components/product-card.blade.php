@@ -1,16 +1,20 @@
 @props(['product', 'isFlashSale' => false])
 
 @php
-    $displayPrice = $product->has_variant && $product->variants->count() > 0
-        ? $product->variants->first()->price
-        : $product->price;
+    if ($product->has_variant && $product->variants->count() > 0) {
+        $priceMin  = $product->variants->min('price');
+        $priceMax  = $product->variants->max('price');
+        $isRange   = $priceMin !== $priceMax;
+        $displayComparePrice = $product->variants->first()->compare_price ?? null;
+    } else {
+        $priceMin  = $product->price;
+        $priceMax  = null;
+        $isRange   = false;
+        $displayComparePrice = $product->compare_price ?? null;
+    }
 
-    $displayComparePrice = $product->has_variant && $product->variants->count() > 0
-        ? $product->variants->first()->compare_price
-        : $product->compare_price;
-
-    $hasDiscount = $displayComparePrice > $displayPrice;
-    $diskon      = $hasDiscount ? round((($displayComparePrice - $displayPrice) / $displayComparePrice) * 100) : 0;
+    $hasDiscount = $displayComparePrice && $displayComparePrice > $priceMin;
+    $diskon      = $hasDiscount ? round((($displayComparePrice - $priceMin) / $displayComparePrice) * 100) : 0;
     $isOutOfStock = $product->stock <= 0;
 
     $primaryImage = $product->images->where('is_primary', true)->first() ?? $product->images->first();
@@ -65,11 +69,11 @@
             </h3>
 
             <div class="mt-auto flex items-end justify-between gap-2">
-                <div class="space-y-0">
-                    <p class="whitespace-nowrap text-sm font-bold text-brand-dark md:text-base">
-                        Rp{{ number_format($displayPrice, 0, ',', '.') }}
+                <div class="space-y-0 min-w-0">
+                    <p class="text-sm font-bold text-brand-dark md:text-base leading-tight">
+                        Rp{{ number_format($priceMin, 0, ',', '.') }}@if($isRange)<span class="text-brand-dark/50 font-semibold"> &ndash; Rp{{ number_format($priceMax, 0, ',', '.') }}</span>@endif
                     </p>
-                    @if($hasDiscount)
+                    @if($hasDiscount && !$isRange)
                         <p class="text-[10px] text-brand-dark/35 line-through md:text-xs">
                             Rp{{ number_format($displayComparePrice, 0, ',', '.') }}
                         </p>

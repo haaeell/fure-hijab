@@ -13,10 +13,12 @@ class ProductVariant extends Model
         'product_id',
         'name',
         'price',
+        'purchase_price',
+        'compare_price',
         'stock',
         'sku',
         'image',
-        'weight'
+        'weight',
     ];
 
     public function product()

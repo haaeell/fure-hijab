@@ -351,7 +351,11 @@
                                 <h3 class="mt-2 line-clamp-2 text-base font-semibold leading-snug">{{ $product->name }}
                                 </h3>
                                 <p class="mt-3 text-sm font-bold">
-                                    Rp{{ number_format($product->has_variant && $product->variants->count() > 0 ? $product->variants->first()->price : $product->price, 0, ',', '.') }}
+                                    @php
+                                        $bsPriceMin = $product->has_variant && $product->variants->count() > 0 ? $product->variants->min('price') : $product->price;
+                                        $bsPriceMax = $product->has_variant && $product->variants->count() > 0 ? $product->variants->max('price') : null;
+                                    @endphp
+                                    Rp{{ number_format($bsPriceMin, 0, ',', '.') }}@if($bsPriceMax && $bsPriceMax !== $bsPriceMin)<span class="font-medium text-brand-dark/55"> &ndash; Rp{{ number_format($bsPriceMax, 0, ',', '.') }}</span>@endif
                                 </p>
                                 <span class="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-brand-primary">View
                                     this product</span>

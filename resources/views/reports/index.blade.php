@@ -89,8 +89,21 @@
             <div class="w-12 h-12 bg-soft-mint rounded-2xl flex items-center justify-center text-brand-primary mb-4">
                 <i class="fa-solid fa-wallet text-xl"></i>
             </div>
-            <p class="text-gray-400 text-[10px] font-black uppercase tracking-widest">Revenue</p>
+            <p class="text-gray-400 text-[10px] font-black uppercase tracking-widest">Omzet</p>
             <h3 class="text-2xl font-extrabold text-brand-dark mt-1">Rp {{ number_format($summary['revenue'], 0, ',', '.') }}</h3>
+            <p class="text-[10px] text-gray-400 mt-1">HPP Rp {{ number_format($summary['cogs'], 0, ',', '.') }}</p>
+        </div>
+        <div class="bg-white rounded-[28px] p-6 border border-gray-50 shadow-sm">
+            <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 mb-4">
+                <i class="fa-solid fa-chart-line text-xl"></i>
+            </div>
+            <p class="text-gray-400 text-[10px] font-black uppercase tracking-widest">Profit Bersih</p>
+            <h3 class="text-2xl font-extrabold {{ $summary['profit'] >= 0 ? 'text-emerald-600' : 'text-red-500' }} mt-1">
+                Rp {{ number_format($summary['profit'], 0, ',', '.') }}
+            </h3>
+            <p class="text-[10px] {{ $summary['profit'] >= 0 ? 'text-emerald-400' : 'text-red-400' }} mt-1">
+                Margin {{ $summary['margin'] }}%
+            </p>
         </div>
         <div class="bg-white rounded-[28px] p-6 border border-gray-50 shadow-sm">
             <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 mb-4">
@@ -98,6 +111,7 @@
             </div>
             <p class="text-gray-400 text-[10px] font-black uppercase tracking-widest">Total Pesanan</p>
             <h3 class="text-2xl font-extrabold text-brand-dark mt-1">{{ number_format($summary['orders']) }}</h3>
+            <p class="text-[10px] text-gray-400 mt-1">Avg Rp {{ number_format($summary['average_order'], 0, ',', '.') }}</p>
         </div>
         <div class="bg-white rounded-[28px] p-6 border border-gray-50 shadow-sm">
             <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mb-4">
@@ -105,13 +119,7 @@
             </div>
             <p class="text-gray-400 text-[10px] font-black uppercase tracking-widest">Item Terjual</p>
             <h3 class="text-2xl font-extrabold text-brand-dark mt-1">{{ number_format($summary['items_sold']) }}</h3>
-        </div>
-        <div class="bg-white rounded-[28px] p-6 border border-gray-50 shadow-sm">
-            <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-500 mb-4">
-                <i class="fa-solid fa-receipt text-xl"></i>
-            </div>
-            <p class="text-gray-400 text-[10px] font-black uppercase tracking-widest">Rata-rata Order</p>
-            <h3 class="text-2xl font-extrabold text-brand-dark mt-1">Rp {{ number_format($summary['average_order'], 0, ',', '.') }}</h3>
+            <p class="text-[10px] text-gray-400 mt-1">{{ number_format($summary['customers']) }} pelanggan</p>
         </div>
     </div>
 
@@ -119,8 +127,8 @@
         <div class="xl:col-span-2 bg-white rounded-[32px] p-6 border border-gray-50 shadow-sm">
             <div class="flex items-center justify-between mb-5">
                 <div>
-                    <h2 class="text-lg font-extrabold text-brand-dark">Tren Penjualan</h2>
-                    <p class="text-xs text-gray-400 font-medium">Pendapatan per bulan dalam periode filter.</p>
+                    <h2 class="text-lg font-extrabold text-brand-dark">Grafik Omzet & Profit</h2>
+                    <p class="text-xs text-gray-400 font-medium">Omzet dan profit per bulan dalam periode filter.</p>
                 </div>
             </div>
             <div id="reportSalesChart" class="min-h-[320px]"></div>
@@ -217,11 +225,17 @@
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">Order</th>
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">Pelanggan</th>
                             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">Status</th>
-                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">Total</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">Omzet</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">Profit</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
                         @forelse ($latestOrders as $order)
+                            @php
+                                $orderProfit = in_array($order->status, ['confirmed','processing','shipped','delivered'])
+                                    ? (float) $order->total - (float) ($orderCogs[$order->id] ?? 0)
+                                    : null;
+                            @endphp
                             <tr>
                                 <td class="px-6 py-4">
                                     <a href="{{ route('orders.show', $order->id) }}" class="text-sm font-black text-brand-primary">{{ $order->order_number }}</a>
@@ -230,9 +244,18 @@
                                 <td class="px-6 py-4 text-sm font-bold text-gray-700">{{ $order->user->name ?? '-' }}</td>
                                 <td class="px-6 py-4 text-xs font-black text-gray-500 uppercase">{{ $order->status_label }}</td>
                                 <td class="px-6 py-4 text-sm font-extrabold text-brand-dark">Rp {{ number_format($order->total, 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 text-sm font-extrabold">
+                                    @if($orderProfit !== null)
+                                        <span class="{{ $orderProfit >= 0 ? 'text-emerald-600' : 'text-red-500' }}">
+                                            Rp {{ number_format($orderProfit, 0, ',', '.') }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-300">—</span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-6 py-8 text-center text-sm text-gray-400">Belum ada pesanan.</td></tr>
+                            <tr><td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400">Belum ada pesanan.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -263,33 +286,50 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
+        const rupiah = v => v >= 1000000 ? 'Rp ' + (v / 1000000).toFixed(1) + 'jt' : 'Rp ' + Math.round(v).toLocaleString('id-ID');
+
         const reportSalesChart = new ApexCharts(document.querySelector("#reportSalesChart"), {
-            series: [{
-                name: 'Revenue',
-                data: @json($salesTrend->pluck('total_amount')->map(fn ($value) => (float) $value))
-            }, {
-                name: 'Pesanan',
-                data: @json($salesTrend->pluck('total_orders')->map(fn ($value) => (int) $value))
-            }],
-            chart: { type: 'area', height: 330, toolbar: { show: false }, zoom: { enabled: false } },
-            colors: ['#81C784', '#60A5FA'],
+            series: [
+                {
+                    name: 'Omzet',
+                    type: 'bar',
+                    data: @json($salesTrend->pluck('total_amount')->map(fn ($v) => (float) $v))
+                },
+                {
+                    name: 'Profit',
+                    type: 'line',
+                    data: @json($salesTrend->pluck('total_profit')->map(fn ($v) => (float) $v))
+                }
+            ],
+            chart: { height: 330, toolbar: { show: false }, zoom: { enabled: false } },
+            colors: ['#81C784', '#34D399'],
             dataLabels: { enabled: false },
-            stroke: { curve: 'smooth', width: 3 },
-            fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.02 } },
+            stroke: { curve: 'smooth', width: [0, 3] },
+            fill: {
+                type: ['solid', 'gradient'],
+                gradient: { opacityFrom: 0.6, opacityTo: 0.1 }
+            },
+            plotOptions: { bar: { borderRadius: 6, columnWidth: '55%' } },
             xaxis: {
                 categories: @json($salesTrend->pluck('period')),
                 axisBorder: { show: false },
-                axisTicks: { show: false }
+                axisTicks: { show: false },
+                labels: { style: { fontFamily: 'Poppins', fontSize: '11px' } }
             },
-            yaxis: {
-                labels: {
-                    formatter: function (value) {
-                        return value >= 1000000 ? 'Rp ' + (value / 1000000).toFixed(1) + 'jt' : value.toFixed(0);
-                    }
+            yaxis: [
+                {
+                    seriesName: 'Omzet',
+                    labels: { formatter: rupiah, style: { fontFamily: 'Poppins', fontSize: '11px' } }
+                },
+                {
+                    seriesName: 'Profit',
+                    opposite: true,
+                    labels: { formatter: rupiah, style: { fontFamily: 'Poppins', fontSize: '11px' } }
                 }
-            },
+            ],
+            tooltip: { y: { formatter: rupiah } },
             grid: { borderColor: '#F1F5F9' },
-            legend: { fontFamily: 'Poppins' }
+            legend: { fontFamily: 'Poppins', position: 'top' }
         });
 
         reportSalesChart.render();

@@ -131,7 +131,7 @@
                             <td class="px-4 py-5">
                                 <div class="font-bold text-brand-dark">{{ $product->name }}</div>
                                 @if($product->sku)
-                                    <div class="text-[10px] text-gray-400 font-mono mt-0.5">SKU: {{ $product->sku }}</div>
+                                    <div class="text-[10px] text-gray-400 font-mono mt-0.5">Kode: {{ $product->sku }}</div>
                                 @endif
                                 @if($product->short_description)
                                     <div class="text-[10px] text-gray-400 mt-0.5 max-w-[200px] truncate">{{ $product->short_description }}</div>
@@ -151,15 +151,33 @@
                                 @endif
                             </td>
                             <td class="px-4 py-5">
-                                <div class="font-bold text-brand-dark text-sm">Rp {{ number_format($product->price, 0, ',', '.') }}</div>
-                                @if($product->compare_price)
-                                    <div class="text-[10px] text-gray-400 line-through mt-0.5">Rp {{ number_format($product->compare_price, 0, ',', '.') }}</div>
-                                @endif
-                                @if($product->modal_price)
-                                    <div class="text-[10px] text-amber-500 mt-0.5 font-semibold">
-                                        <i class="fa-solid fa-arrow-trend-up text-[8px]"></i>
-                                        Margin: Rp {{ number_format($product->price - $product->modal_price, 0, ',', '.') }}
+                                @if($product->has_variant)
+                                    @php
+                                        $vMin = $product->variants_min_price;
+                                        $vMax = $product->variants_max_price;
+                                    @endphp
+                                    <div class="font-bold text-brand-dark text-sm">
+                                        @if($vMin || $vMax)
+                                            Rp {{ number_format($vMin, 0, ',', '.') }}
+                                            @if($vMax && $vMax != $vMin)
+                                                &ndash; Rp {{ number_format($vMax, 0, ',', '.') }}
+                                            @endif
+                                        @else
+                                            <span class="text-gray-300 font-medium text-xs">Belum diisi</span>
+                                        @endif
                                     </div>
+                                    <div class="text-[10px] text-blue-400 mt-0.5">{{ $product->variants_count }} varian</div>
+                                @else
+                                    <div class="font-bold text-brand-dark text-sm">Rp {{ number_format($product->price, 0, ',', '.') }}</div>
+                                    @if($product->compare_price)
+                                        <div class="text-[10px] text-gray-400 line-through mt-0.5">Rp {{ number_format($product->compare_price, 0, ',', '.') }}</div>
+                                    @endif
+                                    @if($product->modal_price)
+                                        <div class="text-[10px] text-amber-500 mt-0.5 font-semibold">
+                                            <i class="fa-solid fa-arrow-trend-up text-[8px]"></i>
+                                            Margin: Rp {{ number_format($product->price - $product->modal_price, 0, ',', '.') }}
+                                        </div>
+                                    @endif
                                 @endif
                             </td>
                             <td class="px-4 py-5">
@@ -310,9 +328,9 @@
                                 </div>
                             </div>
 
-                            {{-- SKU --}}
+                            {{-- Kode --}}
                             <div class="space-y-1.5">
-                                <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">SKU <span class="text-gray-300">(Opsional)</span></label>
+                                <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">KODE <span class="text-gray-300">(Opsional)</span></label>
                                 <div class="relative group">
                                     <i class="fa-solid fa-barcode absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-primary transition-colors text-xs"></i>
                                     <input type="text" name="sku" id="productSku" placeholder="Kode unik produk..."
@@ -422,17 +440,29 @@
                             <p id="marginNote" class="text-[10px] text-gray-400 mt-2 text-center font-semibold"></p>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {{-- Info: harga & stok dikelola di varian (tampil saat varian aktif) --}}
+                        <div class="hidden" id="variantPriceInfo">
+                            <div class="flex items-start gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                                <i class="fa-solid fa-circle-info text-blue-400 mt-0.5"></i>
+                                <p class="text-xs text-blue-700 font-semibold leading-relaxed">
+                                    Produk ini menggunakan varian. <strong>Harga jual, harga beli, harga coret, dan stok</strong>
+                                    dikelola per varian — atur di tab
+                                    <button type="button" onclick="switchTab('variants')" class="underline font-black">Varian</button>.
+                                    <br><span class="text-blue-500 font-normal">Harga produk utama akan otomatis diambil dari harga varian terendah.</span>
+                                </p>
+                            </div>
+                        </div>
 
-                            {{-- Harga Modal (BARU) --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="productPriceFields">
+
+                            {{-- Harga Modal / HPP --}}
                             <div class="md:col-span-2 space-y-1.5">
                                 <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">HARGA MODAL / HPP</label>
                                 <p class="ml-1 text-[10px] text-gray-400">Harga Pokok Penjualan. Tidak ditampilkan ke publik, hanya untuk kalkulasi margin.</p>
                                 <div class="relative group">
                                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-black">Rp</span>
                                     <input type="text" name="modal_price" id="productModalPrice"
-                                        placeholder="0"
-                                        inputmode="numeric"
+                                        placeholder="0" inputmode="numeric"
                                         class="w-full pl-10 pr-4 py-3 bg-amber-50/50 border border-amber-200 rounded-2xl focus:ring-4 focus:ring-amber-200/50 focus:border-amber-400 focus:bg-white outline-none transition-all text-sm font-semibold"
                                         oninput="formatRupiah(this); recalcMargin()">
                                 </div>
@@ -444,8 +474,7 @@
                                 <div class="relative group">
                                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-black">Rp</span>
                                     <input type="text" name="price" id="productPrice" required
-                                        placeholder="0"
-                                        inputmode="numeric"
+                                        placeholder="0" inputmode="numeric"
                                         class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary focus:bg-white outline-none transition-all text-sm font-semibold"
                                         oninput="formatRupiah(this); recalcMargin()">
                                 </div>
@@ -457,15 +486,17 @@
                                 <div class="relative group">
                                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-black line-through">Rp</span>
                                     <input type="text" name="compare_price" id="productComparePrice"
-                                        placeholder="0"
-                                        inputmode="numeric"
+                                        placeholder="0" inputmode="numeric"
                                         class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary focus:bg-white outline-none transition-all text-sm font-semibold"
-                                        oninput="formatRupiah(this)">
+                                        oninput="formatRupiah(this); validateComparePrice()">
                                 </div>
+                                <p id="comparePriceError" class="hidden ml-1 text-[10px] text-red-500 font-semibold">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Harga coret harus lebih besar dari harga jual.
+                                </p>
                                 <p class="ml-1 text-[10px] text-gray-400">Tampil sebagai harga coret untuk promo diskon.</p>
                             </div>
 
-                            {{-- Stok (hidden jika has_variant) --}}
+                            {{-- Stok --}}
                             <div class="space-y-1.5 md:col-span-2" id="stockField">
                                 <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">STOK <span class="text-red-400">*</span></label>
                                 <div class="relative group">
@@ -476,14 +507,6 @@
                                 </div>
                                 <div id="stockWarning" class="hidden ml-1 flex items-center gap-1.5 text-[10px] text-red-500 font-semibold">
                                     <i class="fa-solid fa-triangle-exclamation"></i> Stok menipis! Segera restok produk.
-                                </div>
-                            </div>
-
-                            {{-- Info: stok dikelola di varian --}}
-                            <div class="md:col-span-2 hidden" id="variantStockInfo">
-                                <div class="flex items-center gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                                    <i class="fa-solid fa-circle-info text-blue-400"></i>
-                                    <p class="text-xs text-blue-600 font-semibold">Stok dan harga dikelola per varian. Atur di tab <button type="button" onclick="switchTab('variants')" class="underline font-black">Varian</button>.</p>
                                 </div>
                             </div>
 
@@ -561,7 +584,7 @@
                             {{-- Variant summary --}}
                             <div id="variantSummary" class="hidden bg-gray-50 rounded-2xl p-4 border border-gray-100">
                                 <p class="text-[10px] font-black text-gray-400 tracking-widest mb-3">RINGKASAN VARIAN</p>
-                                <div class="grid grid-cols-3 gap-3 text-center">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
                                     <div>
                                         <p class="text-[9px] text-gray-400 font-bold">TOTAL STOK</p>
                                         <p id="sumStok" class="text-lg font-extrabold text-brand-dark">0</p>
@@ -573,6 +596,10 @@
                                     <div>
                                         <p class="text-[9px] text-gray-400 font-bold">HARGA MAX</p>
                                         <p id="sumHargaMax" class="text-lg font-extrabold text-brand-dark">Rp 0</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[9px] text-gray-400 font-bold">MARGIN MIN</p>
+                                        <p id="sumMarginMin" class="text-lg font-extrabold text-emerald-600">-</p>
                                     </div>
                                 </div>
                             </div>
@@ -755,20 +782,21 @@
                 $('[name="description"][type="hidden"]').remove();
                 $('<input>').attr({ type: 'hidden', name: 'description', value: getDescriptionData() }).appendTo('#productForm');
 
-                // Price fields — disable formatted input, inject clean integer
-                const priceMap = {
-                    productModalPrice:   'modal_price',
-                    productPrice:        'price',
-                    productComparePrice: 'compare_price',
-                };
-                Object.entries(priceMap).forEach(([elId, fieldName]) => {
-                    const $el  = $('#' + elId);
-                    const raw  = parseRupiah($el.val());
-                    $el.prop('name', ''); // stop original from submitting
-                    $('[name="' + fieldName + '"][type="hidden"]').remove(); // idempotent
-                    // Always inject even if 0 so the backend can clear/zero the field
-                    $('<input>').attr({ type: 'hidden', name: fieldName, value: raw }).appendTo('#productForm');
-                });
+                // Price fields — only inject when NOT in variant mode
+                if (!$('#hasVariant').is(':checked')) {
+                    const priceMap = {
+                        productModalPrice:   'modal_price',
+                        productPrice:        'price',
+                        productComparePrice: 'compare_price',
+                    };
+                    Object.entries(priceMap).forEach(([elId, fieldName]) => {
+                        const $el = $('#' + elId);
+                        const raw = parseRupiah($el.val());
+                        $el.prop('name', '');
+                        $('[name="' + fieldName + '"][type="hidden"]').remove();
+                        $('<input>').attr({ type: 'hidden', name: fieldName, value: raw }).appendTo('#productForm');
+                    });
+                }
 
                 buildVariantsHidden();
                 $('#submitBtn').prop('disabled', true).addClass('opacity-70');
@@ -906,18 +934,28 @@
         function toggleVariantMode() {
             const active = $('#hasVariant').is(':checked');
             if (active) {
-                $('#stockField').addClass('hidden');
+                $('#productPriceFields').addClass('hidden');
+                $('#productPrice').removeAttr('required');
                 $('#productStock').removeAttr('required');
-                $('#variantStockInfo').removeClass('hidden');
+                $('#variantPriceInfo').removeClass('hidden');
+                $('#marginCard').addClass('hidden');
                 $('#variantDisabledNote').addClass('hidden');
                 $('#variantBuilder').removeClass('hidden');
             } else {
-                $('#stockField').removeClass('hidden');
+                $('#productPriceFields').removeClass('hidden');
+                $('#productPrice').attr('required', 'required');
                 $('#productStock').attr('required', 'required');
-                $('#variantStockInfo').addClass('hidden');
+                $('#variantPriceInfo').addClass('hidden');
                 $('#variantDisabledNote').removeClass('hidden');
                 $('#variantBuilder').addClass('hidden');
             }
+        }
+
+        function validateComparePrice() {
+            const cp = parseRupiah($('#productComparePrice').val());
+            const p  = parseRupiah($('#productPrice').val());
+            const invalid = cp > 0 && p > 0 && cp <= p;
+            $('#comparePriceError').toggleClass('hidden', !invalid);
         }
 
         // ══════════════════════════════════════════════════════
@@ -1000,9 +1038,10 @@
                         <div class="flex items-center gap-2 flex-shrink-0">
                             ${!isPrimary ? `
                             <button type="button" onclick="setPrimaryImg(${productId}, ${img.id})"
-                                class="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-black tracking-widest rounded-xl border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-400 hover:text-white hover:border-amber-400 transition-all">
+                                class="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-black tracking-widest rounded-xl border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-400 hover:text-white hover:border-amber-400 transition-all"
+                                title="Jadikan foto utama">
                                 <i class="fa-solid fa-star text-[9px]"></i>
-                                <span class="hidden sm:inline">Utama</span>
+                                <span>Jadikan Foto Utama</span>
                             </button>` : ''}
 
                             <label class="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-black tracking-widest rounded-xl border border-blue-100 bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all cursor-pointer">
@@ -1151,15 +1190,16 @@
                 return acc.flatMap(combo => type.values.map(v => [...combo, { name: type.name, value: v }]));
             }, []);
 
-            // Preserve existing prices if variant names match
+            // Preserve existing values if variant names match
             const existingMap = {};
             variantRows.forEach(row => {
                 const $r = $(`#variant-row-${row.id}`);
                 existingMap[$r.find('.variant-name').val()] = {
-                    // Store as raw integer so addManualVariant re-formats correctly
-                    price: parseRupiah($r.find('.variant-price').val()),
-                    stock: $r.find('.variant-stock').val(),
-                    sku:   $r.find('.variant-sku').val(),
+                    price:          parseRupiah($r.find('.variant-price').val()),
+                    purchase_price: parseRupiah($r.find('.variant-purchase-price').val()),
+                    compare_price:  parseRupiah($r.find('.variant-compare-price').val()),
+                    stock:          $r.find('.variant-stock').val(),
+                    sku:            $r.find('.variant-sku').val(),
                 };
             });
 
@@ -1170,52 +1210,67 @@
                 const label   = combo.map(c => c.value).join(' - ');
                 const existed = existingMap[label] || {};
                 addManualVariant({
-                    name:       label,
-                    price:      existed.price || '',
-                    stock:      existed.stock || '',
-                    sku:        existed.sku || '',
-                    attributes: combo.map(c => ({ attribute_name: c.name, attribute_value: c.value }))
+                    name:           label,
+                    price:          existed.price          || '',
+                    purchase_price: existed.purchase_price || '',
+                    compare_price:  existed.compare_price  || '',
+                    stock:          existed.stock          || '',
+                    sku:            existed.sku            || '',
+                    attributes:     combo.map(c => ({ attribute_name: c.name, attribute_value: c.value }))
                 });
             });
             updateVariantSummary();
         }
 
         window.addManualVariant = function (data = null) {
-            const id     = ++varCounter;
-            const dbId   = data?.id ?? '';
-            const name   = data?.name ?? '';
-            const price  = data?.price ? Math.round(parseFloat(data.price)).toLocaleString('id-ID') : '';
-            const stock  = data?.stock ?? '';
-            const sku    = data?.sku ?? '';
-            const weight = data?.weight ?? '';
-            const attrs  = data?.attributes ?? [];
+            const id            = ++varCounter;
+            const dbId          = data?.id ?? '';
+            const name          = data?.name ?? '';
+            const price         = data?.price         ? Math.round(parseFloat(data.price)).toLocaleString('id-ID')         : '';
+            const purchasePrice = data?.purchase_price ? Math.round(parseFloat(data.purchase_price)).toLocaleString('id-ID') : '';
+            const comparePrice  = data?.compare_price  ? Math.round(parseFloat(data.compare_price)).toLocaleString('id-ID')  : '';
+            const stock         = data?.stock  ?? '';
+            const sku           = data?.sku    ?? '';
+            const weight        = data?.weight ?? '';
+            const attrs         = data?.attributes ?? [];
 
             variantRows.push({ id, dbId, attrs });
 
-            const attrsHtml = attrs.map(a =>
-                `<span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[9px] font-black rounded-lg border border-blue-100">${a.attribute_name}: ${a.attribute_value}</span>`
-            ).join('');
+            const attrPairsHtml = attrs.map(a => `
+                <div class="flex items-center gap-1.5" data-attr-pair>
+                    <input type="text" value="${a.attribute_name ?? a.name ?? ''}" placeholder="Nama (cth: Warna)"
+                        class="variant-attr-name flex-1 min-w-0 px-2 py-1.5 bg-blue-50/60 border border-blue-100 rounded-lg text-[10px] font-semibold outline-none focus:border-blue-400">
+                    <input type="text" value="${a.attribute_value ?? a.value ?? ''}" placeholder="Nilai (cth: Merah)"
+                        class="variant-attr-value flex-1 min-w-0 px-2 py-1.5 bg-blue-50/60 border border-blue-100 rounded-lg text-[10px] font-semibold outline-none focus:border-blue-400">
+                    <button type="button" onclick="$(this).closest('[data-attr-pair]').remove()"
+                        class="w-5 h-5 flex-shrink-0 flex items-center justify-center text-red-400 hover:text-red-600 transition">
+                        <i class="fa-solid fa-xmark text-[9px]"></i>
+                    </button>
+                </div>`).join('');
 
             $('#variantList').append(`
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" id="variant-row-${id}">
                     <div class="flex items-center justify-between px-4 py-3 bg-gray-50/80 border-b border-gray-100">
-                        <div class="flex items-center gap-2 flex-wrap">
+                        <div class="flex items-center gap-2">
                             <i class="fa-solid fa-grip-lines text-gray-300 text-xs"></i>
                             <span class="text-[10px] font-black text-gray-400">VARIAN #${varCounter}</span>
-                            <div class="flex gap-1 flex-wrap">${attrsHtml}</div>
                         </div>
                         <button type="button" onclick="removeVariantRow(${id})"
                             class="w-7 h-7 flex items-center justify-center bg-red-50 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all text-xs">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
-                        <div class="col-span-2 md:col-span-3 lg:col-span-4">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 p-4">
+
+                        {{-- Nama (full width) --}}
+                        <div class="col-span-2 md:col-span-3">
                             <label class="text-[9px] font-black text-gray-400 tracking-widest">NAMA VARIAN</label>
                             <input type="text" value="${name}" placeholder="cth: Merah - XL"
                                 class="variant-name w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
                                 data-id="${id}">
                         </div>
+
+                        {{-- Harga Jual --}}
                         <div>
                             <label class="text-[9px] font-black text-gray-400 tracking-widest">HARGA JUAL</label>
                             <div class="relative mt-1">
@@ -1225,34 +1280,93 @@
                                     data-id="${id}" oninput="formatRupiah(this); updateVariantSummary()">
                             </div>
                         </div>
+
+                        {{-- Harga Beli --}}
+                        <div>
+                            <label class="text-[9px] font-black text-gray-400 tracking-widest">HARGA BELI</label>
+                            <div class="relative mt-1">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-amber-400">Rp</span>
+                                <input type="text" value="${purchasePrice}" placeholder="0" inputmode="numeric"
+                                    class="variant-purchase-price w-full pl-8 pr-2 py-2.5 bg-amber-50/60 border border-amber-100 rounded-xl text-xs font-semibold outline-none focus:border-amber-400"
+                                    data-id="${id}" oninput="formatRupiah(this)">
+                            </div>
+                        </div>
+
+                        {{-- Harga Coret --}}
+                        <div>
+                            <label class="text-[9px] font-black text-gray-400 tracking-widest">HARGA CORET</label>
+                            <div class="relative mt-1">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 line-through">Rp</span>
+                                <input type="text" value="${comparePrice}" placeholder="0" inputmode="numeric"
+                                    class="variant-compare-price w-full pl-8 pr-2 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
+                                    data-id="${id}" oninput="formatRupiah(this)">
+                            </div>
+                        </div>
+
+                        {{-- Stok --}}
                         <div>
                             <label class="text-[9px] font-black text-gray-400 tracking-widest">STOK</label>
                             <input type="number" value="${stock}" placeholder="0" min="0"
                                 class="variant-stock w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
                                 data-id="${id}" oninput="updateVariantSummary()">
                         </div>
+
+                        {{-- Kode --}}
                         <div>
-                            <label class="text-[9px] font-black text-gray-400 tracking-widest">SKU</label>
-                            <input type="text" value="${sku}" placeholder="SKU-001"
+                            <label class="text-[9px] font-black text-gray-400 tracking-widest">KODE</label>
+                            <input type="text" value="${sku}" placeholder="KODE-001"
                                 class="variant-sku w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
                                 data-id="${id}">
                         </div>
+
+                        {{-- Berat --}}
                         <div>
                             <label class="text-[9px] font-black text-gray-400 tracking-widest">BERAT (gram)</label>
                             <input type="number" value="${weight}" placeholder="0" min="0"
                                 class="variant-weight w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
                                 data-id="${id}">
                         </div>
+
+                        {{-- Gambar (full width) --}}
                         <div class="col-span-2 md:col-span-3">
                             <label class="text-[9px] font-black text-gray-400 tracking-widest">GAMBAR VARIAN <span class="text-gray-300 font-normal">(Opsional)</span></label>
                             <input type="file" name="variant_image_${id}" accept="image/*"
                                 class="w-full mt-1 text-[10px] text-gray-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[9px] file:font-black file:bg-brand-primary file:text-white hover:file:bg-brand-dark transition-all cursor-pointer">
                         </div>
+
+                        {{-- Atribut (full width) --}}
+                        <div class="col-span-2 md:col-span-3">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="text-[9px] font-black text-gray-400 tracking-widest">ATRIBUT VARIAN <span class="text-[9px] font-normal text-blue-400 normal-case">(Warna, Ukuran, dll — tampil di halaman produk)</span></label>
+                                <button type="button" onclick="addVariantAttrPair(${id})"
+                                    class="text-[9px] font-black text-brand-primary hover:text-brand-dark transition flex-shrink-0">
+                                    <i class="fa-solid fa-plus text-[8px] mr-0.5"></i> Tambah
+                                </button>
+                            </div>
+                            <div id="variant-attr-pairs-${id}" class="space-y-1.5 min-h-[28px]">
+                                ${attrPairsHtml}
+                            </div>
+                        </div>
+
                     </div>
                     <input type="hidden" class="variant-db-id" data-id="${id}" value="${dbId}">
                 </div>`);
 
             updateVariantSummary();
+        }
+
+        window.addVariantAttrPair = function (id) {
+            $(`#variant-attr-pairs-${id}`).append(`
+                <div class="flex items-center gap-1.5" data-attr-pair>
+                    <input type="text" placeholder="Nama (cth: Warna)"
+                        class="variant-attr-name flex-1 min-w-0 px-2 py-1.5 bg-blue-50/60 border border-blue-100 rounded-lg text-[10px] font-semibold outline-none focus:border-blue-400">
+                    <input type="text" placeholder="Nilai (cth: Merah)"
+                        class="variant-attr-value flex-1 min-w-0 px-2 py-1.5 bg-blue-50/60 border border-blue-100 rounded-lg text-[10px] font-semibold outline-none focus:border-blue-400">
+                    <button type="button" onclick="$(this).closest('[data-attr-pair]').remove()"
+                        class="w-5 h-5 flex-shrink-0 flex items-center justify-center text-red-400 hover:text-red-600 transition">
+                        <i class="fa-solid fa-xmark text-[9px]"></i>
+                    </button>
+                </div>`);
         }
 
         window.removeVariantRow = function (id) {
@@ -1268,17 +1382,20 @@
             if (!count) { $('#variantSummary').addClass('hidden'); return; }
             $('#variantSummary').removeClass('hidden');
 
-            let totalStok = 0, prices = [];
+            let totalStok = 0, prices = [], margins = [];
             variantRows.forEach(row => {
-                const $r = $(`#variant-row-${row.id}`);
-                totalStok += parseInt($r.find('.variant-stock').val()) || 0;
-                const p = parseRupiah($r.find('.variant-price').val());
+                const $r    = $(`#variant-row-${row.id}`);
+                totalStok  += parseInt($r.find('.variant-stock').val()) || 0;
+                const p     = parseRupiah($r.find('.variant-price').val());
+                const pp    = parseRupiah($r.find('.variant-purchase-price').val());
                 if (p > 0) prices.push(p);
+                if (p > 0 && pp > 0) margins.push(p - pp);
             });
 
             $('#sumStok').text(totalStok);
             $('#sumHargaMin').text(prices.length ? rupiah(Math.min(...prices)) : 'Rp 0');
             $('#sumHargaMax').text(prices.length ? rupiah(Math.max(...prices)) : 'Rp 0');
+            $('#sumMarginMin').text(margins.length ? rupiah(Math.min(...margins)) : '-');
         }
 
         function buildVariantsHidden() {
@@ -1286,27 +1403,37 @@
             if (!$('#hasVariant').is(':checked')) return;
 
             variantRows.forEach((row, idx) => {
-                const $row  = $(`#variant-row-${row.id}`);
-                const name  = $row.find('.variant-name').val();
-                const price = parseRupiah($row.find('.variant-price').val());
-                const stock = $row.find('.variant-stock').val();
-                const sku   = $row.find('.variant-sku').val();
-                const wt    = $row.find('.variant-weight').val();
-                const dbId  = $row.find('.variant-db-id').val();
+                const $row          = $(`#variant-row-${row.id}`);
+                const name          = $row.find('.variant-name').val();
+                const price         = parseRupiah($row.find('.variant-price').val());
+                const purchasePrice = parseRupiah($row.find('.variant-purchase-price').val());
+                const comparePrice  = parseRupiah($row.find('.variant-compare-price').val());
+                const stock         = $row.find('.variant-stock').val();
+                const sku           = $row.find('.variant-sku').val();
+                const wt            = $row.find('.variant-weight').val();
+                const dbId          = $row.find('.variant-db-id').val();
 
                 const pfx = `variants[${idx}]`;
                 const add = (n, v) => $('#productForm').append(`<input type="hidden" name="${n}" value="${v}">`);
 
-                if (dbId) add(`${pfx}[id]`, dbId);
-                add(`${pfx}[name]`,  name);
-                add(`${pfx}[price]`, price);
-                add(`${pfx}[stock]`, stock);
-                if (sku) add(`${pfx}[sku]`, sku);
+                if (dbId)          add(`${pfx}[id]`,             dbId);
+                add(`${pfx}[name]`,                              name);
+                add(`${pfx}[price]`,                             price);
+                if (purchasePrice) add(`${pfx}[purchase_price]`, purchasePrice);
+                if (comparePrice)  add(`${pfx}[compare_price]`,  comparePrice);
+                add(`${pfx}[stock]`,                             stock);
+                if (sku) add(`${pfx}[sku]`,    sku);
                 if (wt)  add(`${pfx}[weight]`, wt);
 
-                row.attrs.forEach((attr, ai) => {
-                    add(`${pfx}[attributes][${ai}][name]`,  attr.attribute_name ?? attr.name);
-                    add(`${pfx}[attributes][${ai}][value]`, attr.attribute_value ?? attr.value);
+                let attrIdx = 0;
+                $row.find('[data-attr-pair]').each(function () {
+                    const attrName  = $(this).find('.variant-attr-name').val().trim();
+                    const attrValue = $(this).find('.variant-attr-value').val().trim();
+                    if (attrName && attrValue) {
+                        add(`${pfx}[attributes][${attrIdx}][name]`,  attrName);
+                        add(`${pfx}[attributes][${attrIdx}][value]`, attrValue);
+                        attrIdx++;
+                    }
                 });
             });
         }

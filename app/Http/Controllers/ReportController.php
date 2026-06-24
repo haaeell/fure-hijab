@@ -29,16 +29,23 @@ class ReportController extends Controller
         $revenueQuery = $this->filteredOrders($startDate, $endDate, $status)
             ->whereIn('status', self::REVENUE_STATUSES);
 
+        $revenue = (clone $revenueQuery)->sum('total');
+        $cogs    = $this->calcCogs($startDate, $endDate, $status);
+        $profit  = $revenue - $cogs;
+
         $summary = [
-            'revenue' => (clone $revenueQuery)->sum('total'),
-            'orders' => (clone $ordersQuery)->count(),
-            'items_sold' => OrderItem::whereHas('order', function (Builder $query) use ($startDate, $endDate, $status) {
+            'revenue'       => $revenue,
+            'cogs'          => $cogs,
+            'profit'        => $profit,
+            'margin'        => $revenue > 0 ? round(($profit / $revenue) * 100, 1) : 0,
+            'orders'        => (clone $ordersQuery)->count(),
+            'items_sold'    => OrderItem::whereHas('order', function (Builder $query) use ($startDate, $endDate, $status) {
                 $this->applyOrderFilters($query, $startDate, $endDate, $status)
                     ->whereIn('status', self::REVENUE_STATUSES);
             })->sum('qty'),
-            'customers' => (clone $ordersQuery)->distinct('user_id')->count('user_id'),
-            'discount' => (clone $ordersQuery)->sum('discount'),
-            'shipping' => (clone $ordersQuery)->sum('shipping_cost'),
+            'customers'     => (clone $ordersQuery)->distinct('user_id')->count('user_id'),
+            'discount'      => (clone $ordersQuery)->sum('discount'),
+            'shipping'      => (clone $ordersQuery)->sum('shipping_cost'),
             'average_order' => (clone $revenueQuery)->avg('total') ?: 0,
         ];
 
@@ -57,6 +64,13 @@ class ReportController extends Controller
             ->groupBy('period')
             ->orderBy('period')
             ->get();
+
+        $cogsTrend = $this->calcCogsByPeriod($startDate, $endDate, $status);
+        $salesTrend = $salesTrend->map(function ($row) use ($cogsTrend) {
+            $row->total_cogs   = (float) ($cogsTrend[$row->period] ?? 0);
+            $row->total_profit = (float) $row->total_amount - $row->total_cogs;
+            return $row;
+        });
 
         $topProducts = OrderItem::query()
             ->select(
@@ -101,6 +115,8 @@ class ReportController extends Controller
             ->limit(12)
             ->get();
 
+        $orderCogs = $this->calcCogsPerOrder($latestOrders->pluck('id')->all());
+
         $stockAlerts = Product::with(['category', 'brand'])
             ->orderBy('stock')
             ->limit(8)
@@ -119,6 +135,7 @@ class ReportController extends Controller
             'topProducts',
             'topCustomers',
             'latestOrders',
+            'orderCogs',
             'stockAlerts',
             'filters'
         ));
@@ -321,6 +338,41 @@ class ReportController extends Controller
                 $customer->created_at?->format('Y-m-d H:i:s'),
             ])
             ->all();
+    }
+
+    private function cogsQuery(Carbon $startDate, Carbon $endDate, ?string $status)
+    {
+        return OrderItem::query()
+            ->whereHas('order', function (Builder $q) use ($startDate, $endDate, $status) {
+                $this->applyOrderFilters($q, $startDate, $endDate, $status)
+                    ->whereIn('status', self::REVENUE_STATUSES);
+            });
+    }
+
+    private function calcCogs(Carbon $startDate, Carbon $endDate, ?string $status): float
+    {
+        return (float) $this->cogsQuery($startDate, $endDate, $status)
+            ->selectRaw('SUM(COALESCE(purchase_price, 0) * qty) as total_cogs')
+            ->value('total_cogs');
+    }
+
+    private function calcCogsByPeriod(Carbon $startDate, Carbon $endDate, ?string $status): \Illuminate\Support\Collection
+    {
+        return $this->cogsQuery($startDate, $endDate, $status)
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->selectRaw("DATE_FORMAT(orders.created_at, '%Y-%m') as period, SUM(COALESCE(order_items.purchase_price, 0) * order_items.qty) as total_cogs")
+            ->groupBy('period')
+            ->pluck('total_cogs', 'period');
+    }
+
+    private function calcCogsPerOrder(array $orderIds): \Illuminate\Support\Collection
+    {
+        if (empty($orderIds)) return collect();
+        return OrderItem::query()
+            ->whereIn('order_id', $orderIds)
+            ->selectRaw('order_id, SUM(COALESCE(purchase_price, 0) * qty) as order_cogs')
+            ->groupBy('order_id')
+            ->pluck('order_cogs', 'order_id');
     }
 
     private function filteredOrders(Carbon $startDate, Carbon $endDate, ?string $status)

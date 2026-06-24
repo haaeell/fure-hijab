@@ -343,7 +343,7 @@ class LandingPageController extends Controller
                 ->orderByDesc('is_primary')
                 ->orderBy('sort_order'),
             'variants' => fn($q) => $q
-                ->select(['id', 'product_id', 'price', 'stock'])
+                ->select(['id', 'product_id', 'price', 'compare_price', 'stock'])
                 ->orderBy('price'),
         ];
     }

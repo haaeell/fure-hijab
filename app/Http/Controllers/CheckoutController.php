@@ -361,16 +361,21 @@ class CheckoutController extends Controller
             $itemNotes = $request->input('item_notes', []);
 
             foreach ($checkoutItems as $item) {
+                $purchasePrice = $item->variant_id
+                    ? ($item->variant?->purchase_price ?? null)
+                    : ($item->product?->modal_price ?? null);
+
                 OrderItem::create([
-                    'order_id'      => $order->id,
-                    'product_id'    => $item->product_id,
-                    'variant_id'    => $item->variant_id,
-                    'product_name'  => $item->product->name,
-                    'variant_name'  => $item->variant?->name,
-                    'qty'           => $item->qty,
-                    'price'         => $item->price,
-                    'subtotal'      => $item->price * $item->qty,
-                    'note'          => isset($itemNotes[$item->id]) ? trim($itemNotes[$item->id]) ?: null : null,
+                    'order_id'       => $order->id,
+                    'product_id'     => $item->product_id,
+                    'variant_id'     => $item->variant_id,
+                    'product_name'   => $item->product->name,
+                    'variant_name'   => $item->variant?->name,
+                    'qty'            => $item->qty,
+                    'price'          => $item->price,
+                    'purchase_price' => $purchasePrice,
+                    'subtotal'       => $item->price * $item->qty,
+                    'note'           => isset($itemNotes[$item->id]) ? trim($itemNotes[$item->id]) ?: null : null,
                 ]);
             }
 

@@ -4,21 +4,25 @@
 
 @section('content')
     @php
-        $displayPrice = $product->has_variant && $product->variants->count() > 0
-            ? $product->variants->first()->price
-            : $product->price;
+        if ($product->has_variant && $product->variants->count() > 0) {
+            $priceMin         = $product->variants->min('price');
+            $priceMax         = $product->variants->max('price');
+            $isPriceRange     = $priceMin !== $priceMax;
+            $displayPrice     = $priceMin;
+            $displayComparePrice = null;
+            $displayStock     = $product->stock;
+        } else {
+            $priceMin         = $product->price;
+            $priceMax         = null;
+            $isPriceRange     = false;
+            $displayPrice     = $product->price;
+            $displayComparePrice = $product->compare_price ?? null;
+            $displayStock     = $product->stock;
+        }
 
-        $displayComparePrice = $product->has_variant && $product->variants->count() > 0
-            ? $product->variants->first()->compare_price
-            : $product->compare_price;
-
-        $displayStock = $product->has_variant && $product->variants->count() > 0
-            ? $product->variants->first()->stock
-            : $product->stock;
-
-        $primaryImage = $product->images->where('is_primary', true)->first() ?? $product->images->first();
+        $primaryImage  = $product->images->where('is_primary', true)->first() ?? $product->images->first();
         $galleryImages = $product->images->count() > 0 ? $product->images : collect([$primaryImage])->filter();
-        $isOutOfStock = $product->stock <= 0;
+        $isOutOfStock  = $product->stock <= 0;
     @endphp
 
     @section('seo_title', $product->name)
@@ -55,7 +59,7 @@
                                 <div class="absolute left-4 top-4 bg-gray-500 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
                                     Stok Habis
                                 </div>
-                            @elseif($displayComparePrice > $displayPrice)
+                            @elseif($displayComparePrice && $displayComparePrice > $displayPrice)
                                 <div class="absolute left-4 top-4 bg-brand-dark px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
                                     Sale
                                 </div>
@@ -87,11 +91,11 @@
                             {{ $product->name }}
                         </h1>
 
-                        <div class="mt-5 flex items-end gap-4">
+                        <div class="mt-5 flex items-end gap-4 flex-wrap">
                             <div id="displayPrice" class="text-3xl font-semibold text-brand-dark">
-                                Rp{{ number_format($displayPrice, 0, ',', '.') }}
+                                Rp{{ number_format($priceMin, 0, ',', '.') }}@if($isPriceRange)<span id="displayPriceMax" class="text-2xl font-medium text-brand-dark/60"> &ndash; Rp{{ number_format($priceMax, 0, ',', '.') }}</span>@endif
                             </div>
-                            @if($displayComparePrice > $displayPrice)
+                            @if($displayComparePrice && $displayComparePrice > $displayPrice)
                                 <div id="displayComparePrice" class="pb-1 text-sm font-semibold text-brand-dark/35 line-through">
                                     Rp{{ number_format($displayComparePrice, 0, ',', '.') }}
                                 </div>
@@ -452,6 +456,7 @@
             if (!match) return;
 
             $('#selectedVariantId').val(match.id);
+            $('#displayPriceMax').remove();
             $('#displayPrice').text('Rp' + new Intl.NumberFormat('id-ID').format(match.price));
 
             if (match.compare_price && match.compare_price > match.price) {

@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
+use App\Models\VariantAttribute;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -46,8 +47,8 @@ class ProductSeeder extends Seeder
                 'sold_count' => 45,
                 'has_variant' => true,
                 'variants' => [
-                    ['name' => 'Dusty Rose - L', 'price' => 155000, 'stock' => 50],
-                    ['name' => 'Midnight Blue - L', 'price' => 160000, 'stock' => 50],
+                    ['name' => 'Dusty Rose - L', 'price' => 155000, 'stock' => 50, 'attributes' => [['name' => 'Warna', 'value' => 'Dusty Rose'], ['name' => 'Ukuran', 'value' => 'L']]],
+                    ['name' => 'Midnight Blue - L', 'price' => 160000, 'stock' => 50, 'attributes' => [['name' => 'Warna', 'value' => 'Midnight Blue'], ['name' => 'Ukuran', 'value' => 'L']]],
                 ]
             ],
             [
@@ -66,8 +67,8 @@ class ProductSeeder extends Seeder
                 'sold_count' => 300,
                 'has_variant' => true,
                 'variants' => [
-                    ['name' => 'Hitam', 'price' => 45000, 'stock' => 250],
-                    ['name' => 'Maroon', 'price' => 45000, 'stock' => 250],
+                    ['name' => 'Hitam', 'price' => 45000, 'stock' => 250, 'attributes' => [['name' => 'Warna', 'value' => 'Hitam']]],
+                    ['name' => 'Maroon', 'price' => 45000, 'stock' => 250, 'attributes' => [['name' => 'Warna', 'value' => 'Maroon']]],
                 ]
             ],
             [
@@ -100,10 +101,19 @@ class ProductSeeder extends Seeder
 
             if ($product->has_variant) {
                 foreach ($variants as $v) {
-                    ProductVariant::create(array_merge($v, [
+                    $attrs = $v['attributes'] ?? [];
+                    unset($v['attributes']);
+                    $variant = ProductVariant::create(array_merge($v, [
                         'product_id' => $product->id,
                         'sku' => 'VAR-' . strtoupper(Str::random(6)),
                     ]));
+                    foreach ($attrs as $attr) {
+                        VariantAttribute::create([
+                            'variant_id'      => $variant->id,
+                            'attribute_name'  => $attr['name'],
+                            'attribute_value' => $attr['value'],
+                        ]);
+                    }
                 }
             }
         }

@@ -17,6 +17,7 @@ class OrderItem extends Model
         'variant_name',
         'qty',
         'price',
+        'purchase_price',
         'subtotal',
         'note',
     ];

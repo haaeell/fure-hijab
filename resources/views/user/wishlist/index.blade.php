@@ -27,9 +27,15 @@
                 @foreach($wishlists as $item)
                     @php
                         $product = $item->product;
-                        $displayPrice = $product->has_variant && $product->variants->count() > 0
-                            ? $product->variants->first()->price
-                            : $product->price;
+                        if ($product->has_variant && $product->variants->count() > 0) {
+                            $wPriceMin = $product->variants->min('price');
+                            $wPriceMax = $product->variants->max('price');
+                            $wIsRange  = $wPriceMin !== $wPriceMax;
+                        } else {
+                            $wPriceMin = $product->price;
+                            $wPriceMax = null;
+                            $wIsRange  = false;
+                        }
                         $primaryImage = $product->images->first();
                         $isOutOfStock = $product->stock <= 0;
                     @endphp
@@ -61,8 +67,8 @@
                                 <h3 class="mb-2 line-clamp-2 text-xs font-semibold leading-snug text-brand-dark transition-colors group-hover:text-brand-primary md:text-sm">
                                     {{ $product->name }}
                                 </h3>
-                                <p class="text-sm font-bold text-brand-dark md:text-base">
-                                    Rp{{ number_format($displayPrice, 0, ',', '.') }}
+                                <p class="text-sm font-bold text-brand-dark md:text-base leading-tight">
+                                    Rp{{ number_format($wPriceMin, 0, ',', '.') }}@if($wIsRange)<span class="font-medium text-brand-dark/55"> &ndash; Rp{{ number_format($wPriceMax, 0, ',', '.') }}</span>@endif
                                 </p>
                             </div>
                         </a>
