@@ -307,7 +307,7 @@
                                 <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">NAMA PRODUK <span class="text-red-400">*</span></label>
                                 <div class="relative group">
                                     <i class="fa-solid fa-box absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-primary transition-colors text-xs"></i>
-                                    <input type="text" name="name" id="productName" required placeholder="Masukkan nama produk lengkap..."
+                                    <input type="text" name="name" id="productName"  placeholder="Masukkan nama produk lengkap..."
                                         class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary focus:bg-white outline-none transition-all text-sm font-semibold">
                                 </div>
                             </div>
@@ -317,7 +317,7 @@
                                 <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">KATEGORI <span class="text-red-400">*</span></label>
                                 <div class="relative group">
                                     <i class="fa-solid fa-folder absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-primary transition-colors text-xs"></i>
-                                    <select name="category_id" id="productCategory" required
+                                    <select name="category_id" id="productCategory"
                                         class="w-full pl-10 pr-10 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary focus:bg-white outline-none transition-all text-sm font-semibold appearance-none">
                                         <option value="">-- Pilih Kategori --</option>
                                         @foreach($categories as $cat)
@@ -489,7 +489,7 @@
                                 <label class="ml-1 text-[10px] font-black text-gray-400 tracking-widest">HARGA JUAL <span class="text-red-400">*</span></label>
                                 <div class="relative group">
                                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-black">Rp</span>
-                                    <input type="text" name="price" id="productPrice" required
+                                    <input type="text" name="price" id="productPrice"
                                         placeholder="0" inputmode="numeric"
                                         class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary focus:bg-white outline-none transition-all text-sm font-semibold"
                                         oninput="formatRupiah(this); recalcMargin()">
