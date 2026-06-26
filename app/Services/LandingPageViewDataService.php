@@ -131,7 +131,8 @@ class LandingPageViewDataService
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
-            'name' => $store['name'],
+            'name' => $store['name'] . ' Hijab',
+            'alternateName' => $store['name'],
             'url' => url('/'),
             'logo' => [
                 '@type' => 'ImageObject',
@@ -177,7 +178,8 @@ class LandingPageViewDataService
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'ClothingStore',
-            'name' => $store['name'],
+            'name' => $store['name'] . ' Hijab',
+            'alternateName' => $store['name'],
             'url' => url('/'),
             'image' => $store['logo'] ? asset('storage/' . $store['logo']) : asset('favicon.ico'),
             'description' => $store['name'] . ' adalah toko hijab premium online yang menyediakan koleksi hijab syari, hijab daily, dan modest wear dengan bahan berkualitas.',

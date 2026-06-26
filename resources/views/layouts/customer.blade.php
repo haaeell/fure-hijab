@@ -31,7 +31,7 @@
     @endif
     <meta property="og:locale" content="id_ID">
     <meta property="og:type" content="@yield('og_type', 'website')">
-    <meta property="og:site_name" content="{{ $storeName }}">
+    <meta property="og:site_name" content="{{ $storeName }} Hijab">
     <meta property="og:title" content="{{ $seoTitleFull }}">
     <meta property="og:description" content="{{ \Illuminate\Support\Str::limit(strip_tags($seoDescription), 200, '') }}">
     <meta property="og:url" content="{{ $canonicalUrl }}">
