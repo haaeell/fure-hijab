@@ -443,6 +443,11 @@ class CheckoutController extends Controller
                 'expired_at' => now()->addMinutes(self::PAYMENT_WINDOW_MINUTES),
             ]);
 
+            // Increment kuota terpakai kupon
+            if ($coupon) {
+                $coupon->increment('used_count');
+            }
+
             // Hapus hanya item yang dicheckout, item lain tetap di keranjang
             $cart->items()->whereIn('id', $checkoutItems->pluck('id'))->delete();
             session()->forget(['coupon_code', 'checkout_selected_items']);

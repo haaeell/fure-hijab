@@ -551,56 +551,79 @@
 
                         <div id="variantBuilder" class="hidden space-y-5">
 
-                            {{-- Attribute type builder --}}
-                            <div class="bg-blue-50/60 rounded-3xl p-5 border border-blue-100">
-                                <div class="flex items-center justify-between mb-3">
+                            {{-- Tipe Varian Builder --}}
+                            <div class="rounded-3xl border border-blue-100 bg-blue-50/40 p-5 space-y-4">
+                                <div class="flex items-center justify-between">
                                     <div>
-                                        <p class="text-xs font-black text-blue-700 tracking-widest"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>GENERATOR VARIAN</p>
-                                        <p class="text-[10px] text-blue-500 mt-0.5">Isi tipe & nilai atribut, lalu klik Generate untuk membuat kombinasi varian otomatis.</p>
+                                        <p class="text-xs font-black text-blue-700 tracking-widest"><i class="fa-solid fa-sliders mr-2"></i>TIPE VARIAN</p>
+                                        <p class="text-[10px] text-blue-500 mt-0.5">Definisikan tipe dan nilainya, lalu klik Generate.</p>
                                     </div>
+                                </div>
+
+                                <div id="variantTypes" class="space-y-2"></div>
+
+                                <button type="button" onclick="addVariantType()"
+                                    class="px-4 py-2 text-[10px] font-black tracking-widest bg-white border border-blue-200 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all">
+                                    <i class="fa-solid fa-plus mr-1"></i> Tambah Tipe
+                                </button>
+
+                                {{-- Default price / stok --}}
+                                <div class="pt-2 border-t border-blue-100">
+                                    <p class="text-[9px] font-black text-blue-600 tracking-widest mb-2">HARGA & STOK DEFAULT <span class="font-normal text-blue-400">(diisi otomatis ke semua kombinasi saat Generate)</span></p>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div class="relative">
+                                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-400">Rp</span>
+                                            <input type="text" id="defaultPrice" placeholder="Harga jual" inputmode="numeric"
+                                                class="w-full pl-7 pr-2 py-2 bg-white border border-blue-200 rounded-xl text-[10px] font-semibold outline-none focus:border-brand-primary"
+                                                oninput="formatRupiah(this)">
+                                        </div>
+                                        <div class="relative">
+                                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-black text-amber-400">Rp</span>
+                                            <input type="text" id="defaultPurchasePrice" placeholder="Harga beli" inputmode="numeric"
+                                                class="w-full pl-7 pr-2 py-2 bg-amber-50/60 border border-amber-100 rounded-xl text-[10px] font-semibold outline-none focus:border-amber-400"
+                                                oninput="formatRupiah(this)">
+                                        </div>
+                                        <input type="number" id="defaultStock" placeholder="Stok" min="0"
+                                            class="w-full px-3 py-2 bg-white border border-blue-200 rounded-xl text-[10px] font-semibold outline-none focus:border-brand-primary">
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-1">
+                                    <p class="text-[10px] text-amber-600 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Generate akan mengganti semua varian di bawah</p>
                                     <button type="button" onclick="generateVariants()"
-                                        class="px-4 py-2 text-[10px] font-black tracking-widest bg-brand-primary text-white rounded-xl hover:bg-brand-dark transition-all flex items-center gap-1.5 whitespace-nowrap">
-                                        <i class="fa-solid fa-rotate"></i> Generate
+                                        class="px-5 py-2 text-[10px] font-black tracking-widest bg-brand-primary text-white rounded-xl hover:bg-brand-dark transition-all flex items-center gap-1.5">
+                                        <i class="fa-solid fa-rotate"></i> Generate Kombinasi
                                     </button>
                                 </div>
-                                <div id="attributeTypes" class="space-y-2"></div>
-                                <button type="button" onclick="addAttributeType()"
-                                    class="mt-3 px-4 py-2 text-[10px] font-black tracking-widest bg-white border border-blue-200 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all">
-                                    <i class="fa-solid fa-plus mr-1"></i> Tambah Tipe Atribut
-                                </button>
                             </div>
 
-                            {{-- Variant list --}}
-                            <div class="flex items-center justify-between">
-                                <p class="text-xs font-black text-gray-400 tracking-widest">DAFTAR VARIAN <span id="variantCountBadge" class="ml-2 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-lg text-[10px]">0</span></p>
-                                <button type="button" onclick="addManualVariant()"
-                                    class="px-4 py-2 text-[10px] font-black tracking-widest text-brand-primary border border-brand-primary rounded-xl hover:bg-brand-primary hover:text-white transition-all">
-                                    <i class="fa-solid fa-plus mr-1"></i> Manual
-                                </button>
-                            </div>
+                            {{-- Variant table --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-xs font-black text-gray-400 tracking-widest">DAFTAR VARIAN <span id="variantCountBadge" class="ml-2 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-lg text-[10px]">0</span></p>
+                                </div>
 
-                            <div id="variantList" class="space-y-3"></div>
+                                {{-- Table header --}}
+                                <div id="variantTableHeader" class="hidden grid gap-1.5 px-3 mb-1" style="grid-template-columns:36px 1fr 90px 90px 90px 60px 70px 60px 28px">
+                                    <span class="text-[9px] font-black text-gray-400 tracking-widest">IMG</span>
+                                    <span class="text-[9px] font-black text-gray-400 tracking-widest">NAMA</span>
+                                    <span class="text-[9px] font-black text-gray-400 tracking-widest">HARGA JUAL</span>
+                                    <span class="text-[9px] font-black text-gray-400 tracking-widest">HARGA BELI</span>
+                                    <span class="text-[9px] font-black text-gray-400 tracking-widest">HARGA CORET</span>
+                                    <span class="text-[9px] font-black text-gray-400 tracking-widest">STOK</span>
+                                    <span class="text-[9px] font-black text-gray-400 tracking-widest">KODE</span>
+                                    <span class="text-[9px] font-black text-gray-400 tracking-widest">BERAT</span>
+                                    <span></span>
+                                </div>
 
-                            {{-- Variant summary --}}
-                            <div id="variantSummary" class="hidden bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                                <p class="text-[10px] font-black text-gray-400 tracking-widest mb-3">RINGKASAN VARIAN</p>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-                                    <div>
-                                        <p class="text-[9px] text-gray-400 font-bold">TOTAL STOK</p>
-                                        <p id="sumStok" class="text-lg font-extrabold text-brand-dark">0</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-[9px] text-gray-400 font-bold">HARGA MIN</p>
-                                        <p id="sumHargaMin" class="text-lg font-extrabold text-brand-dark">Rp 0</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-[9px] text-gray-400 font-bold">HARGA MAX</p>
-                                        <p id="sumHargaMax" class="text-lg font-extrabold text-brand-dark">Rp 0</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-[9px] text-gray-400 font-bold">MARGIN MIN</p>
-                                        <p id="sumMarginMin" class="text-lg font-extrabold text-emerald-600">-</p>
-                                    </div>
+                                <div id="variantList" class="space-y-1.5"></div>
+
+                                {{-- Summary --}}
+                                <div id="variantSummary" class="hidden mt-4 grid grid-cols-4 gap-3 text-center bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                                    <div><p class="text-[9px] text-gray-400 font-bold">TOTAL STOK</p><p id="sumStok" class="text-base font-extrabold text-brand-dark mt-0.5">0</p></div>
+                                    <div><p class="text-[9px] text-gray-400 font-bold">HARGA MIN</p><p id="sumHargaMin" class="text-base font-extrabold text-brand-dark mt-0.5">Rp0</p></div>
+                                    <div><p class="text-[9px] text-gray-400 font-bold">HARGA MAX</p><p id="sumHargaMax" class="text-base font-extrabold text-brand-dark mt-0.5">Rp0</p></div>
+                                    <div><p class="text-[9px] text-gray-400 font-bold">MARGIN MIN</p><p id="sumMarginMin" class="text-base font-extrabold text-emerald-600 mt-0.5">-</p></div>
                                 </div>
                             </div>
                         </div>
@@ -650,6 +673,24 @@
         function rupiah(num) {
             return 'Rp ' + (num || 0).toLocaleString('id-ID');
         }
+
+        function escHtml(str) {
+            return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        window.previewVariantImage = function (input, id) {
+            if (!input.files?.[0]) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const $el = $(`#vimg-preview-${id}`);
+                if ($el.is('img')) {
+                    $el.attr('src', e.target.result);
+                } else {
+                    $el.replaceWith(`<img id="vimg-preview-${id}" src="${e.target.result}" class="w-full h-full object-cover">`);
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        };
 
         // ══════════════════════════════════════════════════════
         // MARGIN CALCULATOR
@@ -873,8 +914,9 @@
             $('#imageEmpty').removeClass('hidden');
             pendingCounter = 0;
             $('#variantList').empty();
-            $('#attributeTypes').empty();
-            variantRows = []; attrTypes = []; attrCounter = 0; varCounter = 0;
+            variantRows = []; variantTypes = []; varCounter = 0; typeCounter = 0;
+            $('#variantTypes').empty();
+            $('#variantTableHeader').addClass('hidden');
             $('#stockField').removeClass('hidden');
             $('#productStock').attr('required', 'required');
             $('#variantStockInfo').addClass('hidden');
@@ -906,7 +948,7 @@
             if (!data.has_variant) $('#productStock').val(data.stock);
 
             recalcMargin();
-            toggleVariantMode();
+            toggleVariantMode(true);
 
             // Summernote
             setTimeout(() => setDescriptionData(data.description), 300);
@@ -918,6 +960,19 @@
 
             // Variants
             if (data.has_variant && data.variants?.length) {
+                // Rekonstruksi tipe builder dari atribut yang sudah ada
+                const typeMap = {};
+                data.variants.forEach(v => {
+                    (v.attributes ?? []).forEach(a => {
+                        const n = a.attribute_name ?? a.name ?? '';
+                        const val = a.attribute_value ?? a.value ?? '';
+                        if (!n) return;
+                        if (!typeMap[n]) typeMap[n] = [];
+                        if (!typeMap[n].includes(val)) typeMap[n].push(val);
+                    });
+                });
+                Object.entries(typeMap).forEach(([name, values]) => addVariantType(name, values));
+
                 data.variants.forEach(v => addManualVariant(v));
                 updateVariantSummary();
             }
@@ -931,7 +986,7 @@
         // ══════════════════════════════════════════════════════
         // TOGGLE VARIAN MODE
         // ══════════════════════════════════════════════════════
-        function toggleVariantMode() {
+        function toggleVariantMode(fromFillForm = false) {
             const active = $('#hasVariant').is(':checked');
             if (active) {
                 $('#productPriceFields').addClass('hidden');
@@ -1147,254 +1202,225 @@
         // ══════════════════════════════════════════════════════
         // VARIANT BUILDER
         // ══════════════════════════════════════════════════════
-        let attrTypes = [], variantRows = [], attrCounter = 0, varCounter = 0;
+        // ── Variant state ──────────────────────────────────────
+        let variantRows = [], variantTypes = [], varCounter = 0, typeCounter = 0;
 
-        window.addAttributeType = function () {
-            const id = ++attrCounter;
-            attrTypes.push({ id, name: '', values: [] });
-            $('#attributeTypes').append(`
-                <div class="flex items-center gap-2" id="attr-type-${id}">
-                    <input type="text" placeholder="Tipe (cth: Warna)"
-                        class="flex-1 min-w-0 px-3 py-2.5 bg-white border border-blue-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
-                        oninput="updateAttrType(${id}, 'name', this.value)">
-                    <input type="text" placeholder="Nilai, pisah koma (cth: Merah, Biru, Hijau)"
-                        class="flex-[2] min-w-0 px-3 py-2.5 bg-white border border-blue-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
-                        oninput="updateAttrType(${id}, 'values', this.value)">
-                    <button type="button" onclick="removeAttrType(${id})"
-                        class="w-9 h-9 flex-shrink-0 flex items-center justify-center bg-red-50 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+        // ── Tipe builder ────────────────────────────────────────
+        window.addVariantType = function (name = '', values = []) {
+            const tid = ++typeCounter;
+            variantTypes.push({ id: tid, name, values: [...values] });
+
+            const chipsHtml = values.map(v => chipHtml(tid, v)).join('');
+            $('#variantTypes').append(`
+                <div class="flex items-start gap-2" id="vtype-${tid}">
+                    <input type="text" value="${escHtml(name)}" placeholder="Tipe (cth: Ukuran)"
+                        class="vtype-name w-28 flex-shrink-0 px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
+                        oninput="updateTypeName(${tid}, this.value)">
+                    <div class="flex-1 flex flex-wrap items-center gap-1.5 px-2 py-1.5 bg-white border border-blue-200 rounded-xl min-h-[38px]"
+                        id="vtype-chips-${tid}">
+                        ${chipsHtml}
+                        <input type="text" placeholder="Nilai, Enter untuk tambah"
+                            class="vtype-value-input flex-1 min-w-[120px] text-xs font-semibold outline-none bg-transparent py-0.5"
+                            onkeydown="handleTypeValueInput(event, ${tid})">
+                    </div>
+                    <button type="button" onclick="removeVariantType(${tid})"
+                        class="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-red-50 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all mt-0.5">
                         <i class="fa-solid fa-xmark text-xs"></i>
                     </button>
                 </div>`);
+        };
+
+        function chipHtml(tid, value) {
+            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-primary/10 text-brand-dark rounded-lg text-[10px] font-bold">
+                ${escHtml(value)}
+                <button type="button" onclick="removeTypeValue(${tid}, '${escHtml(value).replace(/'/g,"\\'")}')">
+                    <i class="fa-solid fa-xmark text-[8px] text-gray-400 hover:text-red-500"></i>
+                </button>
+            </span>`;
         }
 
-        window.updateAttrType = function (id, field, value) {
-            const t = attrTypes.find(a => a.id === id);
-            if (!t) return;
-            if (field === 'name')   t.name   = value.trim();
-            if (field === 'values') t.values = value.split(',').map(v => v.trim()).filter(Boolean);
-        }
+        window.updateTypeName = function (tid, val) {
+            const t = variantTypes.find(t => t.id === tid);
+            if (t) t.name = val.trim();
+        };
 
-        window.removeAttrType = function (id) {
-            attrTypes = attrTypes.filter(a => a.id !== id);
-            $(`#attr-type-${id}`).remove();
-        }
+        window.handleTypeValueInput = function (e, tid) {
+            if (e.key !== 'Enter' && e.key !== ',') return;
+            e.preventDefault();
+            const input = e.target;
+            const val   = input.value.trim().replace(/,$/, '');
+            if (!val) return;
+            const t = variantTypes.find(t => t.id === tid);
+            if (!t || t.values.includes(val)) { input.value = ''; return; }
+            t.values.push(val);
+            $(`#vtype-chips-${tid} .vtype-value-input`).before(chipHtml(tid, val));
+            input.value = '';
+        };
 
+        window.removeTypeValue = function (tid, val) {
+            const t = variantTypes.find(t => t.id === tid);
+            if (t) t.values = t.values.filter(v => v !== val);
+            // re-render chips
+            const $input = $(`#vtype-chips-${tid} .vtype-value-input`).detach();
+            $(`#vtype-chips-${tid}`).empty().append(
+                t.values.map(v => chipHtml(tid, v)).join('') + $('<div>').append($input).html()
+            );
+            // re-attach
+            $(`#vtype-chips-${tid}`).append($input);
+        };
+
+        window.removeVariantType = function (tid) {
+            variantTypes = variantTypes.filter(t => t.id !== tid);
+            $(`#vtype-${tid}`).remove();
+        };
+
+        // ── Generator ───────────────────────────────────────────
         window.generateVariants = function () {
-            const types = attrTypes.filter(a => a.name && a.values.length);
+            const types = variantTypes.filter(t => t.name && t.values.length);
             if (!types.length) {
-                Swal.fire({ icon: 'info', title: 'Belum ada atribut', text: 'Tambah minimal 1 tipe atribut dengan nilainya.', timer: 2000, showConfirmButton: false });
+                Swal.fire({ icon: 'info', title: 'Belum ada tipe', text: 'Tambah minimal 1 tipe varian dengan nilainya.', timer: 2000, showConfirmButton: false });
                 return;
             }
+
+            const defaultPrice    = parseRupiah($('#defaultPrice').val());
+            const defaultPurchase = parseRupiah($('#defaultPurchasePrice').val());
+            const defaultStock    = $('#defaultStock').val();
+
+            // Buat semua kombinasi (cartesian product)
             const combos = types.reduce((acc, type) => {
                 if (!acc.length) return type.values.map(v => [{ name: type.name, value: v }]);
                 return acc.flatMap(combo => type.values.map(v => [...combo, { name: type.name, value: v }]));
             }, []);
 
-            // Preserve existing values if variant names match
-            const existingMap = {};
-            variantRows.forEach(row => {
-                const $r = $(`#variant-row-${row.id}`);
-                existingMap[$r.find('.variant-name').val()] = {
-                    price:          parseRupiah($r.find('.variant-price').val()),
-                    purchase_price: parseRupiah($r.find('.variant-purchase-price').val()),
-                    compare_price:  parseRupiah($r.find('.variant-compare-price').val()),
-                    stock:          $r.find('.variant-stock').val(),
-                    sku:            $r.find('.variant-sku').val(),
-                };
-            });
+            // Nama varian yang sudah ada di tabel
+            const existingNames = new Set(
+                variantRows.map(row => $(`#variant-row-${row.id}`).find('.variant-name').val().trim())
+            );
 
-            $('#variantList').empty();
-            variantRows = [];
-
+            // Hanya tambah kombinasi yang belum ada
+            let added = 0;
             combos.forEach(combo => {
-                const label   = combo.map(c => c.value).join(' - ');
-                const existed = existingMap[label] || {};
+                const label = combo.map(c => c.value).join(' - ');
+                if (existingNames.has(label)) return;
                 addManualVariant({
                     name:           label,
-                    price:          existed.price          || '',
-                    purchase_price: existed.purchase_price || '',
-                    compare_price:  existed.compare_price  || '',
-                    stock:          existed.stock          || '',
-                    sku:            existed.sku            || '',
-                    attributes:     combo.map(c => ({ attribute_name: c.name, attribute_value: c.value }))
+                    price:          defaultPrice    || '',
+                    purchase_price: defaultPurchase || '',
+                    compare_price:  '',
+                    stock:          defaultStock    ?? '',
+                    sku:            '',
+                    weight:         '',
+                    attributes:     combo,
                 });
+                added++;
             });
-            updateVariantSummary();
-        }
 
+            if (!added) {
+                Swal.fire({ icon: 'info', title: 'Semua kombinasi sudah ada', timer: 1500, showConfirmButton: false });
+            }
+            updateVariantSummary();
+        };
+
+        // ── Tambah / hapus variant row ──────────────────────────
         window.addManualVariant = function (data = null) {
             const id            = ++varCounter;
             const dbId          = data?.id ?? '';
             const name          = data?.name ?? '';
-            const price         = data?.price         ? Math.round(parseFloat(data.price)).toLocaleString('id-ID')         : '';
+            const attrs         = data?.attributes ?? [];
+            const price         = data?.price         ? Math.round(parseFloat(data.price)).toLocaleString('id-ID') : '';
             const purchasePrice = data?.purchase_price ? Math.round(parseFloat(data.purchase_price)).toLocaleString('id-ID') : '';
-            const comparePrice  = data?.compare_price  ? Math.round(parseFloat(data.compare_price)).toLocaleString('id-ID')  : '';
+            const comparePrice  = data?.compare_price  ? Math.round(parseFloat(data.compare_price)).toLocaleString('id-ID') : '';
             const stock         = data?.stock  ?? '';
             const sku           = data?.sku    ?? '';
             const weight        = data?.weight ?? '';
-            const attrs         = data?.attributes ?? [];
 
+            const existingImage = data?.image ? '/storage/' + data.image : '';
             variantRows.push({ id, dbId, attrs });
 
-            const attrPairsHtml = attrs.map(a => `
-                <div class="flex items-center gap-1.5" data-attr-pair>
-                    <input type="text" value="${a.attribute_name ?? a.name ?? ''}" placeholder="Nama (cth: Warna)"
-                        class="variant-attr-name flex-1 min-w-0 px-2 py-1.5 bg-blue-50/60 border border-blue-100 rounded-lg text-[10px] font-semibold outline-none focus:border-blue-400">
-                    <input type="text" value="${a.attribute_value ?? a.value ?? ''}" placeholder="Nilai (cth: Merah)"
-                        class="variant-attr-value flex-1 min-w-0 px-2 py-1.5 bg-blue-50/60 border border-blue-100 rounded-lg text-[10px] font-semibold outline-none focus:border-blue-400">
-                    <button type="button" onclick="$(this).closest('[data-attr-pair]').remove()"
-                        class="w-5 h-5 flex-shrink-0 flex items-center justify-center text-red-400 hover:text-red-600 transition">
-                        <i class="fa-solid fa-xmark text-[9px]"></i>
-                    </button>
-                </div>`).join('');
-
+            $('#variantTableHeader').removeClass('hidden');
             $('#variantList').append(`
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" id="variant-row-${id}">
-                    <div class="flex items-center justify-between px-4 py-3 bg-gray-50/80 border-b border-gray-100">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-grip-lines text-gray-300 text-xs"></i>
-                            <span class="text-[10px] font-black text-gray-400">VARIAN #${varCounter}</span>
+                <div class="grid items-center gap-1.5 px-3 py-2.5 bg-white border border-gray-100 rounded-xl hover:border-gray-200 transition-all"
+                    id="variant-row-${id}"
+                    style="grid-template-columns:36px 1fr 90px 90px 90px 60px 70px 60px 28px">
+
+                    {{-- Gambar --}}
+                    <div class="relative w-9 h-9 flex-shrink-0 cursor-pointer group" onclick="document.getElementById('vimg-${id}').click()" title="Klik untuk pilih gambar">
+                        <div class="w-9 h-9 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center group-hover:border-brand-primary transition-all">
+                            ${existingImage
+                                ? `<img id="vimg-preview-${id}" src="${existingImage}" class="w-full h-full object-cover">`
+                                : `<span id="vimg-preview-${id}"><i class="fa-solid fa-image text-gray-300 text-[10px]"></i></span>`
+                            }
                         </div>
-                        <button type="button" onclick="removeVariantRow(${id})"
-                            class="w-7 h-7 flex items-center justify-center bg-red-50 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all text-xs">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+                        <input type="file" id="vimg-${id}" name="variant_image_${id}" accept="image/*" class="sr-only"
+                            onchange="previewVariantImage(this, ${id})">
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 p-4">
 
-                        {{-- Nama (full width) --}}
-                        <div class="col-span-2 md:col-span-3">
-                            <label class="text-[9px] font-black text-gray-400 tracking-widest">NAMA VARIAN</label>
-                            <input type="text" value="${name}" placeholder="cth: Merah - XL"
-                                class="variant-name w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
-                                data-id="${id}">
-                        </div>
-
-                        {{-- Harga Jual --}}
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 tracking-widest">HARGA JUAL</label>
-                            <div class="relative mt-1">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">Rp</span>
-                                <input type="text" value="${price}" placeholder="0" inputmode="numeric"
-                                    class="variant-price w-full pl-8 pr-2 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
-                                    data-id="${id}" oninput="formatRupiah(this); updateVariantSummary()">
-                            </div>
-                        </div>
-
-                        {{-- Harga Beli --}}
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 tracking-widest">HARGA BELI</label>
-                            <div class="relative mt-1">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-amber-400">Rp</span>
-                                <input type="text" value="${purchasePrice}" placeholder="0" inputmode="numeric"
-                                    class="variant-purchase-price w-full pl-8 pr-2 py-2.5 bg-amber-50/60 border border-amber-100 rounded-xl text-xs font-semibold outline-none focus:border-amber-400"
-                                    data-id="${id}" oninput="formatRupiah(this)">
-                            </div>
-                        </div>
-
-                        {{-- Harga Coret --}}
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 tracking-widest">HARGA CORET</label>
-                            <div class="relative mt-1">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 line-through">Rp</span>
-                                <input type="text" value="${comparePrice}" placeholder="0" inputmode="numeric"
-                                    class="variant-compare-price w-full pl-8 pr-2 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
-                                    data-id="${id}" oninput="formatRupiah(this)">
-                            </div>
-                        </div>
-
-                        {{-- Stok --}}
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 tracking-widest">STOK</label>
-                            <input type="number" value="${stock}" placeholder="0" min="0"
-                                class="variant-stock w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
-                                data-id="${id}" oninput="updateVariantSummary()">
-                        </div>
-
-                        {{-- Kode --}}
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 tracking-widest">KODE</label>
-                            <input type="text" value="${sku}" placeholder="KODE-001"
-                                class="variant-sku w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
-                                data-id="${id}">
-                        </div>
-
-                        {{-- Berat --}}
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 tracking-widest">BERAT (gram)</label>
-                            <input type="number" value="${weight}" placeholder="0" min="0"
-                                class="variant-weight w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
-                                data-id="${id}">
-                        </div>
-
-                        {{-- Gambar (full width) --}}
-                        <div class="col-span-2 md:col-span-3">
-                            <label class="text-[9px] font-black text-gray-400 tracking-widest">GAMBAR VARIAN <span class="text-gray-300 font-normal">(Opsional)</span></label>
-                            <input type="file" name="variant_image_${id}" accept="image/*"
-                                class="w-full mt-1 text-[10px] text-gray-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[9px] file:font-black file:bg-brand-primary file:text-white hover:file:bg-brand-dark transition-all cursor-pointer">
-                        </div>
-
-                        {{-- Atribut (full width) --}}
-                        <div class="col-span-2 md:col-span-3">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <label class="text-[9px] font-black text-gray-400 tracking-widest">ATRIBUT VARIAN <span class="text-[9px] font-normal text-blue-400 normal-case">(Warna, Ukuran, dll — tampil di halaman produk)</span></label>
-                                <button type="button" onclick="addVariantAttrPair(${id})"
-                                    class="text-[9px] font-black text-brand-primary hover:text-brand-dark transition flex-shrink-0">
-                                    <i class="fa-solid fa-plus text-[8px] mr-0.5"></i> Tambah
-                                </button>
-                            </div>
-                            <div id="variant-attr-pairs-${id}" class="space-y-1.5 min-h-[28px]">
-                                ${attrPairsHtml}
-                            </div>
-                        </div>
-
+                    <div class="flex items-center gap-2 min-w-0">
+                        <i class="fa-solid fa-grip-lines text-gray-300 text-[10px] flex-shrink-0"></i>
+                        <input type="text" value="${escHtml(name)}" placeholder="Nama varian"
+                            class="variant-name min-w-0 w-full text-xs font-bold text-brand-dark bg-transparent outline-none border-b border-transparent focus:border-gray-300 truncate">
+                        <input type="hidden" class="variant-db-id" value="${dbId}">
                     </div>
-                    <input type="hidden" class="variant-db-id" data-id="${id}" value="${dbId}">
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-gray-400 font-bold">Rp</span>
+                        <input type="text" value="${price}" placeholder="0" inputmode="numeric"
+                            class="variant-price w-full pl-6 pr-1 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-semibold outline-none focus:border-brand-primary"
+                            oninput="formatRupiah(this); updateVariantSummary()">
+                    </div>
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-amber-400 font-bold">Rp</span>
+                        <input type="text" value="${purchasePrice}" placeholder="0" inputmode="numeric"
+                            class="variant-purchase-price w-full pl-6 pr-1 py-1.5 bg-amber-50/60 border border-amber-100 rounded-lg text-[10px] font-semibold outline-none focus:border-amber-400"
+                            oninput="formatRupiah(this)">
+                    </div>
+                    <div class="relative">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-gray-300 font-bold line-through">Rp</span>
+                        <input type="text" value="${comparePrice}" placeholder="0" inputmode="numeric"
+                            class="variant-compare-price w-full pl-6 pr-1 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-semibold outline-none focus:border-brand-primary"
+                            oninput="formatRupiah(this)">
+                    </div>
+                    <input type="number" value="${stock}" placeholder="0" min="0"
+                        class="variant-stock w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-semibold text-center outline-none focus:border-brand-primary"
+                        oninput="updateVariantSummary()">
+                    <input type="text" value="${escHtml(sku)}" placeholder="SKU"
+                        class="variant-sku w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-semibold outline-none focus:border-brand-primary">
+                    <input type="number" value="${weight}" placeholder="g" min="0"
+                        class="variant-weight w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-semibold outline-none focus:border-brand-primary">
+                    <button type="button" onclick="removeVariantRow(${id})"
+                        class="w-7 h-7 flex items-center justify-center bg-red-50 text-red-400 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
+                    </button>
                 </div>`);
 
             updateVariantSummary();
-        }
-
-        window.addVariantAttrPair = function (id) {
-            $(`#variant-attr-pairs-${id}`).append(`
-                <div class="flex items-center gap-1.5" data-attr-pair>
-                    <input type="text" placeholder="Nama (cth: Warna)"
-                        class="variant-attr-name flex-1 min-w-0 px-2 py-1.5 bg-blue-50/60 border border-blue-100 rounded-lg text-[10px] font-semibold outline-none focus:border-blue-400">
-                    <input type="text" placeholder="Nilai (cth: Merah)"
-                        class="variant-attr-value flex-1 min-w-0 px-2 py-1.5 bg-blue-50/60 border border-blue-100 rounded-lg text-[10px] font-semibold outline-none focus:border-blue-400">
-                    <button type="button" onclick="$(this).closest('[data-attr-pair]').remove()"
-                        class="w-5 h-5 flex-shrink-0 flex items-center justify-center text-red-400 hover:text-red-600 transition">
-                        <i class="fa-solid fa-xmark text-[9px]"></i>
-                    </button>
-                </div>`);
-        }
+        };
 
         window.removeVariantRow = function (id) {
             variantRows = variantRows.filter(v => v.id !== id);
             $(`#variant-row-${id}`).remove();
+            if (!variantRows.length) $('#variantTableHeader').addClass('hidden');
             updateVariantSummary();
-        }
+        };
 
         function updateVariantSummary() {
             const count = variantRows.length;
             $('#variantCountBadge').text(count);
-
             if (!count) { $('#variantSummary').addClass('hidden'); return; }
             $('#variantSummary').removeClass('hidden');
 
             let totalStok = 0, prices = [], margins = [];
             variantRows.forEach(row => {
-                const $r    = $(`#variant-row-${row.id}`);
-                totalStok  += parseInt($r.find('.variant-stock').val()) || 0;
-                const p     = parseRupiah($r.find('.variant-price').val());
-                const pp    = parseRupiah($r.find('.variant-purchase-price').val());
+                const $r = $(`#variant-row-${row.id}`);
+                totalStok += parseInt($r.find('.variant-stock').val()) || 0;
+                const p   = parseRupiah($r.find('.variant-price').val());
+                const pp  = parseRupiah($r.find('.variant-purchase-price').val());
                 if (p > 0) prices.push(p);
                 if (p > 0 && pp > 0) margins.push(p - pp);
             });
 
             $('#sumStok').text(totalStok);
-            $('#sumHargaMin').text(prices.length ? rupiah(Math.min(...prices)) : 'Rp 0');
-            $('#sumHargaMax').text(prices.length ? rupiah(Math.max(...prices)) : 'Rp 0');
+            $('#sumHargaMin').text(prices.length ? rupiah(Math.min(...prices)) : 'Rp0');
+            $('#sumHargaMax').text(prices.length ? rupiah(Math.max(...prices)) : 'Rp0');
             $('#sumMarginMin').text(margins.length ? rupiah(Math.min(...margins)) : '-');
         }
 
@@ -1424,15 +1450,18 @@
                 add(`${pfx}[stock]`,                             stock);
                 if (sku) add(`${pfx}[sku]`,    sku);
                 if (wt)  add(`${pfx}[weight]`, wt);
+                add(`${pfx}[front_id]`,                          row.id);
 
-                let attrIdx = 0;
-                $row.find('[data-attr-pair]').each(function () {
-                    const attrName  = $(this).find('.variant-attr-name').val().trim();
-                    const attrValue = $(this).find('.variant-attr-value').val().trim();
+                // Simpan atribut (dari generator atau dari data edit)
+                const attrs = row.attrs?.length
+                    ? row.attrs
+                    : [];
+                attrs.forEach((a, ai) => {
+                    const attrName  = a.attribute_name ?? a.name  ?? '';
+                    const attrValue = a.attribute_value ?? a.value ?? '';
                     if (attrName && attrValue) {
-                        add(`${pfx}[attributes][${attrIdx}][name]`,  attrName);
-                        add(`${pfx}[attributes][${attrIdx}][value]`, attrValue);
-                        attrIdx++;
+                        add(`${pfx}[attributes][${ai}][name]`,  attrName);
+                        add(`${pfx}[attributes][${ai}][value]`, attrValue);
                     }
                 });
             });

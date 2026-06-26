@@ -28,6 +28,16 @@ class Product extends Model
         'has_variant'
     ];
 
+    protected $casts = [
+        'has_variant' => 'boolean',
+        'is_active'   => 'boolean',
+        'price'       => 'float',
+        'compare_price' => 'float',
+        'modal_price' => 'float',
+        'stock'       => 'integer',
+        'sold_count'  => 'integer',
+    ];
+
     public function category()
     {
         return $this->belongsTo(Category::class);

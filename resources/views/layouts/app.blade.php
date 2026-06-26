@@ -242,14 +242,8 @@
 
             <a href="{{ route('settings.store') }}"
                 class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
-                {{ request()->is('settings/store*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
-                <i class="fa-solid fa-store w-5"></i> Pengaturan Toko
-            </a>
-
-            <a href="{{ route('settings.index') }}"
-                class="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
-                {{ request()->is('settings') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
-                <i class="fa-solid fa-plug w-5"></i> Integrasi API
+                {{ request()->is('settings*') ? 'active-menu font-bold text-gray-500' : 'font-semibold text-gray-500 hover:bg-soft-mint/50 hover:text-brand-dark' }}">
+                <i class="fa-solid fa-gear w-5"></i> Pengaturan
             </a>
         </nav>
 

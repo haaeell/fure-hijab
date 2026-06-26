@@ -88,6 +88,7 @@ class ProductController extends Controller
             'is_active'         => 'nullable',
             'has_variant'       => 'nullable|boolean',
             'images.*'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'variant_image_*'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'collection_id'     => 'nullable|exists:collections,id',
             'collection_ids'    => 'nullable|array',
             'collection_ids.*'  => 'exists:collections,id',
@@ -174,6 +175,7 @@ class ProductController extends Controller
             'is_active'         => 'nullable',
             'has_variant'       => 'nullable|boolean',
             'images.*'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'variant_image_*'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'collection_id'     => 'nullable|exists:collections,id',
             'collection_ids'    => 'nullable|array',
             'collection_ids.*'  => 'exists:collections,id',
@@ -505,18 +507,28 @@ class ProductController extends Controller
         });
 
         foreach ($variants as $variantData) {
-            $price          = (int) $this->parseIndonesianNumber((string) ($variantData['price'] ?? 0));
-            $purchasePrice  = isset($variantData['purchase_price']) && $variantData['purchase_price'] !== ''
+            $price         = (int) $this->parseIndonesianNumber((string) ($variantData['price'] ?? 0));
+            $purchasePrice = isset($variantData['purchase_price']) && $variantData['purchase_price'] !== ''
                 ? (int) $this->parseIndonesianNumber((string) $variantData['purchase_price']) : null;
-            $comparePrice   = $this->validatedComparePrice(
+            $comparePrice  = $this->validatedComparePrice(
                 isset($variantData['compare_price']) && $variantData['compare_price'] !== ''
                     ? (int) $this->parseIndonesianNumber((string) $variantData['compare_price']) : null,
                 $price
             );
 
+            // Upload gambar jika ada (dikirim sebagai variant_image_{front_id})
+            $frontId   = $variantData['front_id'] ?? null;
+            $fileKey   = $frontId ? "variant_image_{$frontId}" : null;
+            $imageFile = $fileKey ? request()->file($fileKey) : null;
+
             if (!empty($variantData['id'])) {
                 $variant = ProductVariant::find($variantData['id']);
                 if ($variant) {
+                    $imagePath = $variant->image;
+                    if ($imageFile) {
+                        if ($imagePath) Storage::disk('public')->delete($imagePath);
+                        $imagePath = $this->uploadAsWebp($imageFile, 'variants');
+                    }
                     $variant->update([
                         'name'           => $variantData['name'],
                         'price'          => $price,
@@ -525,11 +537,13 @@ class ProductController extends Controller
                         'stock'          => $variantData['stock'],
                         'sku'            => $variantData['sku'] ?? $variant->sku,
                         'weight'         => $variantData['weight'] ?? $variant->weight,
+                        'image'          => $imagePath,
                     ]);
                     $variant->attributes()->delete();
                 }
             } else {
-                $variant = $product->variants()->create([
+                $imagePath = $imageFile ? $this->uploadAsWebp($imageFile, 'variants') : null;
+                $variant   = $product->variants()->create([
                     'name'           => $variantData['name'],
                     'price'          => $price,
                     'purchase_price' => $purchasePrice,
@@ -537,7 +551,7 @@ class ProductController extends Controller
                     'stock'          => $variantData['stock'],
                     'sku'            => $variantData['sku'] ?? null,
                     'weight'         => $variantData['weight'] ?? null,
-                    'image'          => null,
+                    'image'          => $imagePath,
                 ]);
             }
 

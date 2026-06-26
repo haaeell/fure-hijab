@@ -129,34 +129,79 @@
 
                             @if($product->has_variant && $product->variants->count() > 0)
                                 @php
-                                    $groupedAttributes = [];
+                                    // Kelompokkan nilai unik per tipe atribut
+                                    $groupedAttrs = [];
+                                    $outOfStockVariants = $product->variants->where('stock', '<=', 0)->pluck('id')->toArray();
                                     foreach ($product->variants as $variant) {
                                         foreach ($variant->attributes as $attr) {
-                                            $groupedAttributes[$attr->attribute_name][] = $attr->attribute_value;
+                                            $groupedAttrs[$attr->attribute_name][] = [
+                                                'value' => $attr->attribute_value,
+                                                'out_of_stock' => in_array($variant->id, $outOfStockVariants),
+                                            ];
                                         }
                                     }
-                                    foreach ($groupedAttributes as $name => $values) {
-                                        $groupedAttributes[$name] = array_unique($values);
+                                    // Unikkan per tipe — jika ada nilai yg punya stok, tandai in_stock
+                                    $groupedAttrsUnique = [];
+                                    foreach ($groupedAttrs as $typeName => $entries) {
+                                        $seen = [];
+                                        foreach ($entries as $entry) {
+                                            $v = $entry['value'];
+                                            if (!isset($seen[$v])) {
+                                                $seen[$v] = $entry['out_of_stock'];
+                                            } else {
+                                                // kalau ada 1 varian yang stoknya ada, tandai tersedia
+                                                if (!$entry['out_of_stock']) $seen[$v] = false;
+                                            }
+                                        }
+                                        $groupedAttrsUnique[$typeName] = $seen;
                                     }
+                                    $hasAttributes = !empty($groupedAttrsUnique);
                                 @endphp
 
-                                <div class="space-y-5" id="variantSelection">
-                                    @foreach($groupedAttributes as $attrName => $values)
-                                        <div class="variant-group">
-                                            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/45">
-                                                {{ $attrName }}
-                                            </p>
-                                            <div class="flex flex-wrap gap-2">
-                                                @foreach($values as $value)
-                                                    <button type="button" data-type="{{ $attrName }}" data-value="{{ $value }}"
-                                                        class="variant-btn border border-brand-secondary/60 bg-white px-4 py-2 text-sm font-semibold text-brand-dark/65 transition hover:border-brand-primary hover:text-brand-primary">
-                                                        {{ $value }}
-                                                    </button>
-                                                @endforeach
+                                @if($hasAttributes)
+                                    <div class="space-y-5" id="variantSelection">
+                                        @foreach($groupedAttrsUnique as $typeName => $valueMap)
+                                            <div class="variant-group" data-type="{{ $typeName }}">
+                                                <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/45">{{ $typeName }}</p>
+                                                <div class="flex flex-wrap gap-2">
+                                                    @foreach($valueMap as $value => $isOos)
+                                                        <button type="button"
+                                                            data-type="{{ $typeName }}" data-value="{{ $value }}"
+                                                            @if($isOos) disabled @endif
+                                                            class="variant-btn relative border px-4 py-2 text-sm font-semibold transition
+                                                                {{ $isOos
+                                                                    ? 'border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed opacity-60'
+                                                                    : 'border-brand-secondary/60 bg-white text-brand-dark/65 hover:border-brand-primary hover:text-brand-primary' }}">
+                                                            {{ $value }}
+                                                            @if($isOos)
+                                                                <span class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                                    <span class="w-full h-px bg-gray-300 absolute" style="transform:rotate(-15deg)"></span>
+                                                                </span>
+                                                            @endif
+                                                        </button>
+                                                    @endforeach
+                                                </div>
                                             </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    {{-- Fallback: tidak ada atribut → tampilkan nama varian langsung --}}
+                                    <div id="variantSelection">
+                                        <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/45">Pilih Varian</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            @foreach($product->variants->sortBy('price') as $variant)
+                                                <button type="button" data-variant-id="{{ $variant->id }}"
+                                                    @if($variant->stock <= 0) disabled @endif
+                                                    class="variant-btn relative border px-4 py-2 text-sm font-semibold transition
+                                                        {{ $variant->stock <= 0
+                                                            ? 'border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed opacity-60'
+                                                            : 'border-brand-secondary/60 bg-white text-brand-dark/65 hover:border-brand-primary hover:text-brand-primary' }}">
+                                                    {{ $variant->name }}
+                                                </button>
+                                            @endforeach
                                         </div>
-                                    @endforeach
-                                </div>
+                                    </div>
+                                @endif
                             @endif
 
                             <div class="flex items-center gap-4">
@@ -415,7 +460,9 @@
 @push('scripts')
     <script>
         const variants = @json($product->variants->load('attributes'));
-        let selectedChoices = {};
+
+
+        const selectedChoices = {};
 
         function setActiveThumbnail(btn) {
             $('.gallery-thumb')
@@ -451,8 +498,27 @@
         const defaultProductImage = "{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : '' }}";
 
         function findMatchingVariant() {
-            const match = variants.find(v => v.attributes.every(attr => selectedChoices[attr.attribute_name] === attr.attribute_value));
+            const chosen = Object.entries(selectedChoices);
+            if (!chosen.length) return;
 
+            const match = variants.find(v => {
+                if (!v.attributes?.length) return false;
+                return chosen.every(([type, value]) =>
+                    v.attributes.some(a =>
+                        a.attribute_name.trim() === type.trim() &&
+                        a.attribute_value.trim() === value.trim()
+                    )
+                );
+            });
+
+            if (match) {
+                selectVariant(match);
+            } else {
+                $('#selectedVariantId').val('');
+            }
+        }
+
+        function selectVariant(match) {
             if (!match) return;
 
             $('#selectedVariantId').val(match.id);
@@ -557,19 +623,29 @@
                 .always(function () { $btn.prop('disabled', false); });
             });
 
-            $('.variant-btn').on('click', function () {
-                const type = $(this).data('type');
-                const value = $(this).data('value');
+            $(document).on('click', '.variant-btn:not([disabled])', function () {
+                const $btn = $(this);
 
-                $(this).closest('.variant-group').find('.variant-btn')
-                    .removeClass('border-brand-primary bg-[#eee5dc] text-brand-primary')
-                    .addClass('border-brand-secondary/60 bg-white text-brand-dark/65');
+                if ($btn.data('variant-id')) {
+                    // Mode fallback — pilih langsung by ID
+                    $('.variant-btn').removeClass('border-brand-primary bg-[#eee5dc] text-brand-primary')
+                        .addClass('border-brand-secondary/60 bg-white text-brand-dark/65');
+                    $btn.addClass('border-brand-primary bg-[#eee5dc] text-brand-primary')
+                        .removeClass('border-brand-secondary/60 bg-white text-brand-dark/65');
+                    const match = variants.find(v => v.id == $btn.data('variant-id'));
+                    if (match) selectVariant(match);
+                } else {
+                    // Mode atribut — pilih per tipe, cari kombinasi
+                    const type  = $btn.data('type');
+                    const value = $btn.data('value');
 
-                $(this).addClass('border-brand-primary bg-[#eee5dc] text-brand-primary')
-                    .removeClass('border-brand-secondary/60 bg-white text-brand-dark/65');
+                    $btn.closest('.variant-group').find('.variant-btn:not([disabled])')
+                        .removeClass('border-brand-primary bg-[#eee5dc] text-brand-primary')
+                        .addClass('border-brand-secondary/60 bg-white text-brand-dark/65');
+                    $btn.addClass('border-brand-primary bg-[#eee5dc] text-brand-primary')
+                        .removeClass('border-brand-secondary/60 bg-white text-brand-dark/65');
 
-                selectedChoices[type] = value;
-                if (Object.keys(selectedChoices).length === $('.variant-group').length) {
+                    selectedChoices[type] = value;
                     findMatchingVariant();
                 }
             });
@@ -586,7 +662,12 @@
             function submitCartAction(action) {
                 @if($product->has_variant && $product->variants->count() > 0)
                     if (!$('#selectedVariantId').val()) {
-                        Swal.fire({ icon: 'warning', title: 'Pilih Varian', text: 'Silakan pilih warna/ukuran terlebih dahulu.' });
+                        const totalGroups = document.querySelectorAll('.variant-group').length;
+                        const totalChosen = Object.keys(selectedChoices).length;
+                        const msg = totalChosen < totalGroups
+                            ? 'Silakan pilih semua pilihan varian terlebih dahulu.'
+                            : 'Kombinasi varian yang dipilih tidak tersedia.';
+                        Swal.fire({ icon: 'warning', title: 'Pilih Varian', text: msg });
                         return;
                     }
                 @endif

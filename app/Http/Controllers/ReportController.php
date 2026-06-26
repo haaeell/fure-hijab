@@ -398,7 +398,7 @@ class ReportController extends Controller
 
         $startDate = $request->filled('start_date')
             ? Carbon::parse($request->start_date)->startOfDay()
-            : now()->subDays(29)->startOfDay();
+            : now()->startOfMonth()->startOfDay();
 
         $endDate = $request->filled('end_date')
             ? Carbon::parse($request->end_date)->endOfDay()

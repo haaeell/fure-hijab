@@ -4,9 +4,20 @@
 
 @section('content')
     <div class="mx-auto max-w-5xl">
-        <div class="mb-8">
-            <h1 class="text-xl md:text-2xl font-extrabold text-brand-dark tracking-tight">Pengaturan Integrasi</h1>
-            <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">Atur kredensial Biteship, Midtrans, dan email SMTP langsung dari panel admin.</p>
+        <div class="mb-6">
+            <h1 class="text-xl md:text-2xl font-extrabold text-brand-dark tracking-tight">Pengaturan</h1>
+        </div>
+
+        {{-- Tab --}}
+        <div class="flex gap-2 mb-8 border-b border-gray-100">
+            <a href="{{ route('settings.store') }}"
+                class="px-5 py-2.5 text-xs font-black tracking-widest rounded-t-xl transition-all border-b-2 border-transparent text-gray-400 hover:text-brand-dark">
+                TOKO
+            </a>
+            <a href="{{ route('settings.index') }}"
+                class="px-5 py-2.5 text-xs font-black tracking-widest rounded-t-xl transition-all border-b-2 border-brand-primary text-brand-primary bg-brand-primary/5">
+                INTEGRASI API
+            </a>
         </div>
 
         <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
