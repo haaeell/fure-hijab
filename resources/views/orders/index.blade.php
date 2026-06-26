@@ -7,7 +7,6 @@
         $statusMap = [
             '' => ['label' => 'Semua', 'icon' => 'fa-list'],
             'pending' => ['label' => 'Pending', 'icon' => 'fa-hourglass-half'],
-            'confirmed' => ['label' => 'Dikonfirmasi', 'icon' => 'fa-circle-check'],
             'processing' => ['label' => 'Diproses', 'icon' => 'fa-gear'],
             'shipped' => ['label' => 'Dikirim', 'icon' => 'fa-truck'],
             'delivered' => ['label' => 'Terkirim', 'icon' => 'fa-house-circle-check'],

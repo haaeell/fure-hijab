@@ -137,21 +137,12 @@ class OrderController extends Controller
 
         $request->validate([
             'status' => 'required|in:pending,processing,shipped,delivered,cancelled,refunded',
-            'resi'   => 'nullable|string|max:100',
             'note'   => 'nullable|string|max:500',
         ]);
 
         DB::beginTransaction();
         try {
             $order->update(['status' => $request->status]);
-
-            // Update / create shipment resi when status = shipped
-            if ($request->status === 'shipped' && $request->filled('resi')) {
-                $shipment = $order->shipment ?? new Shipment(['order_id' => $order->id]);
-                $shipment->resi   = $request->resi;
-                $shipment->status = 'in_transit';
-                $shipment->save();
-            }
 
             DB::commit();
 

@@ -4,7 +4,7 @@
 
 @section('content')
     @php
-        $shippingAddr = $order->address->firstWhere('type', 'shipping');
+        $shippingAddr = $order->address;
         $statusLabels = [
             'pending' => 'Menunggu Pembayaran',
             'confirmed' => 'Dikonfirmasi',
@@ -277,12 +277,12 @@
                 </nav>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="window.print()"
+                <button onclick="window.print()" title="Print halaman pesanan"
                     class="px-5 py-3 bg-white border border-gray-200 text-gray-600 rounded-2xl font-bold shadow-sm hover:bg-gray-50 transition-all flex items-center gap-2 text-sm">
                     <i class="fa-solid fa-print text-brand-primary"></i>
                     <span class="hidden sm:inline">Print</span>
                 </button>
-                <button onclick="openStatusModal()"
+                <button onclick="openStatusModal()" title="Ubah status pesanan"
                     class="px-5 py-3 bg-brand-primary text-white rounded-2xl font-bold shadow-lg shadow-brand-primary/20 hover:bg-brand-dark transition-all flex items-center gap-2 text-sm">
                     <i class="fa-solid fa-arrows-rotate"></i>
                     <span class="hidden sm:inline">Ubah Status</span>
@@ -580,23 +580,21 @@
                                         </p>
                                     </div>
                                     <div class="flex flex-wrap gap-2 sm:ml-auto">
-                                        <button type="button" onclick="openLabelModal()"
+                                        <button type="button" onclick="openLabelModal()" title="Download label resi PDF"
                                             class="px-3 py-1.5 bg-brand-primary text-white text-[10px] font-black rounded-xl hover:bg-brand-dark transition-all flex items-center gap-1">
                                             <i class="fa-solid fa-download mr-1"></i>Download Resi
                                         </button>
                                         @if($ship->label_url)
-                                            {{-- Official Biteship label --}}
-                                            <a href="{{ route('orders.biteship-label.download', $order->id) }}"
+                                            <a href="{{ route('orders.biteship-label.download', $order->id) }}" title="Download label resmi dari Biteship"
                                                 class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all flex items-center gap-1">
                                                 <i class="fa-solid fa-download mr-1"></i>Label Biteship
                                             </a>
                                         @endif
-                                        <button onclick="copyResi('{{ $ship->resi }}')"
+                                        <button onclick="copyResi('{{ $ship->resi }}')" title="Salin nomor resi ke clipboard"
                                             class="px-3 py-1.5 bg-white border border-cyan-200 text-cyan-600 text-[10px] font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
                                             <i class="fa-solid fa-copy mr-1"></i>Salin
                                         </button>
-                                        <button id="btnLacak" type="button"
-                                            onclick="lacakResi({{ $order->id }})"
+                                        <button id="btnLacak" type="button" onclick="lacakResi({{ $order->id }})" title="Lacak status pengiriman via Biteship"
                                             class="px-3 py-1.5 bg-cyan-500 text-white text-[10px] font-black rounded-xl hover:bg-brand-dark transition-all">
                                             <i class="fa-solid fa-location-crosshairs mr-1"></i>Lacak
                                         </button>
@@ -713,23 +711,15 @@
                                 </div>
                             @endif
 
-                            {{-- Resi input for admin --}}
+                            {{-- Generate resi via Biteship --}}
                             @if(!$ship->resi && $order->status === 'processing')
-                                <div class="flex flex-col gap-3 md:flex-row">
-                                    <form action="{{ route('orders.biteship-waybill', $order->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit"
-                                            class="w-full px-5 py-3 bg-cyan-500 text-white rounded-2xl text-xs font-black tracking-widest hover:bg-brand-dark transition-all">
-                                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Generate Resi Biteship
-                                        </button>
-                                    </form>
-                                    <input type="text" id="resiInput" placeholder="Masukkan nomor resi..."
-                                        class="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary outline-none text-sm font-semibold">
-                                    <button onclick="saveResi({{ $order->id }})"
-                                        class="px-5 py-3 bg-brand-primary text-white rounded-2xl text-xs font-black tracking-widest hover:bg-brand-dark transition-all">
-                                        <i class="fa-solid fa-save mr-1"></i>Simpan Resi
+                                <form action="{{ route('orders.biteship-waybill', $order->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" title="Generate nomor resi otomatis via Biteship"
+                                        class="px-5 py-3 bg-cyan-500 text-white rounded-2xl text-xs font-black tracking-widest hover:bg-brand-dark transition-all">
+                                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Generate Resi Biteship
                                     </button>
-                                </div>
+                                </form>
                             @endif
 
                             {{-- Tracking History --}}
@@ -812,7 +802,7 @@
                                                 <span
                                                     class="px-2 py-1 bg-green-50 text-green-600 text-[9px] font-black rounded-lg tracking-widest">TERVERIFIKASI</span>
                                             @else
-                                                <button onclick="verifyReview({{ $review->id }})"
+                                                <button onclick="verifyReview({{ $review->id }})" title="Tandai ulasan sebagai terverifikasi"
                                                     class="px-3 py-1 bg-gray-50 text-gray-500 text-[9px] font-black rounded-lg hover:bg-brand-primary hover:text-white transition-all">
                                                     Verifikasi
                                                 </button>
@@ -956,25 +946,19 @@
                     </div>
                     <div class="px-5 py-4 space-y-2">
                         @if(in_array($order->status, ['pending', 'confirmed']))
-                            <button onclick="quickStatus({{ $order->id }}, 'processing')"
+                            <button onclick="quickStatus({{ $order->id }}, 'processing')" title="Ubah status ke Diproses"
                                 class="w-full py-3 bg-indigo-50 text-indigo-600 rounded-2xl text-xs font-black tracking-widest hover:bg-indigo-500 hover:text-white transition-all flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-gear"></i> Proses Pesanan
                             </button>
                         @endif
-                        @if($order->status === 'processing' && !$order->shipment?->resi)
-                            <button onclick="openShipModal()"
-                                class="w-full py-3 bg-cyan-50 text-cyan-600 rounded-2xl text-xs font-black tracking-widest hover:bg-cyan-500 hover:text-white transition-all flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-truck"></i> Tandai Dikirim + Input Resi
-                            </button>
-                        @endif
                         @if($order->status === 'shipped')
-                            <button onclick="quickStatus({{ $order->id }}, 'delivered')"
+                            <button onclick="quickStatus({{ $order->id }}, 'delivered')" title="Tandai pesanan sudah diterima customer"
                                 class="w-full py-3 bg-green-50 text-green-600 rounded-2xl text-xs font-black tracking-widest hover:bg-green-500 hover:text-white transition-all flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-house-circle-check"></i> Tandai Terkirim
                             </button>
                         @endif
                         @if(in_array($order->status, ['pending', 'confirmed', 'processing']))
-                            <button onclick="cancelOrder({{ $order->id }})"
+                            <button onclick="cancelOrder({{ $order->id }})" title="Batalkan pesanan dan kembalikan stok"
                                 class="w-full py-3 bg-red-50 text-red-500 rounded-2xl text-xs font-black tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-ban"></i> Batalkan Pesanan
                             </button>
@@ -1086,12 +1070,6 @@
                         @endforeach
                     </select>
                 </div>
-                <div id="resiGroup" class="{{ $order->status === 'shipped' ? '' : 'hidden' }} space-y-1.5">
-                    <label class="text-[10px] font-black text-gray-400 tracking-widest">NOMOR RESI</label>
-                    <input type="text" name="resi" value="{{ $order->shipment?->resi }}"
-                        placeholder="Masukkan nomor resi..."
-                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary outline-none text-sm font-semibold">
-                </div>
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-gray-400 tracking-widest">CATATAN <span
                             class="text-gray-300">(Opsional)</span></label>
@@ -1112,55 +1090,6 @@
         </div>
     </div>
 
-    {{-- ══════════════════════════════════════
-    SHIP MODAL (input resi + shipped)
-    ══════════════════════════════════════ --}}
-    <div id="shipModal"
-        class="fixed inset-0 hidden bg-slate-900/50 backdrop-blur-sm items-center justify-center z-[100] p-4">
-        <div class="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden">
-            <div class="px-7 py-5 border-b border-gray-100 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-500">
-                        <i class="fa-solid fa-truck"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-extrabold text-brand-dark">Input Resi & Kirim</h3>
-                        <p class="text-[10px] text-gray-400 font-bold tracking-widest">{{ $order->order_number }}</p>
-                    </div>
-                </div>
-                <button onclick="closeShipModal()"
-                    class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <form method="POST" action="{{ route('orders.status', $order->id) }}" class="p-7 space-y-4">
-                @csrf @method('PATCH')
-                <input type="hidden" name="status" value="shipped">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-gray-400 tracking-widest">NOMOR RESI <span
-                            class="text-red-400">*</span></label>
-                    <input type="text" name="resi" required placeholder="Contoh: JNE12345678"
-                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-cyan-100 focus:border-cyan-400 outline-none text-sm font-semibold">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-gray-400 tracking-widest">CATATAN <span
-                            class="text-gray-300">(Opsional)</span></label>
-                    <textarea name="note" rows="2" placeholder="Catatan pengiriman..."
-                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-cyan-100 focus:border-cyan-400 outline-none text-sm font-semibold resize-none"></textarea>
-                </div>
-                <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="closeShipModal()"
-                        class="flex-1 py-3 rounded-2xl text-xs font-black tracking-widest text-gray-400 hover:bg-gray-100 transition-all">
-                        Batal
-                    </button>
-                    <button type="submit"
-                        class="flex-1 py-3 rounded-2xl bg-cyan-500 text-white text-xs font-black tracking-widest shadow-lg shadow-cyan-200 hover:bg-cyan-600 transition-all">
-                        <i class="fa-solid fa-truck mr-2"></i>Tandai Dikirim
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     @push('scripts')
         <script>
@@ -1295,17 +1224,7 @@
             window.closeStatusModal = function () {
                 $('#statusModal').addClass('hidden').removeClass('flex');
             }
-            window.openShipModal = function () {
-                $('#shipModal').removeClass('hidden').addClass('flex');
-            }
-            window.closeShipModal = function () {
-                $('#shipModal').addClass('hidden').removeClass('flex');
-            }
-            $('#statusSelect').on('change', function () {
-                $('#resiGroup').toggleClass('hidden', this.value !== 'shipped');
-            });
-
-            $('#statusModal, #shipModal').on('click', function (e) {
+            $('#statusModal').on('click', function (e) {
                 if (e.target === this) $(this).addClass('hidden').removeClass('flex');
             });
 
@@ -1363,15 +1282,6 @@
                 });
             }
 
-            window.saveResi = function (orderId) {
-                const resi = $('#resiInput').val().trim();
-                if (!resi) { Swal.fire({ icon: 'warning', title: 'Resi kosong', timer: 1500, showConfirmButton: false }); return; }
-                $('<form>', { method: 'POST', action: `/orders/${orderId}/resi` })
-                    .append($('<input>', { type: 'hidden', name: '_token', value: '{{ csrf_token() }}' }))
-                    .append($('<input>', { type: 'hidden', name: '_method', value: 'PATCH' }))
-                    .append($('<input>', { type: 'hidden', name: 'resi', value: resi }))
-                    .appendTo('body').submit();
-            }
         </script>
     @endpush
 @endsection
