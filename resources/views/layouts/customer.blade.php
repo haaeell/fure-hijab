@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- LCP image preload — harus di atas CSS agar browser fetch gambar lebih awal --}}
     @stack('preload')
-    <meta name="google-site-verification" content="lNinuCbvQ82rAKlJfOIHIzxFMYMdeuxrH4Ni5a8Y7gI" />
+    <meta name="google-site-verification" content="LMJfBdLrqMUltckNxt1F3PNmrXMSd-UbjHqKq6zhOWE" />
     @php
         $defaultSeoTitle = $seoDefaults['title'];
         $defaultSeoDescription = $seoDefaults['description'];

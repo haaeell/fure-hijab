@@ -279,6 +279,22 @@
                 @csrf
                 <input type="hidden" name="_method" id="methodField">
 
+                {{-- Validation error banner --}}
+                <div id="formErrorBanner" class="hidden mx-8 mt-6 rounded-2xl bg-red-50 border border-red-200 p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center">
+                            <i class="fa-solid fa-triangle-exclamation text-red-500 text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-extrabold text-red-700 mb-1">Formulir belum lengkap</p>
+                            <ul id="formErrorList" class="text-xs text-red-600 font-semibold space-y-0.5 list-disc list-inside"></ul>
+                        </div>
+                        <button type="button" onclick="document.getElementById('formErrorBanner').classList.add('hidden')" class="flex-shrink-0 text-red-300 hover:text-red-500 transition-colors">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="p-8">
 
                     {{-- ═══════ TAB: INFO ═══════ --}}
@@ -819,12 +835,83 @@
 
             // Submit: inject raw numeric values for all price + description fields
             $('#productForm').on('submit', function (e) {
+                // ── Client-side validation ──────────────────────────────
+                const errors   = [];
+                const hasVar   = $('#hasVariant').is(':checked');
+
+                // Helper: mark field error
+                function fieldErr($el, msg, tab) {
+                    errors.push({ msg, tab });
+                    $el.addClass('!border-red-400 !bg-red-50/40');
+                    $el.one('input change', function () {
+                        $(this).removeClass('!border-red-400 !bg-red-50/40');
+                    });
+                }
+                // Clear previous errors
+                $('.!border-red-400').removeClass('!border-red-400 !bg-red-50/40');
+
+                // --- Tab INFO ---
+                const $name = $('#productName');
+                if (!$name.val().trim()) fieldErr($name, 'Nama produk wajib diisi', 'info');
+
+                const $cat = $('#productCategory');
+                if (!$cat.val()) fieldErr($cat, 'Kategori wajib dipilih', 'info');
+
+                // --- Tab HARGA & STOK ---
+                if (!hasVar) {
+                    const $price = $('#productPrice');
+                    if (!$price.val().trim() || parseRupiah($price.val()) <= 0) {
+                        fieldErr($price, 'Harga jual wajib diisi (lebih dari 0)', 'harga');
+                    }
+                    const $stock = $('#productStock');
+                    if ($stock.val() === '' || parseInt($stock.val()) < 0) {
+                        fieldErr($stock, 'Stok wajib diisi', 'harga');
+                    }
+                }
+
+                // --- Tab VARIAN ---
+                if (hasVar) {
+                    if (variantRows.length === 0) {
+                        errors.push({ msg: 'Produk dengan varian wajib memiliki minimal 1 varian', tab: 'variants' });
+                    } else {
+                        variantRows.forEach((row, i) => {
+                            const $r      = $(`#variant-row-${row.id}`);
+                            const $vName  = $r.find('.variant-name');
+                            const $vPrice = $r.find('.variant-price');
+                            const $vStock = $r.find('.variant-stock');
+                            if (!$vName.val().trim())
+                                fieldErr($vName, `Varian #${i+1}: nama wajib diisi`, 'variants');
+                            if (parseRupiah($vPrice.val()) <= 0)
+                                fieldErr($vPrice, `Varian #${i+1}: harga wajib diisi`, 'variants');
+                            if ($vStock.val() === '' || parseInt($vStock.val()) < 0)
+                                fieldErr($vStock, `Varian #${i+1}: stok wajib diisi`, 'variants');
+                        });
+                    }
+                }
+
+                if (errors.length > 0) {
+                    e.preventDefault();
+                    // Populate error banner
+                    const $list = $('#formErrorList').empty();
+                    errors.forEach(err => $list.append(`<li>${escHtml(err.msg)}</li>`));
+                    $('#formErrorBanner').removeClass('hidden');
+                    // Scroll banner into view
+                    document.getElementById('formErrorBanner').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    // Switch to first tab with error
+                    const firstTab = errors[0].tab;
+                    if (firstTab) switchTab(firstTab);
+                    return;
+                }
+
+                // ── Pre-submit processing ───────────────────────────────
+                $('#formErrorBanner').addClass('hidden');
+
                 // Summernote — remove stale hidden then inject fresh value
                 $('[name="description"][type="hidden"]').remove();
                 $('<input>').attr({ type: 'hidden', name: 'description', value: getDescriptionData() }).appendTo('#productForm');
 
                 // Price fields — only inject when NOT in variant mode
-                if (!$('#hasVariant').is(':checked')) {
+                if (!hasVar) {
                     const priceMap = {
                         productModalPrice:   'modal_price',
                         productPrice:        'price',
@@ -909,6 +996,9 @@
         function resetModal() {
             destroySummernote();
             $('#productForm')[0].reset();
+            $('#formErrorBanner').addClass('hidden');
+            $('#formErrorList').empty();
+            $('.!border-red-400').removeClass('!border-red-400 !bg-red-50/40');
             $('#productCollection').val('');
             $('#imageList').empty();
             $('#imageEmpty').removeClass('hidden');
