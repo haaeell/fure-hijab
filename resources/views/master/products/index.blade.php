@@ -848,7 +848,7 @@
                     });
                 }
                 // Clear previous errors
-                $('.!border-red-400').removeClass('!border-red-400 !bg-red-50/40');
+                $('[class*="\\!border-red-400"]').removeClass('!border-red-400 !bg-red-50/40');
 
                 // --- Tab INFO ---
                 const $name = $('#productName');
@@ -998,7 +998,7 @@
             $('#productForm')[0].reset();
             $('#formErrorBanner').addClass('hidden');
             $('#formErrorList').empty();
-            $('.!border-red-400').removeClass('!border-red-400 !bg-red-50/40');
+            $('[class*="\\!border-red-400"]').removeClass('!border-red-400 !bg-red-50/40');
             $('#productCollection').val('');
             $('#imageList').empty();
             $('#imageEmpty').removeClass('hidden');
