@@ -25,9 +25,9 @@ class StorefrontContextService
             'storeTiktok' => $store['tiktok'],
             'storeWhatsapp' => $store['whatsapp'],
             'seoDefaults' => [
-                'title' => 'Hijab Premium dan Modest Wear',
-                'description' => 'Belanja koleksi hijab premium dan modest wear FURE dengan bahan nyaman, warna lembut, dan desain elegan untuk aktivitas harian hingga momen spesial.',
-                'keywords' => 'hijab premium, hijab wanita, modest wear, hijab elegan, hijab terbaru, FURE',
+                'title' => $store['name'] . ' — Hijab Premium & Modest Wear',
+                'description' => 'Belanja koleksi hijab premium dan modest wear ' . $store['name'] . ' dengan bahan nyaman, warna lembut, dan desain elegan. Tersedia hijab syari, hijab daily, new arrival, dan best seller. Pengiriman ke seluruh Indonesia.',
+                'keywords' => $store['name'] . ', ' . strtolower($store['name']) . ' hijab, hijab premium, hijab syari, hijab daily, hijab wanita, modest wear, toko hijab online',
                 'image' => $store['logo'] ? asset('storage/' . $store['logo']) : asset('favicon.ico'),
             ],
             'customerNav' => $customer,

@@ -113,6 +113,7 @@ class LandingPageViewDataService
             'chatUrl' => $this->chatUrl($store),
             'organizationSchema' => $this->organizationSchema($store),
             'websiteSchema' => $this->websiteSchema($store),
+            'localBusinessSchema' => $this->localBusinessSchema($store),
         ];
     }
 
@@ -120,28 +121,37 @@ class LandingPageViewDataService
     {
         $phone = preg_replace('/\D+/', '', (string) ($store['whatsapp'] ?: $store['origin_phone']));
         $phone = str_starts_with($phone, '0') ? '62' . substr($phone, 1) : $phone;
-        $message = rawurlencode('Halo FURE, saya mau tanya koleksi dan pesanan.');
+        $message = rawurlencode('Halo ' . $store['name'] . ', saya mau tanya koleksi dan pesanan.');
 
         return $phone ? "https://api.whatsapp.com/send?phone={$phone}&text={$message}" : '#';
     }
 
     private function organizationSchema(array $store): array
     {
-        return [
+        $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
             'name' => $store['name'],
             'url' => url('/'),
-            'logo' => $store['logo'] ? asset('storage/' . $store['logo']) : asset('favicon.ico'),
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => $store['logo'] ? asset('storage/' . $store['logo']) : asset('favicon.ico'),
+            ],
             'sameAs' => array_values(array_filter([$store['instagram'], $store['tiktok']])),
-            'contactPoint' => [
+        ];
+
+        $phone = $store['phone'] ?: $store['whatsapp'];
+        if ($phone) {
+            $schema['contactPoint'] = [
                 '@type' => 'ContactPoint',
-                'telephone' => $store['phone'] ?: $store['whatsapp'],
+                'telephone' => $phone,
                 'contactType' => 'customer service',
                 'areaServed' => 'ID',
                 'availableLanguage' => ['Indonesian'],
-            ],
-        ];
+            ];
+        }
+
+        return $schema;
     }
 
     private function websiteSchema(array $store): array
@@ -153,9 +163,51 @@ class LandingPageViewDataService
             'url' => url('/'),
             'potentialAction' => [
                 '@type' => 'SearchAction',
-                'target' => route('collections.index') . '?search={search_term_string}',
+                'target' => [
+                    '@type' => 'EntryPoint',
+                    'urlTemplate' => route('collections.index') . '?search={search_term_string}',
+                ],
                 'query-input' => 'required name=search_term_string',
             ],
         ];
+    }
+
+    private function localBusinessSchema(array $store): array
+    {
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'ClothingStore',
+            'name' => $store['name'],
+            'url' => url('/'),
+            'image' => $store['logo'] ? asset('storage/' . $store['logo']) : asset('favicon.ico'),
+            'description' => $store['name'] . ' adalah toko hijab premium online yang menyediakan koleksi hijab syari, hijab daily, dan modest wear dengan bahan berkualitas.',
+            'priceRange' => '$$',
+            'currenciesAccepted' => 'IDR',
+            'paymentAccepted' => 'Credit Card, Bank Transfer, GoPay, OVO, QRIS',
+            'areaServed' => 'ID',
+        ];
+
+        if ($store['address']) {
+            $schema['address'] = [
+                '@type' => 'PostalAddress',
+                'addressLocality' => $store['address'],
+                'addressCountry' => 'ID',
+            ];
+        }
+
+        if ($store['phone'] ?: $store['whatsapp']) {
+            $schema['telephone'] = $store['phone'] ?: $store['whatsapp'];
+        }
+
+        if ($store['email']) {
+            $schema['email'] = $store['email'];
+        }
+
+        $sameAs = array_values(array_filter([$store['instagram'], $store['tiktok']]));
+        if ($sameAs) {
+            $schema['sameAs'] = $sameAs;
+        }
+
+        return $schema;
     }
 }

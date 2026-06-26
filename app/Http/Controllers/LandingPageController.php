@@ -367,7 +367,7 @@ class LandingPageController extends Controller
             'name' => $product->name,
             'image' => $galleryImages->map(fn($item) => asset('storage/' . $item->image_url))->values()->all() ?: [$image],
             'description' => $description ?: trim(strip_tags($product->description)),
-            'sku' => $product->sku ?: 'FURE-' . $product->id,
+            'sku' => $product->sku ?: strtoupper(preg_replace('/[^A-Z0-9]/i', '', $store['name'])) . '-' . $product->id,
             'brand' => [
                 '@type' => 'Brand',
                 'name' => $product->brand->name ?? $store['name'],
@@ -394,7 +394,18 @@ class LandingPageController extends Controller
         return [
             'description' => $description,
             'image' => $image,
-            'keywords' => implode(', ', array_filter([$product->name, $product->category->name ?? null, $product->brand->name ?? null, 'hijab premium', 'modest wear', $store['name']])),
+            'keywords' => implode(', ', array_filter([
+                $product->name,
+                $store['name'] . ' ' . $product->name,
+                $product->category->name ?? null,
+                $store['name'] . ' ' . ($product->category->name ?? 'hijab'),
+                $product->brand->name ?? null,
+                'hijab premium',
+                'beli ' . $product->name,
+                'harga ' . $product->name,
+                'modest wear',
+                $store['name'],
+            ])),
             'schema' => $schema,
         ];
     }

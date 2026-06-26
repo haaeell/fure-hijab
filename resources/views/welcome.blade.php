@@ -2,17 +2,16 @@
 
 @section('title', 'Koleksi Hijab Premium')
 
-@section('seo_title', $globalStoreName . ' Hijab Premium dan Modest Wear')
-@section('seo_description', 'Temukan koleksi hijab premium ' . $globalStoreName . ', modest wear elegan, best seller, promo, dan new arrival
-    dengan bahan nyaman serta warna lembut untuk daily look.')
-@section('seo_keywords', $globalStoreName . ', hijab premium, hijab wanita, hijab terbaru, modest wear, best seller hijab, hijab
-    syari')
+@section('seo_title', $globalStoreName . ' — Hijab Premium & Modest Wear Terbaik Indonesia')
+@section('seo_description', $globalStoreName . ' adalah toko hijab premium online terpercaya. Temukan koleksi hijab syari, hijab daily, modest wear elegan, best seller, new arrival dengan bahan nyaman dan warna lembut. Gratis ongkir, pengiriman cepat ke seluruh Indonesia.')
+@section('seo_keywords', $globalStoreName . ', ' . strtolower($globalStoreName) . ' hijab, toko hijab premium, hijab premium, hijab syari, hijab daily, hijab wanita, modest wear, hijab terbaru, hijab best seller, hijab new arrival, beli hijab online, toko hijab online Indonesia')
 @section('seo_image', $homeSeoImage)
 @section('canonical', url('/'))
 
 @push('seo')
     <script type="application/ld+json">{!! json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     <script type="application/ld+json">{!! json_encode($websiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    <script type="application/ld+json">{!! json_encode($localBusinessSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @endpush
 
 @push('preload')

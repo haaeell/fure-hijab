@@ -25,15 +25,25 @@
         $isOutOfStock  = $product->stock <= 0;
     @endphp
 
-    @section('seo_title', $product->name)
-    @section('seo_description', $productSeo['description'] ?: 'Belanja ' . $product->name . ' dari koleksi ' . $globalStoreName . ' dengan bahan nyaman, warna elegan, dan tampilan modest yang rapi.')
-    @section('seo_keywords', $productSeo['keywords'])
+    @section('seo_title', $product->name . ' — ' . $globalStoreName)
+    @section('seo_description', $productSeo['description'] ?: 'Beli ' . $product->name . ' di ' . $globalStoreName . '. Hijab premium dengan bahan nyaman, warna lembut, dan tampilan modest untuk aktivitas harian hingga momen spesial. Pengiriman ke seluruh Indonesia.')
+    @section('seo_keywords', $productSeo['keywords'] . ', beli ' . $product->name . ', harga ' . $product->name . ', ' . $globalStoreName . ' ' . ($product->category->name ?? 'hijab'))
     @section('seo_image', $productSeo['image'])
     @section('canonical', route('collections.show', $product->slug))
     @section('og_type', 'product')
 
     @push('seo')
         <script type="application/ld+json">{!! json_encode($productSeo['schema'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+        <script type="application/ld+json">{!! json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url('/')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Koleksi', 'item' => route('collections.index')],
+                ['@type' => 'ListItem', 'position' => 3, 'name' => $product->category->name ?? 'Hijab', 'item' => route('collections.index', ['category' => $product->category->slug ?? ''])],
+                ['@type' => 'ListItem', 'position' => 4, 'name' => $product->name, 'item' => route('collections.show', $product->slug)],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     @endpush
 
     <section class="mobile-action-safe-space bg-[#f8f3ee]">
