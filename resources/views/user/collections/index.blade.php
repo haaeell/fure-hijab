@@ -45,21 +45,31 @@
             'numberOfItems'  => $products->count(),
             'itemListElement'=> $products->values()->map(function ($item, $index) {
                 $image = $item->images->first();
+                $product = [
+                    '@type'  => 'Product',
+                    'name'   => $item->name,
+                    'image'  => $image ? asset('storage/' . $image->image_url) : asset('favicon.ico'),
+                    'offers' => [
+                        '@type'          => 'Offer',
+                        'priceCurrency'  => 'IDR',
+                        'price'          => (float) $item->price,
+                        'availability'   => $item->stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                    ],
+                ];
+                if ($item->reviews_count > 0) {
+                    $product['aggregateRating'] = [
+                        '@type'       => 'AggregateRating',
+                        'ratingValue' => round((float) $item->reviews_avg_rating, 1),
+                        'reviewCount' => (int) $item->reviews_count,
+                        'bestRating'  => 5,
+                        'worstRating' => 1,
+                    ];
+                }
                 return [
                     '@type'    => 'ListItem',
                     'position' => $index + 1,
                     'url'      => route('collections.show', $item->slug),
-                    'item'     => [
-                        '@type'  => 'Product',
-                        'name'   => $item->name,
-                        'image'  => $image ? asset('storage/' . $image->image_url) : asset('favicon.ico'),
-                        'offers' => [
-                            '@type'          => 'Offer',
-                            'priceCurrency'  => 'IDR',
-                            'price'          => (float) $item->price,
-                            'availability'   => $item->stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-                        ],
-                    ],
+                    'item'     => $product,
                 ];
             })->all(),
         ];

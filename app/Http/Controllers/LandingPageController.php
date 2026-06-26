@@ -220,6 +220,8 @@ class LandingPageController extends Controller
         $query = Product::query()
             ->select($this->productCardColumns())
             ->with($this->productCardRelations())
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
             ->where('is_active', true);
         $collection = $type !== 'all' ? Collection::where('slug', $type)->where('is_active', true)->first() : null;
 
