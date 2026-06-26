@@ -87,7 +87,7 @@
 
 <body>
     <div class="header">
-        <div class="brand">FURE</div>
+        <div class="brand">{{ $globalStoreName }}</div>
         <h1>{{ $title }}</h1>
         <div class="meta">
             <span>Periode: {{ $filters['start_date'] }} - {{ $filters['end_date'] }}</span>

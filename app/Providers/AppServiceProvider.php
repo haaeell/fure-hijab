@@ -33,6 +33,23 @@ class AppServiceProvider extends ServiceProvider
             $view->with(app(AdminLayoutContextService::class)->layoutData());
         });
 
+        // Share store name & logo globally to all views
+        View::composer('*', function ($view) {
+            try {
+                if (!Schema::hasTable('settings')) return;
+                $name = Setting::getValue('store_name', 'FURE');
+                $logo = Setting::getValue('store_logo');
+                $view->with([
+                    'globalStoreName' => $name,
+                    'globalStoreLogo' => $logo,
+                    'storeName' => $name,
+                    'storeLogo' => $logo,
+                    'adminStoreName' => $name,
+                    'adminStoreLogo' => $logo,
+                ]);
+            } catch (Throwable $th) {}
+        });
+
         try {
             if (!Schema::hasTable('settings')) {
                 return;

@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Tentang Kami - FURE')
+@section('title', 'Tentang Kami - ' . $storeName)
 
 @section('content')
     <section class="bg-[#f8f3ee]">
@@ -14,14 +14,14 @@
             <div class="grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
                 <div class="relative min-h-[520px] overflow-hidden bg-brand-dark">
                     <img src="/banner2.webp"
-                        alt="Tentang FURE"
+                        alt="Tentang {{ $storeName }}"
                         class="absolute inset-0 h-full w-full object-cover opacity-80">
                     <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/85 via-brand-dark/20 to-transparent"></div>
                     <div class="absolute bottom-0 left-0 max-w-xl p-6 text-white sm:p-10">
-                        <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-brand-secondary">About FURE</p>
+                        <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-brand-secondary">About {{ $storeName }}</p>
                         <h1 class="text-4xl font-semibold leading-tight sm:text-5xl">Elegansi dalam kesantunan.</h1>
                         <p class="mt-4 text-sm leading-7 text-white/75">
-                            FURE menghadirkan hijab premium untuk wanita modern yang menghargai kualitas, kenyamanan, dan estetika.
+                            {{ $storeName }} menghadirkan hijab premium untuk wanita modern yang menghargai kualitas, kenyamanan, dan estetika.
                         </p>
                     </div>
                 </div>
@@ -31,7 +31,7 @@
                         <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-brand-primary">Our Story</p>
                         <h2 class="mt-3 text-3xl font-semibold">Cerita Kami</h2>
                         <p class="mt-4 text-sm leading-7 text-brand-dark/60">
-                            FURE lahir dari keinginan untuk menghadirkan produk hijab yang tidak hanya indah dipandang,
+                            {{ $storeName }} lahir dari keinginan untuk menghadirkan produk hijab yang tidak hanya indah dipandang,
                             tetapi juga nyaman digunakan sepanjang hari.
                         </p>
                         <p class="mt-4 text-sm leading-7 text-brand-dark/60">
@@ -76,7 +76,7 @@
                         <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-brand-primary">Join us</p>
                         <h2 class="mt-3 text-3xl font-semibold">Bergabung bersama kami</h2>
                         <p class="mt-3 max-w-2xl text-sm leading-7 text-brand-dark/60">
-                            Jadilah bagian dari perjalanan FURE dan temukan koleksi terbaik untuk gaya eleganmu.
+                            Jadilah bagian dari perjalanan {{ $storeName }} dan temukan koleksi terbaik untuk gaya eleganmu.
                         </p>
                     </div>
                     <a href="{{ route('collections.index') }}"

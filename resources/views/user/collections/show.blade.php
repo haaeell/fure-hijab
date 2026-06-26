@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', $product->name . ' - FURE')
+@section('title', $product->name . ' - ' . $globalStoreName)
 
 @section('content')
     @php
@@ -26,7 +26,7 @@
     @endphp
 
     @section('seo_title', $product->name)
-    @section('seo_description', $productSeo['description'] ?: 'Belanja ' . $product->name . ' dari koleksi FURE dengan bahan nyaman, warna elegan, dan tampilan modest yang rapi.')
+    @section('seo_description', $productSeo['description'] ?: 'Belanja ' . $product->name . ' dari koleksi ' . $globalStoreName . ' dengan bahan nyaman, warna elegan, dan tampilan modest yang rapi.')
     @section('seo_keywords', $productSeo['keywords'])
     @section('seo_image', $productSeo['image'])
     @section('canonical', route('collections.show', $product->slug))
@@ -51,7 +51,7 @@
                     <div class="overflow-hidden bg-white">
                         <div class="relative aspect-[4/5] bg-[#eee5dc] {{ $isOutOfStock ? 'opacity-60' : '' }}">
                             <img id="mainImage"
-                                src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/900x1125?text=FURE' }}"
+                                src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/900x1125?text=' . urlencode($globalStoreName) }}"
                                 class="h-full w-full object-cover transition-opacity duration-300" alt="{{ $product->name }}"
                                 fetchpriority="high">
 

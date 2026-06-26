@@ -2,7 +2,7 @@
     <div class="flex justify-between items-center mb-8">
         <div>
             <h1 class="text-xl md:text-2xl font-extrabold text-brand-dark tracking-tight">Pusat Notifikasi</h1>
-            <p class="text-xs text-gray-400 font-medium mt-1">Pantau semua aktivitas toko FURE dalam satu tempat.
+            <p class="text-xs text-gray-400 font-medium mt-1">Pantau semua aktivitas toko {{ $adminStoreName }} dalam satu tempat.
             </p>
         </div>
         <button
@@ -67,7 +67,7 @@
                         <span class="text-[10px] text-gray-400 font-medium">Kemarin, 14:00 PM</span>
                     </div>
                     <p class="text-xs text-gray-500 mt-1 leading-relaxed">Selamat! <b>Riana Putri</b> bergabung menjadi
-                        pelanggan FURE.</p>
+                        pelanggan {{ $adminStoreName }}.</p>
                 </div>
             </div>
         </div>

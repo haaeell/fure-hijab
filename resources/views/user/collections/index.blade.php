@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', $catalogMeta['title'] . ' - FURE')
+@section('title', $catalogMeta['title'] . ' - ' . $globalStoreName)
 
 @php
     $activeRoute      = $catalogMeta['route'];
@@ -15,11 +15,11 @@
         ['label' => 'All Collections', 'route' => 'collections.index'],
     ];
     $catalogDescriptions = [
-        'best-seller.index' => 'Koleksi favorit pelanggan FURE, dipilih dari produk yang paling sering dibeli dan mudah dipadukan.',
+        'best-seller.index' => 'Koleksi favorit pelanggan ' . $globalStoreName . ', dipilih dari produk yang paling sering dibeli dan mudah dipadukan.',
         'hijab.index'       => 'Pilihan hijab premium dengan warna lembut, bahan nyaman, dan tampilan rapi untuk aktivitas harian.',
         'syari.index'       => 'Siluet santun dan clean untuk tampilan modest yang tetap ringan, modern, dan elegan.',
-        'new-arrived.index' => 'Drop terbaru FURE untuk melengkapi wardrobe modest kamu dengan warna dan bahan pilihan.',
-        'collections.index' => 'Semua koleksi FURE dalam satu katalog, dari hijab harian sampai pilihan spesial.',
+        'new-arrived.index' => 'Drop terbaru ' . $globalStoreName . ' untuk melengkapi wardrobe modest kamu dengan warna dan bahan pilihan.',
+        'collections.index' => 'Semua koleksi ' . $globalStoreName . ' dalam satu katalog, dari hijab harian sampai pilihan spesial.',
     ];
     $catalogSeoDescription  = $catalogDescriptions[$activeRoute] ?? $catalogDescriptions['collections.index'];
     $catalogSeoImageProduct = $products->first(fn($item) => $item->images->first());
@@ -30,7 +30,7 @@
 
 @section('seo_title', $catalogMeta['title'])
 @section('seo_description', $catalogSeoDescription)
-@section('seo_keywords', $catalogMeta['title'] . ', FURE, hijab premium, hijab wanita, modest wear, koleksi hijab')
+@section('seo_keywords', $catalogMeta['title'] . ', ' . $globalStoreName . ', hijab premium, hijab wanita, modest wear, koleksi hijab')
 @section('seo_image', $catalogSeoImage)
 @section('canonical', route($activeRoute))
 

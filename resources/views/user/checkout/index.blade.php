@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Checkout - FURE')
+@section('title', 'Checkout - ' . $storeName)
 
 @section('content')
     <section class="mobile-action-safe-space bg-[#F8FBF8] min-h-screen px-4 sm:px-6 lg:px-8 pt-28 pb-12">

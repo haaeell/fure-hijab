@@ -39,7 +39,7 @@
         @endif
 
         <div class="relative mb-3 aspect-[3/4] overflow-hidden bg-[#eee5dc] {{ $isOutOfStock ? 'opacity-60' : '' }}">
-            <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533?text=FURE' }}"
+            <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533?text=' . urlencode($globalStoreName) }}"
                 loading="lazy"
                 class="product-image w-full h-full object-cover"
                 alt="{{ $product->name }}">

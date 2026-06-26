@@ -1,9 +1,9 @@
 @extends('layouts.customer')
 
-@section('title', 'Artikel & Journal — FURE')
-@section('seo_title', 'FURE Journal — Tips, Styling Guide & Modest Fashion')
-@section('seo_description', 'Temukan inspirasi, panduan styling, tips perawatan hijab, dan informasi terkini seputar modest fashion dari tim FURE.')
-@section('seo_keywords', 'artikel hijab, tips hijab, modest fashion, styling guide, fabric notes, FURE journal')
+@section('title', 'Artikel & Journal — ' . $storeName)
+@section('seo_title', $storeName . ' Journal — Tips, Styling Guide & Modest Fashion')
+@section('seo_description', 'Temukan inspirasi, panduan styling, tips perawatan hijab, dan informasi terkini seputar modest fashion dari tim ' . $storeName . '.')
+@section('seo_keywords', 'artikel hijab, tips hijab, modest fashion, styling guide, fabric notes, ' . $storeName . ' journal')
 @section('canonical', route('articles.index'))
 
 @section('content')
@@ -12,7 +12,7 @@
     {{-- Hero --}}
     <section class="border-b border-brand-secondary/30 bg-white">
         <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
-            <p class="reveal text-[11px] font-bold uppercase tracking-[0.3em] text-brand-primary">FURE Journal</p>
+            <p class="reveal text-[11px] font-bold uppercase tracking-[0.3em] text-brand-primary">{{ $storeName }} Journal</p>
             <h1 class="reveal mt-3 text-4xl font-semibold leading-tight sm:text-5xl" data-delay="80">
                 Cerita, Panduan &<br class="hidden sm:block"> Inspirasi Modest
             </h1>

@@ -205,7 +205,7 @@
                 {{-- Penulis --}}
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Penulis</label>
-                    <input type="text" name="author" id="f_author" value="Tim FURE"
+                    <input type="text" name="author" id="f_author" value="Tim {{ $adminStoreName }}"
                         class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary transition">
                 </div>
 
@@ -423,7 +423,7 @@ $(function () {
             document.getElementById('f_title').value              = a.title || '';
             document.getElementById('f_excerpt').value            = a.excerpt || '';
             document.getElementById('f_category').value           = a.category || 'tips';
-            document.getElementById('f_author').value             = a.author || 'Tim FURE';
+            document.getElementById('f_author').value             = a.author || 'Tim {{ $adminStoreName }}';
             document.getElementById('f_read_time').value          = a.read_time || 3;
             document.getElementById('f_tags').value               = Array.isArray(a.tags) ? a.tags.join(', ') : '';
             document.getElementById('f_meta_title').value         = a.meta_title || '';

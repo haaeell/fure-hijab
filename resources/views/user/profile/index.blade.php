@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Profil Saya — FURE')
+@section('title', 'Profil Saya — ' . $storeName)
 
 @push('styles')
 <style>
@@ -29,7 +29,7 @@
                 <div class="flex-1 min-w-0">
                     <div class="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-full mb-2">
                         <span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
-                        <span class="text-white text-[9px] font-bold uppercase tracking-widest">Member FURE</span>
+                        <span class="text-white text-[9px] font-bold uppercase tracking-widest">Member {{ $storeName }}</span>
                     </div>
                     <h1 class="text-white text-2xl sm:text-3xl font-extrabold leading-tight truncate">{{ $profileUser->name }}</h1>
                     <div class="flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-0.5 mt-1 text-white/60 text-sm">
@@ -427,7 +427,7 @@
             </p>
         </div>
         <p class="text-xs text-white/70 truncate font-medium">
-            Makin hemat dengan klaim potongan kupon eksklusif FURE sekarang juga.
+            Makin hemat dengan klaim potongan kupon eksklusif {{ $storeName }} sekarang juga.
         </p>
     </div>
 

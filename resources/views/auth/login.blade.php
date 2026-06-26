@@ -16,7 +16,7 @@
         <div class="mx-auto grid lg:min-h-[calc(100vh-7.25rem)] max-w-7xl grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
             <div class="relative order-2 min-h-[420px] overflow-hidden bg-brand-dark lg:order-1 lg:min-h-[calc(100vh-7.25rem)]">
                 <img src="/login-bg.png"
-                    alt="Koleksi hijab FURE"
+                    alt="Koleksi hijab {{ $globalStoreName }}"
                     class="absolute inset-0 h-full w-full object-cover opacity-80">
                 <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/35 to-transparent lg:bg-gradient-to-r lg:from-brand-dark/85 lg:via-brand-dark/35 lg:to-transparent"></div>
                 <div class="absolute inset-x-0 bottom-0 p-6 text-white sm:p-10 lg:p-12">

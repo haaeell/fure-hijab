@@ -54,7 +54,7 @@
                                         Stok Habis
                                     </div>
                                 @endif
-                                <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533?text=FURE' }}"
+                                <img src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/400x533?text=' . urlencode($storeName) }}"
                                     loading="lazy"
                                     class="product-image h-full w-full object-cover {{ $isOutOfStock ? '' : 'transition-transform duration-700 ease-out group-hover:scale-110' }}"
                                     alt="{{ $product->name }}">

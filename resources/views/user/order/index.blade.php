@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Riwayat Pesanan - FURE')
+@section('title', 'Riwayat Pesanan - ' . $storeName)
 
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">

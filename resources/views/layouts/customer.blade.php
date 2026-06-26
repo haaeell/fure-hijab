@@ -376,15 +376,12 @@
                 </button>
             </div>
 
-            <a href="/" class="group flex min-w-0 items-center justify-center gap-2 lg:justify-start">
+            <a href="/" class="group flex min-w-0 items-center justify-center lg:justify-start">
                 @if($storeLogo)
-                    <img src="{{ asset('storage/' . $storeLogo) }}" alt="{{ $storeName }}" class="hidden h-9 w-9 object-cover sm:block">
+                    <img src="{{ asset('storage/' . $storeLogo) }}" alt="{{ $storeName }}" class="h-10 w-auto max-w-[160px] object-contain">
                 @else
-                    <div class="hidden w-9 h-9 bg-brand-primary items-center justify-center transition-colors group-hover:bg-brand-dark sm:flex">
-                        <i class="fa-solid fa-wand-magic-sparkles text-white text-base"></i>
-                    </div>
+                    <span class="truncate text-center text-brand-dark font-black text-lg tracking-[0.18em] uppercase sm:text-xl sm:tracking-[0.22em]">{{ $storeName }}</span>
                 @endif
-                <span class="truncate text-center text-brand-dark font-black text-lg tracking-[0.18em] uppercase sm:text-xl sm:tracking-[0.22em]">{{ $storeName }}</span>
             </a>
 
             <div class="hidden lg:flex items-center gap-7 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-dark/80">
@@ -793,7 +790,7 @@
             Swal.fire({
                 icon: 'success',
                 title: 'Akun Berhasil Dibuat!',
-                html: 'Selamat datang di FURE 🛍️<br><span style="font-size:0.9em;color:#888">Selamat berbelanja koleksi hijab premium kami.</span>',
+                html: 'Selamat datang di {{ $storeName }} 🛍️<br><span style="font-size:0.9em;color:#888">Selamat berbelanja koleksi hijab premium kami.</span>',
                 confirmButtonColor: '#A78B6F',
                 confirmButtonText: 'Mulai Belanja',
             });

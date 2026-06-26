@@ -16,7 +16,7 @@
         <div class="mx-auto grid lg:min-h-[calc(100vh-7.25rem)] max-w-7xl grid-cols-1 lg:grid-cols-[0.9fr_1.1fr]">
             <div class="relative min-h-[360px] overflow-hidden bg-brand-dark lg:min-h-[calc(100vh-7.25rem)]">
                 <img src="/login-bg.png"
-                    alt="Koleksi modest FURE"
+                    alt="Koleksi modest {{ $globalStoreName }}"
                     class="absolute inset-0 h-full w-full object-cover opacity-75">
                 <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/35 to-transparent"></div>
                 <div class="absolute inset-x-0 bottom-0 p-6 text-white sm:p-10 lg:p-12">
@@ -27,7 +27,7 @@
                         Mulai pengalaman belanja yang lebih personal.
                     </h1>
                     <p class="mt-5 max-w-md text-sm leading-7 text-white/75">
-                        Simpan alamat, cek riwayat pesanan, dan akses promo koleksi terbaru dari satu akun FURE.
+                        Simpan alamat, cek riwayat pesanan, dan akses promo koleksi terbaru dari satu akun {{ $globalStoreName }}.
                     </p>
                 </div>
             </div>
@@ -38,7 +38,7 @@
                         <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Daftar akun</p>
                         <h2 class="mt-3 text-3xl font-semibold leading-tight sm:text-4xl">Buat akun baru</h2>
                         <p class="mt-3 text-sm leading-6 text-brand-dark/60">
-                            Isi data berikut untuk belanja lebih cepat di web dan mobile FURE.
+                            Isi data berikut untuk belanja lebih cepat di web dan mobile {{ $globalStoreName }}.
                         </p>
                     </div>
 

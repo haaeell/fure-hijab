@@ -7,7 +7,7 @@
         <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
                 <h1 class="text-xl md:text-2xl font-extrabold text-brand-dark tracking-tight">Konten Landing Page</h1>
-                <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">Atur banner slider yang tampil di halaman utama FURE.</p>
+                <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">Atur banner slider yang tampil di halaman utama {{ $adminStoreName }}.</p>
             </div>
             <a href="/" target="_blank"
                 class="inline-flex w-fit items-center gap-2 rounded-2xl bg-brand-dark px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-brand-primary">

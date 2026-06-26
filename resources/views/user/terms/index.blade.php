@@ -1,13 +1,13 @@
 @extends('layouts.customer')
 
-@section('title', 'Syarat & Ketentuan - FURE')
+@section('title', 'Syarat & Ketentuan - ' . $storeName)
 
 @section('content')
     <section class="bg-[#F8FBF8] min-h-screen px-4 sm:px-6 lg:px-8 pt-28 pb-14">
         <div class="max-w-4xl mx-auto">
             <div class="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
                 <div class="bg-brand-dark text-white p-8">
-                    <p class="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em]">FURE</p>
+                    <p class="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em]">{{ $storeName }}</p>
                     <h1 class="text-3xl font-extrabold mt-2">Syarat & Ketentuan</h1>
                     <p class="text-white/60 text-sm mt-3">Terakhir diperbarui: 9 Juni 2026</p>
                 </div>
@@ -35,7 +35,7 @@
 
                     <div>
                         <h2 class="text-lg font-extrabold text-brand-dark mb-2">5. Privasi Data</h2>
-                        <p>Data customer digunakan untuk kebutuhan akun, transaksi, layanan pelanggan, dan pengiriman. FURE tidak menjual data pribadi customer kepada pihak lain.</p>
+                        <p>Data customer digunakan untuk kebutuhan akun, transaksi, layanan pelanggan, dan pengiriman. {{ $storeName }} tidak menjual data pribadi customer kepada pihak lain.</p>
                     </div>
 
                     <a href="{{ route('register') }}"

@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', $article->meta_title . ' — FURE')
+@section('title', $article->meta_title . ' — ' . $globalStoreName)
 @section('seo_title', $article->meta_title)
 @section('seo_description', $article->meta_description)
 @section('seo_keywords', $article->meta_keywords)
@@ -168,7 +168,7 @@
     {{-- CTA --}}
     <section class="bg-brand-dark py-16 text-center text-white">
         <div class="mx-auto max-w-xl px-4">
-            <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-secondary">Koleksi FURE</p>
+            <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-secondary">Koleksi {{ $storeName }}</p>
             <h2 class="mt-3 text-3xl font-semibold">Temukan Hijab Favoritmu</h2>
             <p class="mt-4 text-sm leading-7 text-white/65">Koleksi hijab premium dengan bahan terpilih, warna lembut, dan potongan modest yang elegan.</p>
             <a href="{{ route('collections.index') }}"

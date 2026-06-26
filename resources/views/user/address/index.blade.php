@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Alamat Saya — FURE')
+@section('title', 'Alamat Saya — ' . $storeName)
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />

@@ -132,13 +132,12 @@
         <div class="p-8 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 @if($adminStoreLogo)
-                    <img src="{{ asset('storage/' . $adminStoreLogo) }}" alt="{{ $adminStoreName }}" class="w-10 h-10 rounded-xl object-cover shadow-md">
+                    <img src="{{ asset('storage/' . $adminStoreLogo) }}" alt="{{ $adminStoreName }}" class="h-10 w-auto max-w-[140px] object-contain">
                 @else
-                    <div class="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-md shadow-brand-primary/20">
+                    <div class="w-10 h-10 bg-brand-primary flex items-center justify-center shadow-md shadow-brand-primary/20">
                         <i class="fa-solid fa-wand-magic-sparkles text-white"></i>
                     </div>
                 @endif
-                <span class="text-brand-dark font-extrabold text-xl tracking-tight">{{ $adminStoreName }}</span>
             </div>
             <button id="closeSidebar" class="lg:hidden text-gray-400 hover:text-red-500">
                 <i class="fa-solid fa-xmark text-xl"></i>
@@ -268,7 +267,7 @@
                     <i class="fa-solid fa-bars-staggered"></i>
                 </button>
                 <div class="hidden md:block">
-                    <p class="text-gray-400 text-sm font-medium">Panel Admin toko FURE.</p>
+                    <p class="text-gray-400 text-sm font-medium">Panel Admin toko {{ $adminStoreName }}.</p>
                 </div>
             </div>
 

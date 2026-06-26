@@ -2,10 +2,10 @@
 
 @section('title', 'Koleksi Hijab Premium')
 
-@section('seo_title', 'FURE Hijab Premium dan Modest Wear')
-@section('seo_description', 'Temukan koleksi hijab premium FURE, modest wear elegan, best seller, promo, dan new arrival
+@section('seo_title', $globalStoreName . ' Hijab Premium dan Modest Wear')
+@section('seo_description', 'Temukan koleksi hijab premium ' . $globalStoreName . ', modest wear elegan, best seller, promo, dan new arrival
     dengan bahan nyaman serta warna lembut untuk daily look.')
-@section('seo_keywords', 'FURE, hijab premium, hijab wanita, hijab terbaru, modest wear, best seller hijab, hijab
+@section('seo_keywords', $globalStoreName . ', hijab premium, hijab wanita, hijab terbaru, modest wear, best seller hijab, hijab
     syari')
 @section('seo_image', $homeSeoImage)
 @section('canonical', url('/'))
@@ -36,7 +36,7 @@
                             <i class="fa-solid fa-headset text-sm"></i>
                         </span>
                         <div>
-                            <p class="text-sm font-bold leading-tight">FURE Assistant</p>
+                            <p class="text-sm font-bold leading-tight">{{ $globalStoreName }} Assistant</p>
                             <p class="text-[11px] text-white/75">Online via WhatsApp</p>
                         </div>
                     </div>
@@ -48,7 +48,7 @@
                 </div>
                 <div class="space-y-4 bg-[#f8f3ee] p-4">
                     <div class="max-w-[15rem] bg-white px-4 py-3 text-sm leading-6 text-brand-dark shadow-sm">
-                        Halo, ada yang bisa FURE bantu? Klik tombol di bawah untuk lanjut chat lewat WhatsApp.
+                        Halo, ada yang bisa {{ $globalStoreName }} bantu? Klik tombol di bawah untuk lanjut chat lewat WhatsApp.
                     </div>
                     <a href="{{ $chatUrl }}" target="_blank" rel="noopener"
                         class="flex w-full items-center justify-center gap-2 bg-[#8A7664] px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-dark">
@@ -60,7 +60,7 @@
 
             <button type="button" id="landingChatButton"
                 class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#8A7664] text-white shadow-[0_18px_40px_rgba(95,74,58,0.30)] transition hover:-translate-y-1 hover:bg-brand-dark md:h-16 md:w-16"
-                aria-label="Buka chat FURE" aria-expanded="false" aria-controls="landingChatPopup">
+                aria-label="Buka chat {{ $globalStoreName }}" aria-expanded="false" aria-controls="landingChatPopup">
                 <i class="fa-brands fa-whatsapp text-3xl md:text-4xl"></i>
             </button>
         </div>
@@ -86,7 +86,7 @@
                         <source media="(max-width: 767px)" srcset="{{ $bannerMobileImage }}">
                        <img
                             src="{{ $bannerImage }}"
-                            alt="{{ $banner->title ?: 'Banner FURE' }}"
+                            alt="{{ $banner->title ?: 'Banner ' . $globalStoreName }}"
                             width="1920"
                             height="1080"
                             class="absolute inset-0 h-full w-full object-cover object-center {{ $hasHeroText ? 'opacity-85 md:opacity-80' : 'opacity-100' }}"
@@ -204,7 +204,7 @@
                     <div>
                         <p class="reveal text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Most Loved
                         </p>
-                        <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">Best Seller From FURE</h2>
+                        <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">Best Seller From {{ $globalStoreName }}</h2>
                     </div>
                     <a href="{{ route('best-seller.index') }}"
                         class="reveal text-sm font-bold text-brand-primary hover:text-brand-dark" data-delay="150">
@@ -317,7 +317,7 @@
         <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <div class="grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
                 <div class="reveal from-left relative min-h-[520px] overflow-hidden bg-brand-dark">
-                    <img src="{{ $shopLookImage }}" alt="Shop the look FURE"
+                    <img src="{{ $shopLookImage }}" alt="Shop the look {{ $globalStoreName }}"
                         class="absolute inset-0 h-full w-full object-cover opacity-80">
                     <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/85 via-brand-dark/20 to-transparent">
                     </div>
@@ -341,7 +341,7 @@
                             class="reveal from-right group grid grid-cols-[130px_1fr] gap-4 bg-white p-3 transition hover:bg-[#eee5dc] sm:grid-cols-1 lg:grid-cols-[150px_1fr]"
                             data-delay="{{ $loop->index * 100 }}">
                             <div class="aspect-[3/4] overflow-hidden bg-[#eee5dc]">
-                                <img src="{{ optional($product->images->first())->image_url ? asset('storage/' . $product->images->first()->image_url) : 'https://via.placeholder.com/400x533?text=FURE' }}"
+                                <img src="{{ optional($product->images->first())->image_url ? asset('storage/' . $product->images->first()->image_url) : 'https://via.placeholder.com/400x533?text=' . urlencode($globalStoreName) }}"
                                     loading="lazy" alt="{{ $product->name }}"
                                     class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
                             </div>
@@ -384,7 +384,7 @@
                 <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                     <div>
                         <p class="reveal text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Stories</p>
-                        <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">FURE Journal</h2>
+                        <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">{{ $globalStoreName }} Journal</h2>
                     </div>
                     <a href="{{ route('articles.index') }}"
                         class="reveal text-sm font-bold text-brand-primary hover:text-brand-dark" data-delay="150">

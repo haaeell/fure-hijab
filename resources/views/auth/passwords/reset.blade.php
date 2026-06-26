@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Reset Password - FURE</title>
+    <title>Reset Password - {{ $globalStoreName }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
@@ -47,10 +47,11 @@
     <main class="min-h-screen flex items-center justify-center px-4 py-8">
         <div class="w-full max-w-md">
             <a href="/" class="mb-8 flex items-center justify-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-brand-primary flex items-center justify-center text-white shadow-lg shadow-brand-primary/30">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                </div>
-                <span class="text-brand-dark font-extrabold text-xl tracking-tight uppercase">FURE</span>
+                @if($globalStoreLogo)
+                    <img src="{{ asset('storage/' . $globalStoreLogo) }}" alt="{{ $globalStoreName }}" class="h-10 w-auto max-w-[140px] object-contain">
+                @else
+                    <span class="text-brand-dark font-extrabold text-xl tracking-tight uppercase">{{ $globalStoreName }}</span>
+                @endif
             </a>
 
             <div class="bg-white rounded-[32px] border border-white shadow-2xl shadow-brand-dark/10 p-6 sm:p-8">

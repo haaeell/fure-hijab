@@ -201,7 +201,7 @@ td { vertical-align: top; }
     </td>
     <td style="padding:7px 8px; width:43%; vertical-align:top;">
         <span class="eyebrow">Pengirim</span>
-        <div class="person-name sender-name">{{ $label['origin_name'] ?? 'FURE' }}</div>
+        <div class="person-name sender-name">{{ $label['origin_name'] ?? $globalStoreName }}</div>
         @if($showSenderPhone && !empty($label['origin_phone']))
             <div class="phone">{{ $label['origin_phone'] }}</div>
         @endif
