@@ -25,14 +25,10 @@
     <meta name="keywords" content="{{ $seoKeywords }}">
     <meta name="robots" content="{{ $robotsContent }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">
-    @if($storeLogo)
-        <link rel="shortcut icon" href="{{ asset('storage/' . $storeLogo) }}">
-        <link rel="icon" type="image/jpeg" href="{{ asset('storage/' . $storeLogo) }}">
-        <link rel="apple-touch-icon" href="{{ asset('storage/' . $storeLogo) }}">
-    @else
-        <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
-        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    @endif
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
     <meta property="og:locale" content="id_ID">
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:site_name" content="{{ $storeName }} Hijab">
