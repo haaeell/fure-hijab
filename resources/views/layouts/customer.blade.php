@@ -20,7 +20,7 @@
         $canonicalUrl = trim($__env->yieldContent('canonical') ?: url()->current());
         $robotsContent = trim($__env->yieldContent('robots') ?: (request()->hasAny(['search', 'category', 'availability', 'min_price', 'max_price', 'sort']) ? 'noindex,follow' : 'index,follow'));
     @endphp
-    <title>{{ $seoTitleFull }}</title>
+    <title>{!! $seoTitleFull !!}</title>
     <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags($seoDescription), 160, '') }}">
     <meta name="keywords" content="{{ $seoKeywords }}">
     <meta name="robots" content="{{ $robotsContent }}">
@@ -28,6 +28,8 @@
     @if($storeLogo)
         <link rel="icon" type="image/png" href="{{ asset('storage/' . $storeLogo) }}">
         <link rel="apple-touch-icon" href="{{ asset('storage/' . $storeLogo) }}">
+    @else
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     @endif
     <meta property="og:locale" content="id_ID">
     <meta property="og:type" content="@yield('og_type', 'website')">
