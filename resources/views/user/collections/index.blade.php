@@ -7,13 +7,15 @@
     $activeCategory   = $collection ?? false ? null : request('category');
     $activeAvailability = request('availability');
     $activeSort       = request('sort');
-    $collectionTabs   = [
-        ['label' => 'Best Seller',     'route' => 'best-seller.index'],
-        ['label' => 'Hijab',           'route' => 'hijab.index'],
-        ['label' => "Syar'i",          'route' => 'syari.index'],
-        ['label' => 'New Arrived',     'route' => 'new-arrived.index'],
-        ['label' => 'All Collections', 'route' => 'collections.index'],
-    ];
+    $collectionTabs = $navCollections->map(fn($col) => [
+        'label'  => $col->name,
+        'url'    => route('collections.show', $col->slug),
+        'active' => $activeRoute === 'collections.show' && ($collection->slug ?? null) === $col->slug,
+    ])->push([
+        'label'  => 'All Collections',
+        'url'    => route('collections.index'),
+        'active' => $activeRoute === 'collections.index',
+    ])->values();
     $catalogDescriptions = [
         'best-seller.index' => 'Koleksi favorit pelanggan ' . $globalStoreName . ', dipilih dari produk yang paling sering dibeli dan mudah dipadukan.',
         'hijab.index'       => 'Pilihan hijab premium dengan warna lembut, bahan nyaman, dan tampilan rapi untuk aktivitas harian.',
@@ -190,9 +192,9 @@
                 {{-- Collection tabs — desktop only --}}
                 <div class="no-scrollbar hidden flex-1 items-center gap-7 overflow-x-auto lg:flex">
                     @foreach($collectionTabs as $tab)
-                        <a href="{{ route($tab['route']) }}"
+                        <a href="{{ $tab['url'] }}"
                             class="flex-none whitespace-nowrap text-[11px] font-bold uppercase tracking-[0.18em] transition
-                                {{ $activeRoute === $tab['route']
+                                {{ $tab['active']
                                     ? 'border-b-2 border-brand-primary pb-px text-brand-dark'
                                     : 'text-brand-dark/40 hover:text-brand-dark' }}">
                             {{ $tab['label'] }}
@@ -327,6 +329,17 @@
                                         <span>{{ $cat->name }}</span>
                                         <span class="text-[11px] text-brand-dark/25">{{ $cat->products_count }}</span>
                                     </a>
+                                    @foreach($cat->children as $child)
+                                        <a href="{{ route($activeRoute, array_merge(request()->except('page'), ['category' => $child->slug])) }}"
+                                            class="flex items-center justify-between py-1.5 pl-4 text-[12px] transition
+                                                {{ $activeCategory === $child->slug ? 'font-bold text-brand-primary' : 'font-medium text-brand-dark/40 hover:text-brand-dark' }}">
+                                            <span class="flex items-center gap-1.5">
+                                                <i class="fa-solid fa-turn-down-right text-[8px] text-brand-primary/40"></i>
+                                                {{ $child->name }}
+                                            </span>
+                                            <span class="text-[10px] text-brand-dark/20">{{ $child->products_count }}</span>
+                                        </a>
+                                    @endforeach
                                 @endforeach
                             </div>
                         </div>
@@ -349,9 +362,9 @@
                 {{-- Mobile collection tabs --}}
                 <div class="no-scrollbar mb-5 -mx-4 flex gap-2 overflow-x-auto px-4 lg:hidden">
                     @foreach($collectionTabs as $tab)
-                        <a href="{{ route($tab['route']) }}"
+                        <a href="{{ $tab['url'] }}"
                             class="flex-none border px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] transition
-                                {{ $activeRoute === $tab['route']
+                                {{ $tab['active']
                                     ? 'border-brand-primary bg-brand-primary text-white'
                                     : 'border-brand-secondary/60 text-brand-dark/55 hover:border-brand-primary hover:text-brand-primary' }}">
                             {{ $tab['label'] }}
@@ -425,11 +438,11 @@
                 <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-dark">Collection</h3>
                 <div class="space-y-1">
                     @foreach($collectionTabs as $tab)
-                        <a href="{{ route($tab['route']) }}"
+                        <a href="{{ $tab['url'] }}"
                             class="flex items-center justify-between py-2.5 text-sm transition
-                                {{ $activeRoute === $tab['route'] ? 'font-bold text-brand-primary' : 'font-medium text-brand-dark/60 hover:text-brand-dark' }}">
+                                {{ $tab['active'] ? 'font-bold text-brand-primary' : 'font-medium text-brand-dark/60 hover:text-brand-dark' }}">
                             {{ $tab['label'] }}
-                            @if($activeRoute === $tab['route'])
+                            @if($tab['active'])
                                 <i class="fa-solid fa-check text-[10px] text-brand-primary"></i>
                             @endif
                         </a>
@@ -473,6 +486,16 @@
                             <span>{{ $cat->name }}</span>
                             <span class="text-xs text-brand-dark/30">{{ $cat->products_count }}</span>
                         </a>
+                        @foreach($cat->children as $child)
+                            <a href="{{ route($activeRoute, array_merge(request()->except('page'), ['category' => $child->slug])) }}"
+                                class="flex items-center justify-between py-1.5 pl-5 text-sm transition {{ $activeCategory === $child->slug ? 'font-bold text-brand-primary' : 'font-medium text-brand-dark/40 hover:text-brand-dark' }}">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-turn-down-right text-[9px] text-brand-primary/40"></i>
+                                    {{ $child->name }}
+                                </span>
+                                <span class="text-xs text-brand-dark/25">{{ $child->products_count }}</span>
+                            </a>
+                        @endforeach
                     @endforeach
                 </div>
             </div>

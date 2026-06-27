@@ -95,7 +95,7 @@
                 <div class="lg:sticky lg:top-36">
                     <div class="bg-white p-6 sm:p-8">
                         <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-brand-primary">
-                            {{ $product->category->name }}
+                            {{ $product->category->full_name }}
                         </p>
                         <h1 class="mt-3 text-3xl font-semibold leading-tight sm:text-4xl">
                             {{ $product->name }}

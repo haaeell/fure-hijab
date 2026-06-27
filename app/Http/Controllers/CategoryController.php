@@ -13,8 +13,12 @@ class CategoryController extends Controller
     use UploadsImages;
     public function index()
     {
-        $categories = Category::with('parent')->get();
-        $parentCategories = Category::whereNull('parent_id')->get(); // Untuk dropdown di modal
+        $categories = Category::with(['children' => fn($q) => $q->orderBy('sort_order')])
+            ->withCount('children')
+            ->whereNull('parent_id')
+            ->orderBy('sort_order')
+            ->get();
+        $parentCategories = Category::whereNull('parent_id')->orderBy('sort_order')->get();
         return view('master.categories.index', compact('categories', 'parentCategories'));
     }
 

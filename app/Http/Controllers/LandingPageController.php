@@ -135,7 +135,7 @@ class LandingPageController extends Controller
 
     public function show($slug)
     {
-        $product = Product::with(['variants.attributes', 'category', 'brand', 'images', 'reviews.user'])
+        $product = Product::with(['variants.attributes', 'category.parent', 'brand', 'images', 'reviews.user'])
             ->where('slug', $slug)
             ->firstOrFail();
 
@@ -230,7 +230,10 @@ class LandingPageController extends Controller
         }
 
         if (!$collection && $request->filled('category')) {
-            $query->whereHas('category', fn($q) => $q->where('slug', $request->category));
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('slug', $request->category)
+                  ->orWhereHas('parent', fn($p) => $p->where('slug', $request->category));
+            });
         }
 
         if ($request->filled('availability')) {
@@ -277,9 +280,15 @@ class LandingPageController extends Controller
 
         $products = $query->paginate(12)->withQueryString();
         $categories = Category::query()
-            ->select(['id', 'name', 'slug', 'sort_order', 'is_active'])
+            ->select(['id', 'name', 'slug', 'sort_order', 'is_active', 'parent_id'])
             ->where('is_active', true)
+            ->whereNull('parent_id')
             ->withCount(['products' => fn($q) => $q->where('is_active', true)])
+            ->with(['children' => fn($q) => $q
+                ->where('is_active', true)
+                ->withCount(['products' => fn($q2) => $q2->where('is_active', true)])
+                ->orderBy('sort_order')
+            ])
             ->orderBy('sort_order', 'asc')
             ->get();
         $stockCounts = Product::where('is_active', true)
@@ -312,8 +321,13 @@ class LandingPageController extends Controller
             ],
         };
 
+        $navCollections = \App\Models\Collection::where('is_active', true)
+            ->where('show_in_nav', true)
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'slug']);
+
         return view('user.collections.index', compact(
-            'categories', 'products', 'catalogMeta', 'collection', 'inStockCount', 'outOfStockCount'
+            'categories', 'products', 'catalogMeta', 'collection', 'inStockCount', 'outOfStockCount', 'navCollections'
         ));
     }
 
@@ -339,7 +353,8 @@ class LandingPageController extends Controller
     private function productCardRelations(): array
     {
         return [
-            'category:id,name,slug',
+            'category:id,name,slug,parent_id',
+            'category.parent:id,name,slug',
             'images' => fn($q) => $q
                 ->select(['id', 'product_id', 'image_url', 'is_primary', 'sort_order'])
                 ->orderByDesc('is_primary')

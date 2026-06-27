@@ -35,9 +35,10 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @foreach($categories as $i => $cat)
+                    @php $no = 1; @endphp
+                    @foreach($categories as $cat)
                         <tr class="hover:bg-soft-bg/50 transition-colors">
-                            <td class="px-4 py-5 font-bold text-gray-400">{{ $i + 1 }}</td>
+                            <td class="px-4 py-5 font-bold text-gray-400">{{ $no++ }}</td>
                             <td class="px-4 py-5">
                                 @if($cat->image)
                                     <img src="{{ asset('storage/' . $cat->image) }}"
@@ -48,7 +49,18 @@
                                     </div>
                                 @endif
                             </td>
-                            <td class="px-4 py-5 font-bold text-brand-dark">{{ $cat->name }}</td>
+                            <td class="px-4 py-5">
+                                <div class="font-bold text-brand-dark">{{ $cat->name }}</div>
+                                @if($cat->children->count())
+                                    <div class="mt-1 flex flex-wrap gap-1">
+                                        @foreach($cat->children as $child)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-brand-primary/8 text-[10px] font-semibold text-brand-primary">
+                                                <i class="fa-solid fa-turn-down-right text-[8px]"></i>{{ $child->name }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </td>
                             <td class="px-4 py-5">
                                 <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider {{ $cat->is_active ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }}">
                                     {{ $cat->is_active ? 'Aktif' : 'Non-Aktif' }}
@@ -67,6 +79,45 @@
                                 </div>
                             </td>
                         </tr>
+                        @foreach($cat->children as $child)
+                        <tr class="bg-gray-50/60 hover:bg-soft-bg/40 transition-colors">
+                            <td class="px-4 py-3 text-gray-300 font-bold">{{ $no++ }}</td>
+                            <td class="px-4 py-3">
+                                @if($child->image)
+                                    <img src="{{ asset('storage/' . $child->image) }}"
+                                        class="w-9 h-9 rounded-xl object-cover border border-gray-100">
+                                @else
+                                    <div class="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center text-gray-300 border border-dashed border-gray-200">
+                                        <i class="fa-solid fa-layer-group text-[10px]"></i>
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-2 text-sm font-semibold text-brand-dark/70">
+                                    <i class="fa-solid fa-turn-down-right text-[10px] text-brand-primary/40 ml-2"></i>
+                                    {{ $child->name }}
+                                    <span class="text-[10px] font-normal text-gray-400">(sub)</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider {{ $child->is_active ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }}">
+                                    {{ $child->is_active ? 'Aktif' : 'Non-Aktif' }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick='openEditModal(@json($child))'
+                                        class="w-9 h-9 flex items-center justify-center bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-500 hover:text-white transition-all shadow-sm">
+                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                    </button>
+                                    <button onclick="deleteCategory({{ $child->id }})"
+                                        class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-600 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
                     @endforeach
                 </tbody>
             </table>
@@ -101,9 +152,21 @@
                         <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Kategori</label>
                         <div class="relative group">
                             <i class="fa-solid fa-tag absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-primary transition-colors text-xs"></i>
-                            <input type="text" name="name" id="catName" required placeholder="Contoh: Elektronik"
+                            <input type="text" name="name" id="catName" required placeholder="Contoh: Pashmina"
                                 class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary outline-none transition-all text-sm font-semibold">
                         </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Sub Kategori dari</label>
+                        <select name="parent_id" id="catParent"
+                            class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                            <option value="">— Tidak ada (Kategori Utama) —</option>
+                            @foreach($parentCategories as $parent)
+                                <option value="{{ $parent->id }}">{{ $parent->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="ml-1 text-[10px] text-gray-400">Kosongkan jika ini adalah kategori utama.</p>
                     </div>
 
                     <div class="space-y-1.5">
@@ -164,6 +227,7 @@
                     form.attr('action', '/categories');
                     $('#methodField').val('POST');
                     form[0].reset();
+                    $('#catParent').val('');
                 }
 
                 window.openEditModal = function (data) {
@@ -173,6 +237,7 @@
                     $('#methodField').val('PUT');
 
                     $('#catName').val(data.name);
+                    $('#catParent').val(data.parent_id ?? '');
                     $('#catDescription').val(data.description);
                     $('#catStatus').prop('checked', data.is_active == 1);
                 }
@@ -195,8 +260,8 @@
                         text: "Data yang dihapus tidak dapat dikembalikan!",
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonColor: '#brand-dark',
-                        cancelButtonColor: '#ef4444',
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#6b7280',
                         confirmButtonText: 'Ya, Hapus!',
                         borderRadius: '2rem'
                     }).then((result) => {

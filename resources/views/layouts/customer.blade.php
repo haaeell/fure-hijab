@@ -398,7 +398,7 @@
                 @endforeach
 
                 <a href="{{ route('collections.index') }}"
-                    class="transition-colors {{ request()->routeIs('collections.index') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
+                    class="transition-colors {{ request()->routeIs('collections.index') && !request('category') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
                     All Collections
                 </a>
 
@@ -516,8 +516,9 @@
                     {{ $navCol->name }}
                 </a>
                 @endforeach
+
                 <a href="{{ route('collections.index') }}"
-                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('collections.index') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('collections.index') && !request('category') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     All Collections
                 </a>
                 <a href="{{ route('about.index') }}"
@@ -1083,6 +1084,13 @@
             const btn = $('#userDropdownBtn');
             const menu = $('#userDropdownMenu');
             const arrow = $('#dropdownArrow');
+            window.toggleMobileSubnav = function(id) {
+                const panel = document.getElementById(id);
+                const icon  = document.getElementById('icon-' + id);
+                panel.classList.toggle('hidden');
+                icon.classList.toggle('rotate-180');
+            };
+
             const mobileMenuButton = $('#mobileMenuButton');
             const mobileMenuPanel = $('#mobileMenuPanel');
             const mobileMenuIcon = $('#mobileMenuIcon');

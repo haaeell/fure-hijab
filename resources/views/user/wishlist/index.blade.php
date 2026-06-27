@@ -62,7 +62,7 @@
 
                             <div class="flex flex-col">
                                 <p class="mb-1 truncate text-[9px] font-bold uppercase tracking-[0.16em] text-brand-primary md:text-[10px]">
-                                    {{ $product->category->name }}
+                                    {{ $product->category->full_name }}
                                 </p>
                                 <h3 class="mb-2 line-clamp-2 text-xs font-semibold leading-snug text-brand-dark transition-colors group-hover:text-brand-primary md:text-sm">
                                     {{ $product->name }}

@@ -33,4 +33,12 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    public function getFullNameAttribute(): string
+    {
+        if ($this->relationLoaded('parent') && $this->parent) {
+            return $this->parent->name . ' / ' . $this->name;
+        }
+        return $this->name;
+    }
 }

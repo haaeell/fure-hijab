@@ -56,7 +56,7 @@
         <div class="flex flex-grow flex-col">
             <div class="mb-1 flex items-center justify-between gap-2">
                 <p class="truncate text-[9px] font-bold uppercase tracking-[0.16em] text-brand-primary md:text-[10px]">
-                    {{ $product->category->name }}
+                    {{ $product->category->full_name }}
                 </p>
                 <div class="flex flex-shrink-0 items-center gap-0.5 text-[9px] text-yellow-400">
                     <i class="fa-solid fa-star"></i>

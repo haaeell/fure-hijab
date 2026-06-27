@@ -346,7 +346,7 @@
                             </div>
                             <div class="flex flex-col justify-center">
                                 <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
-                                    {{ $product->category->name }}</p>
+                                    {{ $product->category->full_name }}</p>
                                 <h3 class="mt-2 line-clamp-2 text-base font-semibold leading-snug">{{ $product->name }}
                                 </h3>
                                 <p class="mt-3 text-sm font-bold">

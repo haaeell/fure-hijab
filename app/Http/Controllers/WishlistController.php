@@ -12,7 +12,7 @@ class WishlistController extends Controller
         $wishlists = Wishlist::with([
             'product.images' => fn($q) => $q->where('is_primary', true),
             'product.variants' => fn($q) => $q->orderBy('price'),
-            'product.category',
+            'product.category.parent',
         ])
         ->where('user_id', auth()->id())
         ->latest()

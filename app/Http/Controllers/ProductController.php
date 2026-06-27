@@ -44,7 +44,11 @@ class ProductController extends Controller
             ->latest()
             ->get();
 
-        $categories  = Category::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']);
+        $categories  = Category::where('is_active', true)
+            ->whereNull('parent_id')
+            ->with(['children' => fn($q) => $q->where('is_active', true)->orderBy('sort_order')])
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'parent_id']);
         $brands      = Brand::where('is_active', true)->orderBy('name')->get(['id', 'name']);
         $collections = Collection::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']);
 

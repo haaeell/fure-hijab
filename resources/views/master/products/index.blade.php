@@ -321,7 +321,15 @@
                                         class="w-full pl-10 pr-10 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary focus:bg-white outline-none transition-all text-sm font-semibold appearance-none">
                                         <option value="">-- Pilih Kategori --</option>
                                         @foreach($categories as $cat)
-                                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                            @if($cat->children->count())
+                                                <optgroup label="{{ $cat->name }}">
+                                                    @foreach($cat->children as $child)
+                                                        <option value="{{ $child->id }}">{{ $child->name }}</option>
+                                                    @endforeach
+                                                </optgroup>
+                                            @else
+                                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                            @endif
                                         @endforeach
                                     </select>
                                     <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-xs pointer-events-none"></i>
