@@ -30,6 +30,7 @@
                     <th class="px-4 py-4 text-center">Produk</th>
                     <th class="px-4 py-4 text-center">Urutan</th>
                     <th class="px-4 py-4 text-center">Status</th>
+                    <th class="px-4 py-4 text-center">Navbar</th>
                     <th class="px-4 py-4 text-center">Aksi</th>
                 </tr>
             </thead>
@@ -58,8 +59,13 @@
                             </span>
                         </td>
                         <td class="px-4 py-5 text-center">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider {{ $col->show_in_nav ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400' }}">
+                                {{ $col->show_in_nav ? 'Tampil' : 'Tersembunyi' }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-5 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <button onclick="openEditModal({{ $col->id }}, {{ json_encode($col->name) }}, {{ json_encode($col->description) }}, {{ $col->sort_order }}, {{ $col->is_active ? 'true' : 'false' }})"
+                                <button onclick="openEditModal({{ $col->id }}, {{ json_encode($col->name) }}, {{ json_encode($col->description) }}, {{ $col->sort_order }}, {{ $col->is_active ? 'true' : 'false' }}, {{ $col->show_in_nav ? 'true' : 'false' }})"
                                     class="w-9 h-9 flex items-center justify-center bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-500 hover:text-white transition-all shadow-sm" title="Edit">
                                     <i class="fa-solid fa-pen-to-square text-xs"></i>
                                 </button>
@@ -123,6 +129,15 @@
                 </span>
             </label>
 
+            <label class="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 bg-gray-50/50 cursor-pointer hover:border-blue-400 transition-all">
+                <input type="checkbox" name="show_in_nav" id="inputShowInNav" value="1"
+                    class="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-400">
+                <span>
+                    <span class="block text-sm font-bold text-brand-dark">Tampil di Navbar</span>
+                    <span class="block text-xs text-gray-400">Koleksi ini akan muncul sebagai menu di navigasi storefront.</span>
+                </span>
+            </label>
+
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="closeModal()"
                     class="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all">
@@ -152,19 +167,21 @@
         document.getElementById('inputName').value  = '';
         document.getElementById('inputDesc').value  = '';
         document.getElementById('inputSort').value  = '0';
-        document.getElementById('inputActive').checked = true;
+        document.getElementById('inputActive').checked    = true;
+        document.getElementById('inputShowInNav').checked = false;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     }
 
-    function openEditModal(id, name, desc, sort, active) {
+    function openEditModal(id, name, desc, sort, active, showInNav) {
         title.textContent = 'Edit Koleksi';
         form.action       = `/koleksi/${id}`;
         method.value      = 'PUT';
-        document.getElementById('inputName').value     = name;
-        document.getElementById('inputDesc').value     = desc ?? '';
-        document.getElementById('inputSort').value     = sort;
-        document.getElementById('inputActive').checked = active;
+        document.getElementById('inputName').value        = name;
+        document.getElementById('inputDesc').value        = desc ?? '';
+        document.getElementById('inputSort').value        = sort;
+        document.getElementById('inputActive').checked    = active;
+        document.getElementById('inputShowInNav').checked = showInNav;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     }

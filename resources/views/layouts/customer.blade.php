@@ -390,24 +390,16 @@
                     Home
                 </a>
 
-                <a href="{{ route('best-seller.index') }}"
-                    class="transition-colors {{ request()->routeIs('best-seller.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
-                    Best Seller
+                @foreach($navCollections as $navCol)
+                <a href="{{ route('collections.show', $navCol->slug) }}"
+                    class="transition-colors {{ request()->is($navCol->slug) ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
+                    {{ $navCol->name }}
                 </a>
+                @endforeach
 
-                <a href="{{ route('hijab.index') }}"
-                    class="transition-colors {{ request()->routeIs('hijab.*') || request()->routeIs('collections.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
-                    Hijab
-                </a>
-
-                <a href="{{ route('syari.index') }}"
-                    class="transition-colors {{ request()->routeIs('syari.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
-                    Syar'i
-                </a>
-
-                <a href="{{ route('new-arrived.index') }}"
-                    class="transition-colors {{ request()->routeIs('new-arrived.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
-                    New Arrived
+                <a href="{{ route('collections.index') }}"
+                    class="transition-colors {{ request()->routeIs('collections.index') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
+                    All Collections
                 </a>
 
                 <a href="{{ route('about.index') }}"
@@ -518,21 +510,15 @@
                     class="flex items-center px-3 py-3 transition {{ request()->is('/') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     Home
                 </a>
-                <a href="{{ route('best-seller.index') }}"
-                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('best-seller.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
-                    Best Seller
+                @foreach($navCollections as $navCol)
+                <a href="{{ route('collections.show', $navCol->slug) }}"
+                    class="flex items-center px-3 py-3 transition {{ request()->is($navCol->slug) ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    {{ $navCol->name }}
                 </a>
-                <a href="{{ route('hijab.index') }}"
-                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('hijab.*') || request()->routeIs('collections.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
-                    Hijab
-                </a>
-                <a href="{{ route('syari.index') }}"
-                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('syari.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
-                    Syar'i
-                </a>
-                <a href="{{ route('new-arrived.index') }}"
-                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('new-arrived.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
-                    New Arrived
+                @endforeach
+                <a href="{{ route('collections.index') }}"
+                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('collections.index') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    All Collections
                 </a>
                 <a href="{{ route('about.index') }}"
                     class="flex items-center px-3 py-3 transition {{ request()->routeIs('about.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
@@ -1200,7 +1186,7 @@
                 const list = document.getElementById('popularList');
                 const items = data.products || [];
                 list.innerHTML = items.map(p => `
-                    <a href="/collections/${encodeURIComponent(p.slug)}"
+                    <a href="/${encodeURIComponent(p.slug)}"
                         class="flex items-center gap-2 border border-brand-secondary/60 bg-white px-3 py-1.5 text-xs font-semibold text-brand-dark transition hover:border-brand-primary hover:text-brand-primary">
                         <i class="fa-solid fa-fire text-[10px] text-brand-primary/60"></i>${esc(p.name)}
                     </a>`).join('');
@@ -1270,7 +1256,7 @@
                 <p class="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/40">Hasil Pencarian</p>
                 <div class="grid gap-1 sm:grid-cols-2">
                     ${products.map(p => `
-                        <a href="/collections/${esc(p.slug)}" onclick="saveSearchAndGo(${JSON.stringify(q)})"
+                        <a href="/${esc(p.slug)}" onclick="saveSearchAndGo(${JSON.stringify(q)})"
                             class="flex items-center gap-4 p-3 transition hover:bg-[#f8f3ee] group">
                             <div class="h-14 w-10 flex-shrink-0 overflow-hidden bg-[#eee5dc]">
                                 ${p.image

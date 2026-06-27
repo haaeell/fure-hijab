@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Cart;
+use App\Models\Collection;
 use App\Models\Setting;
 use App\Models\Wishlist;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +25,10 @@ class StorefrontContextService
             'storeInstagram' => $store['instagram'],
             'storeTiktok' => $store['tiktok'],
             'storeWhatsapp' => $store['whatsapp'],
+            'navCollections' => Collection::where('is_active', true)
+                ->where('show_in_nav', true)
+                ->orderBy('sort_order')
+                ->get(['id', 'name', 'slug']),
             'seoDefaults' => [
                 'title' => $store['name'] . ' — Hijab Premium & Modest Wear',
                 'description' => 'Belanja koleksi hijab premium dan modest wear ' . $store['name'] . ' dengan bahan nyaman, warna lembut, dan desain elegan. Tersedia hijab syari, hijab daily, new arrival, dan best seller. Pengiriman ke seluruh Indonesia.',

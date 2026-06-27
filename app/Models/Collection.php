@@ -9,9 +9,9 @@ class Collection extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'description', 'sort_order', 'is_active'];
+    protected $fillable = ['name', 'slug', 'description', 'sort_order', 'is_active', 'show_in_nav'];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = ['is_active' => 'boolean', 'show_in_nav' => 'boolean'];
 
     public function products()
     {

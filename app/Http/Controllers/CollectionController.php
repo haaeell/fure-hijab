@@ -21,6 +21,7 @@ class CollectionController extends Controller
             'description' => 'nullable|string|max:500',
             'sort_order'  => 'nullable|integer|min:0',
             'is_active'   => 'nullable',
+            'show_in_nav' => 'nullable',
         ]);
 
         Collection::create([
@@ -29,6 +30,7 @@ class CollectionController extends Controller
             'description' => $data['description'] ?? null,
             'sort_order'  => $data['sort_order'] ?? 0,
             'is_active'   => $request->has('is_active'),
+            'show_in_nav' => $request->has('show_in_nav'),
         ]);
 
         return redirect()->back()->with('success', 'Koleksi berhasil ditambahkan.');
@@ -43,6 +45,7 @@ class CollectionController extends Controller
             'description' => 'nullable|string|max:500',
             'sort_order'  => 'nullable|integer|min:0',
             'is_active'   => 'nullable',
+            'show_in_nav' => 'nullable',
         ]);
 
         $collection->update([
@@ -51,6 +54,7 @@ class CollectionController extends Controller
             'description' => $data['description'] ?? null,
             'sort_order'  => $data['sort_order'] ?? 0,
             'is_active'   => $request->has('is_active'),
+            'show_in_nav' => $request->has('show_in_nav'),
         ]);
 
         return redirect()->back()->with('success', 'Koleksi berhasil diperbarui.');

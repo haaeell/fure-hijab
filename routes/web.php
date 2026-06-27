@@ -122,7 +122,7 @@ Route::get('/best-seller', [LandingPageController::class, 'bestSeller'])->name('
 Route::get('/hijab', [LandingPageController::class, 'hijab'])->name('hijab.index');
 Route::get('/syari', [LandingPageController::class, 'syari'])->name('syari.index');
 Route::get('/new-arrived', [LandingPageController::class, 'newArrived'])->name('new-arrived.index');
-Route::get('/collections/{slug}', [LandingPageController::class, 'show'])->name('collections.show');
+Route::get('/collections/{slug}', fn($slug) => redirect('/' . $slug, 301));
 Route::get('/about-us', [LandingPageController::class, 'about'])->name('about.index');
 Route::get('/promo', [LandingPageController::class, 'promo'])->name('promo.index');
 Route::get('/user/profile', [LandingPageController::class, 'profile'])->name('profile.index');
@@ -326,3 +326,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/reviews/submit', [OrderHistoryController::class, 'submitReview'])->name('reviews.submit');
     });
 });
+
+// Catch-all product/collection slug — must be last
+Route::get('/{slug}', [LandingPageController::class, 'show'])->name('collections.show');
