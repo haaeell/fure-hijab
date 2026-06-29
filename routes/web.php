@@ -53,10 +53,6 @@ Route::get('/sitemap.xml', function () {
 
     $pushUrl(url('/'), now(), 'daily', '1.0');
     $pushUrl(route('collections.index'), now(), 'daily', '0.9');
-    $pushUrl(route('best-seller.index'), now(), 'daily', '0.8');
-    $pushUrl(route('hijab.index'), now(), 'weekly', '0.8');
-    $pushUrl(route('syari.index'), now(), 'weekly', '0.8');
-    $pushUrl(route('new-arrived.index'), now(), 'daily', '0.8');
     $pushUrl(route('about.index'), now(), 'monthly', '0.5');
     $pushUrl(route('promo.index'), now(), 'weekly', '0.6');
 
@@ -66,18 +62,10 @@ Route::get('/sitemap.xml', function () {
         ->cursor()
         ->each(fn($category) => $pushUrl(route('collections.index', ['category' => $category->slug]), $category->updated_at, 'weekly', '0.7'));
 
-    $collectionRoutes = [
-        'best-seller' => 'best-seller.index',
-        'hijab' => 'hijab.index',
-        'syari' => 'syari.index',
-        'new-arrived' => 'new-arrived.index',
-    ];
-
     ProductCollection::where('is_active', true)
         ->select(['slug', 'updated_at'])
-        ->whereIn('slug', array_keys($collectionRoutes))
         ->cursor()
-        ->each(fn($collection) => $pushUrl(route($collectionRoutes[$collection->slug]), $collection->updated_at, 'weekly', '0.8'));
+        ->each(fn($col) => $pushUrl(route('collections.show', ['slug' => $col->slug]), $col->updated_at, 'weekly', '0.8'));
 
     Product::where('is_active', true)
         ->select(['slug', 'updated_at'])
@@ -119,12 +107,7 @@ Auth::routes();
 
 Route::get('/collections', [LandingPageController::class, 'collections'])->name('collections.index');
 Route::get('/collections/{slug}', fn($slug) => redirect('/' . $slug, 301));
-// Legacy named routes — nama dipertahankan agar route() helper tidak error, tapi semua lewat /{slug}
-Route::get('/best-seller', [LandingPageController::class, 'bestSeller'])->name('best-seller.index');
-Route::get('/hijab', [LandingPageController::class, 'hijab'])->name('hijab.index');
-Route::get('/syari', [LandingPageController::class, 'syari'])->name('syari.index');
-Route::get('/new-arrived', fn() => redirect('/new-arrival', 301))->name('new-arrived.index');
-Route::get('/new-arrival', [LandingPageController::class, 'newArrived'])->name('new-arrival.index');
+
 Route::get('/about-us', [LandingPageController::class, 'about'])->name('about.index');
 Route::get('/promo', [LandingPageController::class, 'promo'])->name('promo.index');
 Route::get('/user/profile', [LandingPageController::class, 'profile'])->name('profile.index');

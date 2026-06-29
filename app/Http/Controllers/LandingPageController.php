@@ -130,7 +130,7 @@ class LandingPageController extends Controller
 
     public function newArrived(Request $request)
     {
-        return $this->catalog($request, 'new-arrived');
+        return $this->catalog($request, 'new-arrival');
     }
 
     public function show(Request $request, $slug)

@@ -205,7 +205,7 @@
                         </p>
                         <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">Best Seller From {{ $globalStoreName }}</h2>
                     </div>
-                    <a href="{{ route('best-seller.index') }}"
+                    <a href="{{ route('collections.show', ['slug' => 'best-seller']) }}"
                         class="reveal text-sm font-bold text-brand-primary hover:text-brand-dark" data-delay="150">
                         View all products
                     </a>
@@ -264,7 +264,7 @@
                     <p class="reveal text-[11px] font-bold uppercase tracking-[0.28em] text-brand-primary">Fresh Drop</p>
                     <h2 class="reveal mt-2 text-3xl font-semibold" data-delay="100">New Arrival</h2>
                 </div>
-                <a href="{{ route('new-arrived.index') }}"
+                <a href="{{ route('collections.show', ['slug' => 'new-arrival']) }}"
                     class="reveal text-sm font-bold text-brand-primary hover:text-brand-dark" data-delay="150">
                     View all products
                 </a>
