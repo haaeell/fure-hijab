@@ -25,10 +25,13 @@
     <meta name="keywords" content="{{ $seoKeywords }}">
     <meta name="robots" content="{{ $robotsContent }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('favicon-512x512.png') }}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{{ asset('favicon-512x512.png') }}">
     <meta property="og:locale" content="id_ID">
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:site_name" content="{{ $storeName }} Hijab">
@@ -558,10 +561,6 @@
             <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-20">
                 <div class="md:col-span-5 space-y-8">
                     <div class="flex items-center gap-3 group">
-                        <div
-                            class="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20">
-                            <i class="fa-solid fa-wand-magic-sparkles text-white text-xl"></i>
-                        </div>
                         <span
                             class="text-2xl font-black tracking-widest uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-secondary/80">
                             {{ $storeName }}
@@ -597,10 +596,10 @@
                 <div class="md:col-span-2 space-y-6">
                     <h4 class="text-sm font-bold uppercase tracking-widest text-brand-secondary">Koleksi</h4>
                     <ul class="space-y-4 text-brand-secondary">
-                        <li><a href="#" class="hover:text-white transition-colors duration-200">Best Seller</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors duration-200">Hijab Instan</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors duration-200">Pashmina</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors duration-200">Premium Silk</a></li>
+                        @foreach($navCollections as $col)
+                            <li><a href="{{ route('collections.show', ['slug' => $col->slug]) }}" class="hover:text-white transition-colors duration-200">{{ $col->name }}</a></li>
+                        @endforeach
+                        <li><a href="{{ route('collections.index') }}" class="hover:text-white transition-colors duration-200">All Collections</a></li>
                     </ul>
                 </div>
 
