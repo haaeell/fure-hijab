@@ -43,10 +43,18 @@
     </script>
 
     <style>
+        @font-face {
+            font-family: 'Glamour Absolute';
+            src: url('{{ asset('fonts/GlamourAbsolute_Regular.otf') }}') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         body {
             background-color: #F8FBF8;
             overflow-x: hidden;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Glamour Absolute', serif;
         }
 
         /* Custom Scrollbar */

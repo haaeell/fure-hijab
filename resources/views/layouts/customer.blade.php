@@ -76,6 +76,14 @@
     {{-- Leaflet CSS + JS diload lazy saat address modal dibuka (via loadLeaflet()) --}}
 
     <style>
+        @font-face {
+            font-family: 'Glamour Absolute';
+            src: url('{{ asset('fonts/GlamourAbsolute_Regular.otf') }}') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         /* font-display:swap override untuk Font Awesome (CDN tidak include ini) */
         @font-face { font-family:"Font Awesome 6 Free"; font-style:normal; font-weight:900; font-display:swap;
             src:url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2") format("woff2"); }
@@ -158,6 +166,10 @@
             overflow-x: hidden; /* iOS Safari: body overflow-x:hidden saja tidak cukup karena html adalah scroll container asli */
         }
 
+        body {
+            font-family: 'Glamour Absolute', serif;
+        }
+
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -214,7 +226,7 @@
         }
 
         #datatable_wrapper {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Glamour Absolute', serif;
             margin-top: 1rem;
         }
 
