@@ -133,8 +133,13 @@ class LandingPageController extends Controller
         return $this->catalog($request, 'new-arrived');
     }
 
-    public function show($slug)
+    public function show(Request $request, $slug)
     {
+        $collection = Collection::where('slug', $slug)->where('is_active', true)->first();
+        if ($collection) {
+            return $this->catalog($request, $slug);
+        }
+
         $product = Product::with(['variants.attributes', 'category.parent', 'brand', 'images', 'reviews.user'])
             ->where('slug', $slug)
             ->firstOrFail();
@@ -298,36 +303,40 @@ class LandingPageController extends Controller
         $inStockCount = (int) ($stockCounts->in_stock_count ?? 0);
         $outOfStockCount = (int) ($stockCounts->out_of_stock_count ?? 0);
 
-        $catalogMeta = match ($type) {
-            'best-seller' => [
-                'title' => 'BEST SELLER FROM FURE',
-                'route' => 'best-seller.index',
-            ],
-            'hijab' => [
-                'title' => 'HIJAB COLLECTION',
-                'route' => 'hijab.index',
-            ],
-            'syari' => [
-                'title' => "SYAR'I COLLECTION",
-                'route' => 'syari.index',
-            ],
-            'new-arrived' => [
-                'title' => 'NEW ARRIVED',
-                'route' => 'new-arrived.index',
-            ],
-            default => [
+        if ($collection) {
+            $catalogMeta = [
+                'title' => strtoupper($collection->name),
+                'route' => 'collections.show',
+            ];
+        } elseif ($type !== 'all') {
+            $catalogMeta = [
+                'title' => strtoupper(str_replace('-', ' ', $type)),
+                'route' => 'collections.index',
+            ];
+        } else {
+            $catalogMeta = [
                 'title' => 'ALL COLLECTIONS',
                 'route' => 'collections.index',
-            ],
-        };
+            ];
+        }
 
         $navCollections = \App\Models\Collection::where('is_active', true)
             ->where('show_in_nav', true)
             ->orderBy('sort_order')
             ->get(['id', 'name', 'slug']);
 
+        $collectionTabs = $navCollections->map(fn($col) => [
+            'label'  => $col->name,
+            'url'    => route('collections.show', $col->slug),
+            'active' => $collection && $collection->slug === $col->slug,
+        ])->push([
+            'label'  => 'All Collections',
+            'url'    => route('collections.index'),
+            'active' => $collection === null && $type === 'all',
+        ])->values();
+
         return view('user.collections.index', compact(
-            'categories', 'products', 'catalogMeta', 'collection', 'inStockCount', 'outOfStockCount', 'navCollections'
+            'categories', 'products', 'catalogMeta', 'collection', 'inStockCount', 'outOfStockCount', 'navCollections', 'collectionTabs'
         ));
     }
 

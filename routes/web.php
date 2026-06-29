@@ -118,11 +118,13 @@ Route::get('/', [LandingPageController::class, 'index']);
 Auth::routes();
 
 Route::get('/collections', [LandingPageController::class, 'collections'])->name('collections.index');
+Route::get('/collections/{slug}', fn($slug) => redirect('/' . $slug, 301));
+// Legacy named routes — nama dipertahankan agar route() helper tidak error, tapi semua lewat /{slug}
 Route::get('/best-seller', [LandingPageController::class, 'bestSeller'])->name('best-seller.index');
 Route::get('/hijab', [LandingPageController::class, 'hijab'])->name('hijab.index');
 Route::get('/syari', [LandingPageController::class, 'syari'])->name('syari.index');
-Route::get('/new-arrived', [LandingPageController::class, 'newArrived'])->name('new-arrived.index');
-Route::get('/collections/{slug}', fn($slug) => redirect('/' . $slug, 301));
+Route::get('/new-arrived', fn() => redirect('/new-arrival', 301))->name('new-arrived.index');
+Route::get('/new-arrival', [LandingPageController::class, 'newArrived'])->name('new-arrival.index');
 Route::get('/about-us', [LandingPageController::class, 'about'])->name('about.index');
 Route::get('/promo', [LandingPageController::class, 'promo'])->name('promo.index');
 Route::get('/user/profile', [LandingPageController::class, 'profile'])->name('profile.index');

@@ -4,26 +4,16 @@
 
 @php
     $activeRoute      = $catalogMeta['route'];
+    $activeUrl        = $activeRoute === 'collections.show' && $collection
+        ? route('collections.show', ['slug' => $collection->slug])
+        : route($activeRoute);
+    $urlWith = fn($params) => $activeUrl . (count($params) ? '?' . http_build_query($params) : '');
     $activeCategory   = $collection ?? false ? null : request('category');
     $activeAvailability = request('availability');
     $activeSort       = request('sort');
-    $collectionTabs = $navCollections->map(fn($col) => [
-        'label'  => $col->name,
-        'url'    => route('collections.show', $col->slug),
-        'active' => $activeRoute === 'collections.show' && ($collection->slug ?? null) === $col->slug,
-    ])->push([
-        'label'  => 'All Collections',
-        'url'    => route('collections.index'),
-        'active' => $activeRoute === 'collections.index',
-    ])->values();
-    $catalogDescriptions = [
-        'best-seller.index' => 'Koleksi favorit pelanggan ' . $globalStoreName . ', dipilih dari produk yang paling sering dibeli dan mudah dipadukan.',
-        'hijab.index'       => 'Pilihan hijab premium dengan warna lembut, bahan nyaman, dan tampilan rapi untuk aktivitas harian.',
-        'syari.index'       => 'Siluet santun dan clean untuk tampilan modest yang tetap ringan, modern, dan elegan.',
-        'new-arrived.index' => 'Drop terbaru ' . $globalStoreName . ' untuk melengkapi wardrobe modest kamu dengan warna dan bahan pilihan.',
-        'collections.index' => 'Semua koleksi ' . $globalStoreName . ' dalam satu katalog, dari hijab harian sampai pilihan spesial.',
-    ];
-    $catalogSeoDescription  = $catalogDescriptions[$activeRoute] ?? $catalogDescriptions['collections.index'];
+    $catalogSeoDescription = $collection
+        ? ($collection->description ?: 'Jelajahi koleksi ' . $collection->name . ' dari ' . $globalStoreName . '.')
+        : 'Semua koleksi ' . $globalStoreName . ' dalam satu katalog, dari hijab harian sampai pilihan spesial.';
     $catalogSeoImageProduct = $products->first(fn($item) => $item->images->first());
     $catalogSeoImage        = $catalogSeoImageProduct
         ? asset('storage/' . $catalogSeoImageProduct->images->first()->image_url)
@@ -34,7 +24,7 @@
 @section('seo_description', $catalogSeoDescription)
 @section('seo_keywords', $catalogMeta['title'] . ', ' . $globalStoreName . ', hijab premium, hijab wanita, modest wear, koleksi hijab')
 @section('seo_image', $catalogSeoImage)
-@section('canonical', route($activeRoute))
+@section('canonical', $activeUrl)
 
 @push('seo')
     @php
@@ -43,7 +33,7 @@
             '@type'          => 'ItemList',
             'name'           => $catalogMeta['title'],
             'description'    => $catalogSeoDescription,
-            'url'            => route($activeRoute),
+            'url'            => $activeUrl,
             'numberOfItems'  => $products->count(),
             'itemListElement'=> $products->values()->map(function ($item, $index) {
                 $image = $item->images->first();
@@ -70,7 +60,7 @@
                 return [
                     '@type'    => 'ListItem',
                     'position' => $index + 1,
-                    'url'      => route('collections.show', $item->slug),
+                    'url'      => route('collections.show', ['slug' => $item->slug]),
                     'item'     => $product,
                 ];
             })->all(),
@@ -209,7 +199,7 @@
                         <i class="fa-solid fa-sliders text-[10px] text-brand-primary"></i>
                         Filter
                     </button>
-                    <form action="{{ route($activeRoute) }}" method="GET" class="flex items-center">
+                    <form action="{{ $activeUrl }}" method="GET" class="flex items-center">
                         @foreach(request()->except('sort', 'page') as $key => $value)
                             @if(is_scalar($value))
                                 <input type="hidden" name="{{ $key }}" value="{{ $value }}">
@@ -238,7 +228,7 @@
             <aside class="hidden w-52 flex-shrink-0 lg:block">
                 <div id="catalogSidebar" class="sticky top-0 space-y-0">
 
-                    <form action="{{ route($activeRoute) }}" method="GET" id="filterForm">
+                    <form action="{{ $activeUrl }}" method="GET" id="filterForm">
                         @if(request('search'))
                             <input type="hidden" name="search" value="{{ request('search') }}">
                         @endif
@@ -314,7 +304,7 @@
                         <div class="pb-6">
                             <h2 class="mb-4 text-[11px] font-bold uppercase tracking-[0.24em] text-brand-dark">Category</h2>
                             <div class="space-y-0.5">
-                                <a href="{{ route($activeRoute, request()->except('category', 'page')) }}"
+                                <a href="{{ $urlWith(request()->except('category', 'page')) }}"
                                     class="flex items-center justify-between py-2 text-[13px] transition
                                         {{ !$activeCategory ? 'font-bold text-brand-dark' : 'font-medium text-brand-dark/50 hover:text-brand-dark' }}">
                                     <span>All Products</span>
@@ -323,14 +313,14 @@
                                     @endif
                                 </a>
                                 @foreach($categories as $cat)
-                                    <a href="{{ route($activeRoute, array_merge(request()->except('page'), ['category' => $cat->slug])) }}"
+                                    <a href="{{ $urlWith(array_merge(request()->except('page'), ['category' => $cat->slug])) }}"
                                         class="flex items-center justify-between py-2 text-[13px] transition
                                             {{ $activeCategory === $cat->slug ? 'font-bold text-brand-dark' : 'font-medium text-brand-dark/50 hover:text-brand-dark' }}">
                                         <span>{{ $cat->name }}</span>
                                         <span class="text-[11px] text-brand-dark/25">{{ $cat->products_count }}</span>
                                     </a>
                                     @foreach($cat->children as $child)
-                                        <a href="{{ route($activeRoute, array_merge(request()->except('page'), ['category' => $child->slug])) }}"
+                                        <a href="{{ $urlWith(array_merge(request()->except('page'), ['category' => $child->slug])) }}"
                                             class="flex items-center justify-between py-1.5 pl-4 text-[12px] transition
                                                 {{ $activeCategory === $child->slug ? 'font-bold text-brand-primary' : 'font-medium text-brand-dark/40 hover:text-brand-dark' }}">
                                             <span class="flex items-center gap-1.5">
@@ -348,7 +338,7 @@
                     </form>
 
                     @if(request()->hasAny(['search', 'category', 'availability', 'min_price', 'max_price']))
-                        <a href="{{ route($activeRoute) }}"
+                        <a href="{{ $activeUrl }}"
                             class="block text-[11px] font-bold uppercase tracking-[0.16em] text-brand-dark/35 transition hover:text-brand-primary">
                             <i class="fa-solid fa-rotate-left mr-1 text-[10px]"></i> Clear All Filters
                         </a>
@@ -400,7 +390,7 @@
                         <p class="mb-8 max-w-sm text-sm text-brand-dark/45">
                             Coba ubah filter untuk menemukan koleksi yang sesuai.
                         </p>
-                        <a href="{{ route($activeRoute) }}"
+                        <a href="{{ $activeUrl }}"
                             class="border border-brand-dark px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-brand-dark transition hover:bg-brand-dark hover:text-white">
                             Lihat Semua
                         </a>
@@ -425,7 +415,7 @@
             </button>
         </div>
 
-        <form action="{{ route($activeRoute) }}" method="GET" class="px-5 py-5 space-y-6">
+        <form action="{{ $activeUrl }}" method="GET" class="px-5 py-5 space-y-6">
             @if(request('search'))
                 <input type="hidden" name="search" value="{{ request('search') }}">
             @endif
@@ -476,18 +466,18 @@
             <div class="border-b border-gray-100 pb-5">
                 <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-dark">Category</h3>
                 <div class="space-y-1">
-                    <a href="{{ route($activeRoute, request()->except('category', 'page')) }}"
+                    <a href="{{ $urlWith(request()->except('category', 'page')) }}"
                         class="block py-2 text-sm transition {{ !$activeCategory ? 'font-bold text-brand-dark' : 'font-medium text-brand-dark/55 hover:text-brand-dark' }}">
                         All Products
                     </a>
                     @foreach($categories as $cat)
-                        <a href="{{ route($activeRoute, array_merge(request()->except('page'), ['category' => $cat->slug])) }}"
+                        <a href="{{ $urlWith(array_merge(request()->except('page'), ['category' => $cat->slug])) }}"
                             class="flex items-center justify-between py-2 text-sm transition {{ $activeCategory === $cat->slug ? 'font-bold text-brand-dark' : 'font-medium text-brand-dark/55 hover:text-brand-dark' }}">
                             <span>{{ $cat->name }}</span>
                             <span class="text-xs text-brand-dark/30">{{ $cat->products_count }}</span>
                         </a>
                         @foreach($cat->children as $child)
-                            <a href="{{ route($activeRoute, array_merge(request()->except('page'), ['category' => $child->slug])) }}"
+                            <a href="{{ $urlWith(array_merge(request()->except('page'), ['category' => $child->slug])) }}"
                                 class="flex items-center justify-between py-1.5 pl-5 text-sm transition {{ $activeCategory === $child->slug ? 'font-bold text-brand-primary' : 'font-medium text-brand-dark/40 hover:text-brand-dark' }}">
                                 <span class="flex items-center gap-1.5">
                                     <i class="fa-solid fa-turn-down-right text-[9px] text-brand-primary/40"></i>
@@ -524,7 +514,7 @@
             </button>
 
             @if(request()->hasAny(['search', 'category', 'availability', 'min_price', 'max_price']))
-                <a href="{{ route($activeRoute) }}"
+                <a href="{{ $activeUrl }}"
                     class="block text-center text-[11px] font-bold uppercase tracking-[0.16em] text-brand-dark/35 transition hover:text-brand-primary">
                     Clear All
                 </a>
