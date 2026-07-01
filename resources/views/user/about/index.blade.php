@@ -1,6 +1,10 @@
 @extends('layouts.customer')
 
 @section('title', 'Tentang Kami - ' . $storeName)
+@section('seo_title', 'Tentang Kami — ' . $storeName)
+@section('seo_description', 'Kenali ' . $storeName . ', toko hijab premium online yang menghadirkan hijab dan modest wear berkualitas dengan desain elegan, nyaman, dan mudah dipakai.')
+@section('seo_keywords', 'tentang ' . $storeName . ', ' . strtolower($storeName) . ' hijab, toko hijab premium, modest wear Indonesia')
+@section('canonical', route('about.index'))
 
 @section('content')
     <section class="bg-[#f8f3ee]">

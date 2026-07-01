@@ -25,6 +25,12 @@
 
     RewriteEngine On
 
+    # Canonical live domain for SEO: one hostname, HTTPS only.
+    RewriteCond %{HTTP_HOST} ^www\.furehijab\.id$ [NC,OR]
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP_HOST} ^(www\.)?furehijab\.id$ [NC]
+    RewriteRule ^ https://furehijab.id%{REQUEST_URI} [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

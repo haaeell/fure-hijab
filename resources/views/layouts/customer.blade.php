@@ -25,16 +25,16 @@
     <meta name="keywords" content="{{ $seoKeywords }}">
     <meta name="robots" content="{{ $robotsContent }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">
+    <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('favicon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('favicon-512x512.png') }}">
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('favicon.png') }}">
-    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('favicon-512x512.png') }}">
     <link rel="apple-touch-icon" sizes="512x512" href="{{ asset('favicon-512x512.png') }}">
     <meta property="og:locale" content="id_ID">
     <meta property="og:type" content="@yield('og_type', 'website')">
-    <meta property="og:site_name" content="{{ $storeName }} Hijab">
+    <meta property="og:site_name" content="{{ $storeName }}">
     <meta property="og:title" content="{{ $seoTitleFull }}">
     <meta property="og:description" content="{{ \Illuminate\Support\Str::limit(strip_tags($seoDescription), 200, '') }}">
     <meta property="og:url" content="{{ $canonicalUrl }}">
@@ -417,9 +417,14 @@
                     All Collections
                 </a>
 
+                <a href="{{ route('promo.index') }}"
+                    class="transition-colors {{ request()->routeIs('promo.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
+                    Promo
+                </a>
+
                 <a href="{{ route('about.index') }}"
                     class="transition-colors {{ request()->routeIs('about.*') ? 'text-brand-dark' : 'hover:text-brand-primary' }}">
-                    Store Locator
+                    Tentang Kami
                 </a>
 
                 <a href="{{ route('articles.index') }}"
@@ -536,9 +541,13 @@
                     class="flex items-center px-3 py-3 transition {{ request()->routeIs('collections.index') && !request('category') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
                     All Collections
                 </a>
+                <a href="{{ route('promo.index') }}"
+                    class="flex items-center px-3 py-3 transition {{ request()->routeIs('promo.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
+                    Promo
+                </a>
                 <a href="{{ route('about.index') }}"
                     class="flex items-center px-3 py-3 transition {{ request()->routeIs('about.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
-                    Store Locator
+                    Tentang Kami
                 </a>
                 <a href="{{ route('articles.index') }}"
                     class="flex items-center px-3 py-3 transition {{ request()->routeIs('articles.*') ? 'bg-[#f8f3ee] text-brand-primary' : 'hover:bg-[#f8f3ee] hover:text-brand-primary' }}">
@@ -559,7 +568,7 @@
 
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-20">
-                <div class="md:col-span-5 space-y-8">
+                <div class="md:col-span-4 space-y-8">
                     <div class="flex items-center gap-3 group">
                         <span
                             class="text-2xl font-black tracking-widest uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-secondary/80">
@@ -603,7 +612,17 @@
                     </ul>
                 </div>
 
-                <div class="md:col-span-5 space-y-6">
+                <div class="md:col-span-2 space-y-6">
+                    <h4 class="text-sm font-bold uppercase tracking-widest text-brand-secondary">Informasi</h4>
+                    <ul class="space-y-4 text-brand-secondary">
+                        <li><a href="{{ route('about.index') }}" class="hover:text-white transition-colors duration-200">Tentang Kami</a></li>
+                        <li><a href="{{ route('promo.index') }}" class="hover:text-white transition-colors duration-200">Promo</a></li>
+                        <li><a href="{{ route('articles.index') }}" class="hover:text-white transition-colors duration-200">Journal</a></li>
+                        <li><a href="{{ route('terms.index') }}" class="hover:text-white transition-colors duration-200">Syarat & Ketentuan</a></li>
+                    </ul>
+                </div>
+
+                <div class="md:col-span-4 space-y-6">
                     <h4 class="text-sm font-bold uppercase tracking-widest text-brand-secondary">Dapatkan Update Terbaru
                     </h4>
                     <p class="text-brand-secondary text-sm">Berlangganan newsletter untuk info promo eksklusif.</p>

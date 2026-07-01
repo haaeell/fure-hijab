@@ -1,6 +1,10 @@
 @extends('layouts.customer')
 
 @section('title', 'Promo Spesial - ' . $storeName)
+@section('seo_title', 'Promo Hijab Spesial — ' . $storeName)
+@section('seo_description', 'Temukan promo hijab terbaru dari ' . $storeName . '. Salin kode voucher aktif dan nikmati penawaran spesial untuk koleksi hijab premium pilihan.')
+@section('seo_keywords', 'promo hijab, voucher hijab, diskon hijab, promo ' . $storeName . ', hijab premium')
+@section('canonical', route('promo.index'))
 
 @section('content')
     <section class="py-16 bg-[#FBFBFE] min-h-screen px-4 sm:px-6 lg:px-8">

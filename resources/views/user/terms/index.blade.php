@@ -1,6 +1,10 @@
 @extends('layouts.customer')
 
 @section('title', 'Syarat & Ketentuan - ' . $storeName)
+@section('seo_title', 'Syarat & Ketentuan — ' . $storeName)
+@section('seo_description', 'Baca syarat dan ketentuan belanja di ' . $storeName . ', termasuk akun pengguna, pemesanan, pembayaran, pengiriman, pembatalan, dan privasi data.')
+@section('seo_keywords', 'syarat ketentuan ' . $storeName . ', kebijakan belanja, pembayaran hijab, pengiriman hijab')
+@section('canonical', route('terms.index'))
 
 @section('content')
     <section class="bg-[#F8FBF8] min-h-screen px-4 sm:px-6 lg:px-8 pt-28 pb-14">

@@ -113,6 +113,7 @@ class LandingPageViewDataService
             'chatUrl' => $this->chatUrl($store),
             'organizationSchema' => $this->organizationSchema($store),
             'websiteSchema' => $this->websiteSchema($store),
+            'siteNavigationSchema' => $this->siteNavigationSchema($store),
             'localBusinessSchema' => $this->localBusinessSchema($store),
         ];
     }
@@ -161,6 +162,11 @@ class LandingPageViewDataService
             '@context' => 'https://schema.org',
             '@type' => 'WebSite',
             'name' => $store['name'],
+            'alternateName' => array_values(array_unique(array_filter([
+                $store['name'] . ' Hijab',
+                str_replace('è', 'e', $store['name']) . ' Hijab',
+                parse_url(url('/'), PHP_URL_HOST),
+            ]))),
             'url' => url('/'),
             'potentialAction' => [
                 '@type' => 'SearchAction',
@@ -170,6 +176,34 @@ class LandingPageViewDataService
                 ],
                 'query-input' => 'required name=search_term_string',
             ],
+        ];
+    }
+
+    private function siteNavigationSchema(array $store): array
+    {
+        $items = [
+            ['name' => 'Home', 'url' => url('/')],
+            ['name' => 'All Collections', 'url' => route('collections.index')],
+            ['name' => 'Best Seller', 'url' => route('collections.show', ['slug' => 'best-seller'])],
+            ['name' => 'New Arrival', 'url' => route('collections.show', ['slug' => 'new-arrival'])],
+            ['name' => 'Promo', 'url' => route('promo.index')],
+            ['name' => 'Journal', 'url' => route('articles.index')],
+            ['name' => 'Tentang ' . $store['name'], 'url' => route('about.index')],
+        ];
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'ItemList',
+            'name' => 'Navigasi utama ' . $store['name'],
+            'itemListElement' => collect($items)->map(fn($item, $index) => [
+                '@type' => 'ListItem',
+                'position' => $index + 1,
+                'item' => [
+                    '@type' => 'SiteNavigationElement',
+                    'name' => $item['name'],
+                    'url' => $item['url'],
+                ],
+            ])->all(),
         ];
     }
 

@@ -55,6 +55,7 @@ Route::get('/sitemap.xml', function () {
     $pushUrl(route('collections.index'), now(), 'daily', '0.9');
     $pushUrl(route('about.index'), now(), 'monthly', '0.5');
     $pushUrl(route('promo.index'), now(), 'weekly', '0.6');
+    $pushUrl(route('terms.index'), now(), 'monthly', '0.4');
 
     Category::where('is_active', true)
         ->select(['slug', 'updated_at'])
