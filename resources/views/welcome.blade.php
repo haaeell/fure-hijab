@@ -77,11 +77,11 @@
                         filled($banner->eyebrow) ||
                         filled($banner->title) ||
                         filled($banner->subtitle) ||
-                        (filled($banner->primary_button_text) && filled($banner->primary_button_url)) ||
-                        (filled($banner->secondary_button_text) && filled($banner->secondary_button_url));
+                        filled($banner->primary_button_text) ||
+                        filled($banner->secondary_button_text);
                 @endphp
-                <div class="landing-slide absolute inset-0 transition-opacity duration-700 {{ $index === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none' }}"
-                    data-slide="{{ $index }}">
+                <div class="landing-slide absolute inset-0 cursor-pointer transition-opacity duration-700 {{ $index === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none' }}"
+                    data-slide="{{ $index }}" data-banner-url="{{ route('collections.index') }}" role="link" tabindex="{{ $index === 0 ? '0' : '-1' }}">
                     <picture>
                         <source media="(max-width: 767px)" srcset="{{ $bannerMobileImage }}">
                        <img
@@ -126,15 +126,15 @@
                                     </p>
                                 @endif
                                 <div class="mt-6 flex flex-wrap gap-2 md:mt-8 md:gap-3">
-                                    @if ($banner->primary_button_text && $banner->primary_button_url)
-                                        <a href="{{ $banner->primary_button_url }}"
+                                    @if ($banner->primary_button_text)
+                                        <a href="{{ route('collections.index') }}"
                                             class="inline-flex items-center gap-2 bg-white px-4 py-2.5 text-xs font-bold text-brand-dark transition hover:bg-brand-secondary md:gap-3 md:px-7 md:py-3 md:text-sm">
                                             {{ $banner->primary_button_text }}
                                             <i class="fa-solid fa-arrow-right text-xs"></i>
                                         </a>
                                     @endif
-                                    @if ($banner->secondary_button_text && $banner->secondary_button_url)
-                                        <a href="{{ $banner->secondary_button_url }}"
+                                    @if ($banner->secondary_button_text)
+                                        <a href="{{ route('collections.index') }}"
                                             class="inline-flex items-center gap-2 border border-white/60 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white hover:text-brand-dark md:gap-3 md:px-7 md:py-3 md:text-sm">
                                             {{ $banner->secondary_button_text }}
                                         </a>
@@ -477,6 +477,24 @@
                 });
             }
 
+            slides.forEach(function(slide) {
+                const goToBannerUrl = function() {
+                    const url = slide.dataset.bannerUrl;
+                    if (url) window.location.href = url;
+                };
+
+                slide.addEventListener('click', function(event) {
+                    if (event.target.closest('a, button')) return;
+                    goToBannerUrl();
+                });
+
+                slide.addEventListener('keydown', function(event) {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    goToBannerUrl();
+                });
+            });
+
             if (slides.length <= 1) return;
 
             // Pre-cache span elements — reads DOM once before any writes
@@ -489,6 +507,7 @@
                     slide.classList.toggle('opacity-100', slideIndex === active);
                     slide.classList.toggle('opacity-0', slideIndex !== active);
                     slide.classList.toggle('pointer-events-none', slideIndex !== active);
+                    slide.setAttribute('tabindex', slideIndex === active ? '0' : '-1');
                 });
                 dotSpans.forEach(function(span, dotIndex) {
                     span.classList.toggle('bg-white', dotIndex === active);

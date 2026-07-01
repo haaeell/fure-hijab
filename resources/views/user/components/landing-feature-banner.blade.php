@@ -1,6 +1,6 @@
 @if($banner)
     <section class="w-full py-4 sm:py-6">
-        <a href="{{ $banner->button_url ?: route('collections.index') }}"
+        <a href="{{ route('collections.index') }}"
             class="group relative block min-h-[280px] overflow-hidden bg-brand-dark sm:min-h-[360px] lg:min-h-[430px]">
             <img src="{{ $banner->image }}" alt="{{ $banner->title }}"
                 class="absolute inset-0 h-full w-full object-cover opacity-85 transition duration-700 group-hover:scale-105">
