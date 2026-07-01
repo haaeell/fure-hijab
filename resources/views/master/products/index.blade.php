@@ -580,7 +580,7 @@
                                 <div class="flex items-center justify-between">
                                     <div>
                                         <p class="text-xs font-black text-blue-700 tracking-widest"><i class="fa-solid fa-sliders mr-2"></i>TIPE VARIAN</p>
-                                        <p class="text-[10px] text-blue-500 mt-0.5">Definisikan tipe dan nilainya, lalu klik Generate.</p>
+                                        <p class="text-[10px] text-blue-500 mt-0.5">Definisikan tipe dan nilainya, lalu klik Generate. Untuk warna: pilih/tulis hex, isi label warna, lalu klik +.</p>
                                     </div>
                                 </div>
 
@@ -700,6 +700,60 @@
 
         function escHtml(str) {
             return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        function isColorType(name) {
+            return /warna|colou?r/i.test(String(name ?? '').trim());
+        }
+
+        function isHexColor(value) {
+            return /^#(?:[0-9a-fA-F]{3}){1,2}$/.test(String(value ?? '').trim());
+        }
+
+        function hexFromValue(value) {
+            const match = String(value ?? '').match(/#(?:[0-9a-fA-F]{3}){1,2}/);
+            return match ? match[0].toUpperCase() : '';
+        }
+
+        function normalizeHexInput(value) {
+            let raw = String(value ?? '').trim().replace(/^#/, '');
+            if (!/^(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw)) return '';
+            if (raw.length === 3) raw = raw.split('').map(char => char + char).join('');
+            return `#${raw.toUpperCase()}`;
+        }
+
+        function normalizeValueForType(typeName, value) {
+            const raw = String(value ?? '').trim();
+            if (!isColorType(typeName)) return raw;
+            const hexOnly = normalizeHexInput(raw);
+            if (hexOnly) return hexOnly;
+            return raw;
+        }
+
+        function colorValueControlHtml(tid, typeName = '') {
+            const isColor = isColorType(typeName);
+            return `
+                <div class="vtype-color-controls ${isColor ? '' : 'hidden'} flex flex-1 flex-wrap items-center gap-1.5">
+                    <input type="color" value="#a78b6f"
+                        class="vtype-color-picker h-7 w-8 flex-shrink-0 cursor-pointer rounded-md border border-blue-100 bg-white p-0.5"
+                        title="Pilih warna hex"
+                        oninput="syncColorPickerHex(${tid}, this.value)">
+                    <input type="text" value="#A78B6F" placeholder="#A78B6F"
+                        class="vtype-color-hex-input w-24 px-2 py-1.5 rounded-lg border border-blue-100 bg-white text-[10px] font-bold uppercase outline-none focus:border-brand-primary"
+                        oninput="syncColorHexPicker(${tid}, this.value)"
+                        onkeydown="handleColorValueInput(event, ${tid})">
+                    <input type="text" placeholder="Label warna"
+                        class="vtype-color-label-input min-w-[120px] flex-1 px-2 py-1.5 rounded-lg border border-blue-100 bg-white text-[10px] font-semibold outline-none focus:border-brand-primary"
+                        onkeydown="handleColorValueInput(event, ${tid})">
+                    <button type="button" onclick="addColorValue(${tid})"
+                        class="h-7 w-7 flex-shrink-0 rounded-lg bg-brand-primary text-white hover:bg-brand-dark transition-all"
+                        title="Tambah warna">
+                        <i class="fa-solid fa-plus text-[9px]"></i>
+                    </button>
+                </div>
+                <input type="text" placeholder="Nilai, Enter untuk tambah"
+                    class="vtype-value-input ${isColor ? 'hidden' : ''} flex-1 min-w-[120px] text-xs font-semibold outline-none bg-transparent py-0.5"
+                    onkeydown="handleTypeValueInput(event, ${tid})">`;
         }
 
         window.previewVariantImage = function (input, id) {
@@ -1308,18 +1362,16 @@
             const tid = ++typeCounter;
             variantTypes.push({ id: tid, name, values: [...values] });
 
-            const chipsHtml = values.map(v => chipHtml(tid, v)).join('');
+            const chipsHtml = values.map(v => chipHtml(tid, v, name)).join('');
             $('#variantTypes').append(`
                 <div class="flex items-start gap-2" id="vtype-${tid}">
-                    <input type="text" value="${escHtml(name)}" placeholder="Tipe (cth: Ukuran)"
+                    <input type="text" value="${escHtml(name)}" placeholder="Tipe (cth: Warna)"
                         class="vtype-name w-28 flex-shrink-0 px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs font-semibold outline-none focus:border-brand-primary"
                         oninput="updateTypeName(${tid}, this.value)">
                     <div class="flex-1 flex flex-wrap items-center gap-1.5 px-2 py-1.5 bg-white border border-blue-200 rounded-xl min-h-[38px]"
                         id="vtype-chips-${tid}">
                         ${chipsHtml}
-                        <input type="text" placeholder="Nilai, Enter untuk tambah"
-                            class="vtype-value-input flex-1 min-w-[120px] text-xs font-semibold outline-none bg-transparent py-0.5"
-                            onkeydown="handleTypeValueInput(event, ${tid})">
+                        ${colorValueControlHtml(tid, name)}
                     </div>
                     <button type="button" onclick="removeVariantType(${tid})"
                         class="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-red-50 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all mt-0.5">
@@ -1328,8 +1380,14 @@
                 </div>`);
         };
 
-        function chipHtml(tid, value) {
+        function chipHtml(tid, value, typeName = '') {
+            const colorHex = isColorType(typeName) ? hexFromValue(value) : '';
+            const swatch = colorHex
+                ? `<span class="h-3.5 w-3.5 rounded-full border border-black/10 shadow-inner" style="background-color:${escHtml(colorHex)}"></span>`
+                : '';
+
             return `<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-primary/10 text-brand-dark rounded-lg text-[10px] font-bold">
+                ${swatch}
                 ${escHtml(value)}
                 <button type="button" onclick="removeTypeValue(${tid}, '${escHtml(value).replace(/'/g,"\\'")}')">
                     <i class="fa-solid fa-xmark text-[8px] text-gray-400 hover:text-red-500"></i>
@@ -1339,19 +1397,90 @@
 
         window.updateTypeName = function (tid, val) {
             const t = variantTypes.find(t => t.id === tid);
-            if (t) t.name = val.trim();
+            if (!t) return;
+            t.name = val.trim();
+            syncColorTypeUi(tid);
         };
+
+        window.syncColorPickerHex = function (tid, value) {
+            $(`#vtype-chips-${tid} .vtype-color-hex-input`).val(String(value || '').toUpperCase());
+        };
+
+        window.syncColorHexPicker = function (tid, value) {
+            const hex = normalizeHexInput(value);
+            if (hex) {
+                $(`#vtype-chips-${tid} .vtype-color-picker`).val(hex.toLowerCase());
+            }
+        };
+
+        window.addColorValue = function (tid) {
+            const t = variantTypes.find(t => t.id === tid);
+            const $wrap = $(`#vtype-chips-${tid}`);
+            const $hexInput = $wrap.find('.vtype-color-hex-input');
+            const $labelInput = $wrap.find('.vtype-color-label-input');
+            const hex = normalizeHexInput($hexInput.val());
+            const label = $labelInput.val().trim();
+
+            $hexInput.val(hex || $hexInput.val());
+            $wrap.find('.vtype-color-picker').val(hex ? hex.toLowerCase() : '#a78b6f');
+
+            if (!hex) {
+                $hexInput.focus().addClass('border-red-300');
+                setTimeout(() => $hexInput.removeClass('border-red-300'), 1200);
+                return;
+            }
+
+            if (!label) {
+                $labelInput.focus().addClass('border-red-300');
+                setTimeout(() => $labelInput.removeClass('border-red-300'), 1200);
+                return;
+            }
+
+            const val = `${label} ${hex}`;
+            if (!t || !val || t.values.includes(val)) return;
+            t.values.push(val);
+            $(`#vtype-chips-${tid} .vtype-color-controls`).before(chipHtml(tid, val, t.name));
+            $labelInput.val('').focus();
+        };
+
+        window.handleColorValueInput = function (e, tid) {
+            if (e.key !== 'Enter' && e.key !== ',') return;
+            e.preventDefault();
+
+            if (e.target.classList.contains('vtype-color-hex-input')) {
+                const labelInput = document.querySelector(`#vtype-chips-${tid} .vtype-color-label-input`);
+                if (labelInput && !labelInput.value.trim()) {
+                    labelInput.focus();
+                    return;
+                }
+            }
+
+            addColorValue(tid);
+        };
+
+        function syncColorTypeUi(tid) {
+            const t = variantTypes.find(t => t.id === tid);
+            if (!t) return;
+
+            const colorMode = isColorType(t.name);
+            const $wrap = $(`#vtype-chips-${tid}`);
+            $wrap.find('.vtype-color-controls').toggleClass('hidden', !colorMode);
+            $wrap.find('.vtype-value-input').toggleClass('hidden', colorMode);
+
+            const $controls = $wrap.find('.vtype-color-controls, .vtype-value-input').detach();
+            $wrap.empty().append(t.values.map(v => chipHtml(tid, v, t.name)).join('')).append($controls);
+        }
 
         window.handleTypeValueInput = function (e, tid) {
             if (e.key !== 'Enter' && e.key !== ',') return;
             e.preventDefault();
             const input = e.target;
-            const val   = input.value.trim().replace(/,$/, '');
-            if (!val) return;
             const t = variantTypes.find(t => t.id === tid);
+            const val = normalizeValueForType(t?.name, input.value.trim().replace(/,$/, ''));
+            if (!val) return;
             if (!t || t.values.includes(val)) { input.value = ''; return; }
             t.values.push(val);
-            $(`#vtype-chips-${tid} .vtype-value-input`).before(chipHtml(tid, val));
+            $(`#vtype-chips-${tid} .vtype-value-input`).before(chipHtml(tid, val, t.name));
             input.value = '';
         };
 
@@ -1359,12 +1488,12 @@
             const t = variantTypes.find(t => t.id === tid);
             if (t) t.values = t.values.filter(v => v !== val);
             // re-render chips
-            const $input = $(`#vtype-chips-${tid} .vtype-value-input`).detach();
+            const $controls = $(`#vtype-chips-${tid} .vtype-color-controls, #vtype-chips-${tid} .vtype-value-input`).detach();
             $(`#vtype-chips-${tid}`).empty().append(
-                t.values.map(v => chipHtml(tid, v)).join('') + $('<div>').append($input).html()
+                t.values.map(v => chipHtml(tid, v, t.name)).join('')
             );
             // re-attach
-            $(`#vtype-chips-${tid}`).append($input);
+            $(`#vtype-chips-${tid}`).append($controls);
         };
 
         window.removeVariantType = function (tid) {

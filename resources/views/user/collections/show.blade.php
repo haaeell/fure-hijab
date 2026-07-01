@@ -171,18 +171,39 @@
                                 @if($hasAttributes)
                                     <div class="space-y-5" id="variantSelection">
                                         @foreach($groupedAttrsUnique as $typeName => $valueMap)
+                                            @php
+                                                $isColorGroup = preg_match('/warna|colou?r/i', $typeName);
+                                            @endphp
                                             <div class="variant-group" data-type="{{ $typeName }}">
                                                 <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/45">{{ $typeName }}</p>
                                                 <div class="flex flex-wrap gap-2">
                                                     @foreach($valueMap as $value => $isOos)
+                                                        @php
+                                                            $hexMatch = [];
+                                                            $hasColorHex = preg_match('/#(?:[0-9a-fA-F]{3}){1,2}/', $value, $hexMatch);
+                                                            $colorHex = $hasColorHex ? strtoupper($hexMatch[0]) : null;
+                                                            $colorLabel = $colorHex
+                                                                ? trim(preg_replace('~\s*[-–—|:/()]?\s*#(?:[0-9a-fA-F]{3}){1,2}\s*~', ' ', $value))
+                                                                : $value;
+                                                            $colorLabel = $colorLabel !== '' ? $colorLabel : $colorHex;
+                                                            $isColorOption = $isColorGroup && $colorHex;
+                                                        @endphp
                                                         <button type="button"
                                                             data-type="{{ $typeName }}" data-value="{{ $value }}"
                                                             @if($isOos) disabled @endif
-                                                            class="variant-btn relative border px-4 py-2 text-sm font-semibold transition
+                                                            title="{{ $colorLabel }}"
+                                                            aria-label="{{ $typeName }} {{ $colorLabel }}"
+                                                            class="variant-btn relative border text-sm font-semibold transition
+                                                                {{ $isColorOption ? 'inline-flex items-center gap-2 rounded-full px-3 py-2' : 'px-4 py-2' }}
                                                                 {{ $isOos
                                                                     ? 'border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed opacity-60'
                                                                     : 'border-brand-secondary/60 bg-white text-brand-dark/65 hover:border-brand-primary hover:text-brand-primary' }}">
-                                                            {{ $value }}
+                                                            @if($isColorOption)
+                                                                <span class="block h-6 w-6 flex-shrink-0 rounded-full border border-black/10 shadow-inner" style="background-color: {{ $colorHex }}"></span>
+                                                                <span>{{ $colorLabel }}</span>
+                                                            @else
+                                                                {{ $value }}
+                                                            @endif
                                                             @if($isOos)
                                                                 <span class="absolute inset-0 flex items-center justify-center pointer-events-none">
                                                                     <span class="w-full h-px bg-gray-300 absolute" style="transform:rotate(-15deg)"></span>
