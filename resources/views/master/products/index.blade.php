@@ -715,6 +715,74 @@
             return match ? match[0].toUpperCase() : '';
         }
 
+        window.syncVariantColorFromPicker = function (id, hex) {
+            const $nameInput = $(`#variant-row-${id}`).find('.variant-name');
+            const current = $nameInput.val();
+            const upper = hex.toUpperCase();
+            const updated = current.match(/#(?:[0-9a-fA-F]{3}){1,2}/)
+                ? current.replace(/#(?:[0-9a-fA-F]{3}){1,2}/, upper)
+                : current + ' ' + upper;
+            const newName = updated.trim();
+            $nameInput.val(newName);
+            syncVariantColorFromName(id, newName);
+        };
+
+        window.syncVariantColorFromName = function (id, name) {
+            // Sync color swatch
+            const hex = hexFromValue(name);
+            const $row = $(`#variant-row-${id}`);
+            const $wrap = $row.find('.vrow-color-wrap');
+            const $picker = $row.find('.vrow-color-picker');
+            if (hex) {
+                $wrap.removeClass('hidden');
+                $picker.val(hex.toLowerCase());
+            } else {
+                $wrap.addClass('hidden');
+            }
+
+            // Sync row.attrs and update TIPE VARIAN chips
+            const rowData = variantRows.find(r => r.id === id);
+            if (!rowData?.attrs?.length) return;
+
+            const parts = name.split(' - ');
+            rowData.attrs.forEach((a, i) => {
+                const oldValue = a.attribute_value ?? a.value ?? '';
+                const newValue = (parts[i] ?? '').trim();
+                if (!newValue || newValue === oldValue) return;
+
+                const attrName = a.attribute_name ?? a.name ?? '';
+
+                // Update this row's attr
+                if ('attribute_value' in a) a.attribute_value = newValue;
+                if ('value' in a) a.value = newValue;
+
+                // Update other variant rows sharing the same attr name + old value
+                variantRows.forEach(r => {
+                    if (r.id === id) return;
+                    (r.attrs ?? []).forEach(ra => {
+                        const rName = ra.attribute_name ?? ra.name ?? '';
+                        const rVal  = ra.attribute_value ?? ra.value ?? '';
+                        if (rName === attrName && rVal === oldValue) {
+                            if ('attribute_value' in ra) ra.attribute_value = newValue;
+                            if ('value' in ra) ra.value = newValue;
+                        }
+                    });
+                });
+
+                // Update variantTypes array and re-render chips
+                const typeObj = variantTypes.find(t => t.name === attrName);
+                if (!typeObj) return;
+                const vi = typeObj.values.indexOf(oldValue);
+                if (vi === -1) return;
+                typeObj.values[vi] = newValue;
+                const $chipsWrap = $(`#vtype-chips-${typeObj.id}`);
+                $chipsWrap.children('span.inline-flex').remove();
+                typeObj.values.forEach(v => {
+                    $chipsWrap.find('.vtype-color-controls, .vtype-value-input').first().before(chipHtml(typeObj.id, v, typeObj.name));
+                });
+            });
+        };
+
         function normalizeHexInput(value) {
             let raw = String(value ?? '').trim().replace(/^#/, '');
             if (!/^(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw)) return '';
@@ -1562,6 +1630,7 @@
             const weight        = data?.weight ?? '';
 
             const existingImage = data?.image ? '/storage/' + data.image : '';
+            const nameColorHex  = hexFromValue(name);
             variantRows.push({ id, dbId, attrs });
 
             $('#variantTableHeader').removeClass('hidden');
@@ -1584,8 +1653,15 @@
 
                     <div class="flex items-center gap-2 min-w-0">
                         <i class="fa-solid fa-grip-lines text-gray-300 text-[10px] flex-shrink-0"></i>
+                        <div class="vrow-color-wrap flex-shrink-0 ${nameColorHex ? '' : 'hidden'}" title="Pilih warna">
+                            <input type="color" value="${nameColorHex ? nameColorHex.toLowerCase() : '#000000'}"
+                                class="vrow-color-picker h-6 w-6 cursor-pointer rounded-full border border-gray-200 p-0.5"
+                                oninput="syncVariantColorFromPicker(${id}, this.value)"
+                                onchange="syncVariantColorFromPicker(${id}, this.value)">
+                        </div>
                         <input type="text" value="${escHtml(name)}" placeholder="Nama varian"
-                            class="variant-name min-w-0 w-full text-xs font-bold text-brand-dark bg-transparent outline-none border-b border-transparent focus:border-gray-300 truncate">
+                            class="variant-name min-w-0 w-full text-xs font-bold text-brand-dark bg-transparent outline-none border-b border-transparent focus:border-gray-300 truncate"
+                            oninput="syncVariantColorFromName(${id}, this.value)">
                         <input type="hidden" class="variant-db-id" value="${dbId}">
                     </div>
                     <div class="relative">
