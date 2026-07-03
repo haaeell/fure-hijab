@@ -174,8 +174,11 @@
                                             @php
                                                 $isColorGroup = preg_match('/warna|colou?r/i', $typeName);
                                             @endphp
-                                            <div class="variant-group" data-type="{{ $typeName }}">
-                                                <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/45">{{ $typeName }}</p>
+                                            <div class="variant-group" data-type="{{ $typeName }}" data-is-color="{{ $isColorGroup ? '1' : '0' }}">
+                                                <p class="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark/45">
+                                                    {{ $typeName }}
+                                                    <span class="variant-selected-label hidden items-center gap-1.5 normal-case tracking-normal font-semibold text-brand-dark/70 before:content-[':']"></span>
+                                                </p>
                                                 <div class="flex flex-wrap gap-2">
                                                     @foreach($valueMap as $value => $isOos)
                                                         @php
@@ -654,6 +657,28 @@
                 .always(function () { $btn.prop('disabled', false); });
             });
 
+            function variantHex(value) {
+                const m = String(value || '').match(/#(?:[0-9a-fA-F]{3}){1,2}/);
+                return m ? m[0].toUpperCase() : null;
+            }
+            function variantLabel(value) {
+                return String(value || '').replace(/\s*[-–—|:/()]?\s*#(?:[0-9a-fA-F]{3}){1,2}\s*/g, ' ').trim() || value;
+            }
+
+            function updateSelectedLabel($group, value) {
+                const $label = $group.find('.variant-selected-label');
+                const isColor = $group.data('is-color') === '1' || $group.data('is-color') === 1;
+                const hex = isColor ? variantHex(value) : null;
+                const text = hex ? variantLabel(value) : value;
+
+                $label.empty();
+                if (hex) {
+                    $label.append($('<span>').css({ display:'inline-block', width:'10px', height:'10px', borderRadius:'50%', background: hex, border:'1px solid rgba(0,0,0,0.12)', flexShrink: 0 }));
+                }
+                $label.append(document.createTextNode(text));
+                $label.addClass('inline-flex').removeClass('hidden');
+            }
+
             $(document).on('click', '.variant-btn:not([disabled])', function () {
                 const $btn = $(this);
 
@@ -665,12 +690,14 @@
                         .removeClass('border-brand-secondary/60 bg-white text-brand-dark/65');
                     const match = variants.find(v => v.id == $btn.data('variant-id'));
                     if (match) selectVariant(match);
+                    updateSelectedLabel($btn.closest('.variant-group'), $btn.text().trim());
                 } else {
                     // Mode atribut — pilih per tipe, cari kombinasi
                     const type  = $btn.data('type');
                     const value = $btn.data('value');
 
-                    $btn.closest('.variant-group').find('.variant-btn:not([disabled])')
+                    const $group = $btn.closest('.variant-group');
+                    $group.find('.variant-btn:not([disabled])')
                         .removeClass('border-brand-primary bg-[#eee5dc] text-brand-primary')
                         .addClass('border-brand-secondary/60 bg-white text-brand-dark/65');
                     $btn.addClass('border-brand-primary bg-[#eee5dc] text-brand-primary')
@@ -678,6 +705,7 @@
 
                     selectedChoices[type] = value;
                     findMatchingVariant();
+                    updateSelectedLabel($group, value);
                 }
             });
 

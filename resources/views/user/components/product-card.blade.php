@@ -58,10 +58,12 @@
                 <p class="truncate text-[9px] font-bold uppercase tracking-[0.16em] text-brand-primary md:text-[10px]">
                     {{ $product->category->full_name }}
                 </p>
+                @if(($product->reviews_count ?? 0) > 0)
                 <div class="flex flex-shrink-0 items-center gap-0.5 text-[9px] text-yellow-400">
                     <i class="fa-solid fa-star"></i>
-                    <span class="font-medium text-brand-dark/45">4.8</span>
+                    <span class="font-medium text-brand-dark/45">{{ number_format($product->avg_rating, 1) }}</span>
                 </div>
+                @endif
             </div>
 
             <h3 class="mb-2 line-clamp-2 h-8 text-xs font-semibold leading-snug text-brand-dark transition-colors duration-300 group-hover:text-brand-primary md:text-sm md:leading-snug">

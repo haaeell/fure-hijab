@@ -23,7 +23,6 @@ class LandingPageController extends Controller
 {
     public function index(LandingPageViewDataService $landingViewData)
     {
-        $productCardRelations = $this->productCardRelations();
         $categories = Category::query()
             ->select(['id', 'name', 'slug', 'sort_order', 'is_active'])
             ->where('is_active', true)
@@ -31,9 +30,7 @@ class LandingPageController extends Controller
             ->orderBy('sort_order', 'asc')
             ->get();
 
-        $flashSaleProducts = Product::query()
-            ->select($this->productCardColumns())
-            ->with($productCardRelations)
+        $flashSaleProducts = $this->productCardQuery()
             ->where('is_active', true)
             ->whereNotNull('compare_price')
             ->where('compare_price', '>', DB::raw('price'))
@@ -42,18 +39,14 @@ class LandingPageController extends Controller
             ->take(4)
             ->get();
 
-        $latestProducts = Product::query()
-            ->select($this->productCardColumns())
-            ->with($productCardRelations)
+        $latestProducts = $this->productCardQuery()
             ->where('is_active', true)
             ->orderByRaw('stock > 0 DESC')
             ->latest()
             ->take(8)
             ->get();
 
-        $bestSellerProducts = Product::query()
-            ->select($this->productCardColumns())
-            ->with($productCardRelations)
+        $bestSellerProducts = $this->productCardQuery()
             ->where('is_active', true)
             ->orderByRaw('stock > 0 DESC')
             ->orderByDesc('sold_count')
@@ -61,10 +54,8 @@ class LandingPageController extends Controller
             ->take(4)
             ->get();
 
-        $featuredCategorySections = $categories->take(3)->map(function ($category) use ($productCardRelations) {
-            $products = Product::query()
-                ->select($this->productCardColumns())
-                ->with($productCardRelations)
+        $featuredCategorySections = $categories->take(3)->map(function ($category) {
+            $products = $this->productCardQuery()
                 ->where('is_active', true)
                 ->where('category_id', $category->id)
                 ->latest()
@@ -78,9 +69,7 @@ class LandingPageController extends Controller
             return $category->featuredProducts->count() > 0;
         });
 
-        $shopLookProducts = Product::query()
-            ->select($this->productCardColumns())
-            ->with($productCardRelations)
+        $shopLookProducts = $this->productCardQuery()
             ->where('is_active', true)
             ->latest()
             ->take(2)
@@ -144,9 +133,7 @@ class LandingPageController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
 
-        $relatedProducts = Product::query()
-            ->select($this->productCardColumns())
-            ->with($this->productCardRelations())
+        $relatedProducts = $this->productCardQuery()
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
@@ -222,11 +209,7 @@ class LandingPageController extends Controller
 
     private function catalog(Request $request, string $type)
     {
-        $query = Product::query()
-            ->select($this->productCardColumns())
-            ->with($this->productCardRelations())
-            ->withAvg('reviews', 'rating')
-            ->withCount('reviews')
+        $query = $this->productCardQuery()
             ->where('is_active', true);
         $collection = $type !== 'all' ? Collection::where('slug', $type)->where('is_active', true)->first() : null;
 
@@ -372,6 +355,15 @@ class LandingPageController extends Controller
                 ->select(['id', 'product_id', 'name', 'price', 'compare_price', 'stock', 'image', 'weight', 'sku'])
                 ->orderBy('price'),
         ];
+    }
+
+    private function productCardQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return Product::query()
+            ->select($this->productCardColumns())
+            ->with($this->productCardRelations())
+            ->withAvg('reviews as avg_rating', 'rating')
+            ->withCount('reviews as reviews_count');
     }
 
     private function productSeo(Product $product, $averageRating, int $totalReviews, array $store): array

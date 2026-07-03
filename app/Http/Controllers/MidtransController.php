@@ -78,4 +78,18 @@ class MidtransController extends Controller
 
         return response()->json(['message' => 'Success']);
     }
+
+    public function finish(Request $request)
+    {
+        $orderNumber = $request->query('order_id');
+        if ($orderNumber) {
+            return redirect()->route('order.history.show', $orderNumber);
+        }
+        return redirect()->route('order.history');
+    }
+
+    public function error(Request $request)
+    {
+        return redirect()->route('order.history');
+    }
 }

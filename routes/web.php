@@ -123,6 +123,8 @@ Route::get('/artikel', [ArticleController::class, 'index'])->name('articles.inde
 Route::get('/artikel/{slug}', [ArticleController::class, 'show'])->name('articles.show');
 
 Route::post('/midtrans/callback', [App\Http\Controllers\MidtransController::class, 'callback']);
+Route::get('/payment/finish', [App\Http\Controllers\MidtransController::class, 'finish'])->name('payment.finish');
+Route::get('/payment/error', [App\Http\Controllers\MidtransController::class, 'error'])->name('payment.error');
 Route::post('/webhooks/biteship', [App\Http\Controllers\BiteshipWebhookController::class, 'handle'])->name('webhooks.biteship.web');
 Route::get('/order/{order:order_number}/payment-status', [CheckoutController::class, 'checkPaymentStatus'])->middleware('auth');
 
