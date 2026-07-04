@@ -142,6 +142,9 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
+            if ($request->status === 'cancelled' && $order->status === 'pending') {
+                $order->restoreStock();
+            }
             $order->update(['status' => $request->status]);
 
             DB::commit();

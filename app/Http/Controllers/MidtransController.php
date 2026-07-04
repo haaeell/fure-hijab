@@ -37,25 +37,10 @@ class MidtransController extends Controller
             ($transactionStatus == 'capture' && $fraudStatus == 'accept')
         ) {
             DB::transaction(function () use ($order, $payment, $request) {
+                // Stok sudah dikurangi saat checkout — cukup update status
                 if ($order->status !== 'processing') {
-                    foreach ($order->items as $item) {
-                        if ($item->variant_id) {
-                            $variant = ProductVariant::lockForUpdate()->find($item->variant_id);
-                            if ($variant) {
-                                $variant->update(['stock' => max(0, $variant->stock - $item->qty)]);
-                                // Sync stok ke parent produk
-                                Product::where('id', $variant->product_id)
-                                    ->update(['stock' => ProductVariant::where('product_id', $variant->product_id)->sum('stock')]);
-                            }
-                        } else {
-                            $product = Product::lockForUpdate()->find($item->product_id);
-                            if ($product) {
-                                $product->update(['stock' => max(0, $product->stock - $item->qty)]);
-                            }
-                        }
-                    }
+                    $order->update(['status' => 'processing']);
                 }
-                $order->update(['status' => 'processing']);
                 $payment->update([
                     'status'         => 'success',
                     'paid_at'        => now(),
@@ -63,6 +48,9 @@ class MidtransController extends Controller
                 ]);
             });
         } elseif (in_array($transactionStatus, ['cancel', 'expire', 'deny'])) {
+            if ($order->status === 'pending') {
+                $order->restoreStock();
+            }
             $order->update([
                 'status' => 'cancelled',
                 'cancellation_reason' => $transactionStatus === 'expire'

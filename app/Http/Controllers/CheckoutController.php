@@ -324,7 +324,7 @@ class CheckoutController extends Controller
         try {
         $order = DB::transaction(function () use ($request, $user, $cart, $checkoutItems, $subtotal, $grandTotal, $discountAmount, $couponId, $coupon, $orderNumber, $totalWeight) {
 
-            // Validasi stok dengan pessimistic lock — cegah race condition
+            // Validasi + reservasi stok (pessimistic lock) — cegah overselling
             foreach ($checkoutItems as $item) {
                 if ($item->variant_id) {
                     $variant = \App\Models\ProductVariant::lockForUpdate()->find($item->variant_id);
@@ -332,11 +332,15 @@ class CheckoutController extends Controller
                         $name = $item->product->name . ($variant ? " ({$variant->name})" : '');
                         throw new \Exception("Stok \"{$name}\" tidak mencukupi. Tersedia: " . ($variant->stock ?? 0));
                     }
+                    $variant->decrement('stock', $item->qty);
+                    \App\Models\Product::where('id', $variant->product_id)
+                        ->update(['stock' => \App\Models\ProductVariant::where('product_id', $variant->product_id)->sum('stock')]);
                 } else {
                     $product = \App\Models\Product::lockForUpdate()->find($item->product_id);
                     if (!$product || $product->stock < $item->qty) {
                         throw new \Exception("Stok \"{$item->product->name}\" tidak mencukupi. Tersedia: " . ($product->stock ?? 0));
                     }
+                    $product->decrement('stock', $item->qty);
                 }
             }
 

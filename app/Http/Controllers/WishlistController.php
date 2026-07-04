@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Wishlist;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class WishlistController extends Controller
@@ -34,10 +35,18 @@ class WishlistController extends Controller
             return response()->json(['in_wishlist' => false, 'message' => 'Dihapus dari wishlist']);
         }
 
-        Wishlist::create([
-            'user_id'    => auth()->id(),
-            'product_id' => $request->product_id,
-        ]);
+        try {
+            Wishlist::create([
+                'user_id'    => auth()->id(),
+                'product_id' => $request->product_id,
+            ]);
+        } catch (QueryException $e) {
+            // Sudah ada (race condition / double-click) — anggap sukses
+            if ($e->getCode() === '23000') {
+                return response()->json(['in_wishlist' => true, 'message' => 'Ditambahkan ke wishlist']);
+            }
+            throw $e;
+        }
 
         return response()->json(['in_wishlist' => true, 'message' => 'Ditambahkan ke wishlist']);
     }

@@ -102,6 +102,10 @@ class OrderHistoryController extends Controller
             ->where('order_number', $orderNumber)
             ->firstOrFail();
 
+        if ($order->status === 'pending') {
+            $order->restoreStock();
+        }
+
         $order->update([
             'status' => 'cancelled',
             'cancellation_reason' => $request->cancellation_reason,
