@@ -561,13 +561,48 @@
             data-client-key="{{ config('services.midtrans.client_key') }}"></script>
         <script type="text/javascript">
             let pollingInterval = null;
+            let paymentCompleted = false;
+
+            function reloadOrderPage() {
+                window.location.reload();
+            }
 
             async function refreshPaymentStatus() {
                 const res = await fetch('/order/{{ $order->order_number }}/payment-status');
+                if (!res.ok) {
+                    throw new Error('Payment status request failed: ' + res.status);
+                }
+
                 return await res.json();
             }
 
+            function isPaymentSuccess(data) {
+                return data && (
+                    data.status === 'success' ||
+                    data.order_status === 'processing' ||
+                    data.order_status === 'shipped' ||
+                    data.order_status === 'delivered'
+                );
+            }
+
+            function safeHideSnap() {
+                try {
+                    if (window.snap && typeof window.snap.hide === 'function') {
+                        window.snap.hide();
+                    }
+                } catch (e) {
+                    console.warn('Snap hide skipped:', e);
+                }
+            }
+
             function showPaymentSuccess() {
+                if (paymentCompleted) return;
+                paymentCompleted = true;
+                stopPolling();
+                safeHideSnap();
+
+                const reloadTimer = setTimeout(reloadOrderPage, 2600);
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Pembayaran Berhasil!',
@@ -576,7 +611,8 @@
                     timerProgressBar: true,
                     showConfirmButton: false,
                 }).then(() => {
-                    window.location.reload();
+                    clearTimeout(reloadTimer);
+                    reloadOrderPage();
                 });
             }
 
@@ -586,9 +622,7 @@
                     try {
                         const data = await refreshPaymentStatus();
 
-                        if (data.status === 'success') {
-                            stopPolling();
-                            window.snap.hide();
+                        if (isPaymentSuccess(data)) {
                             showPaymentSuccess();
                         }
                     } catch (e) {
@@ -610,8 +644,7 @@
                     onSuccess: async function (result) {
                         try {
                             const data = await refreshPaymentStatus();
-                            if (data.status === 'success') {
-                                stopPolling();
+                            if (isPaymentSuccess(data)) {
                                 showPaymentSuccess();
                                 return;
                             }
