@@ -340,7 +340,7 @@ class OrderController extends Controller
             $label['destination_name'] = $this->maskName((string) $label['destination_name']);
         }
 
-        $courierModel = Courier::where('code', $order->shipment->courier ?? '')->first();
+        $courierModel = $this->courierForShipment($order->shipment);
         $courierLabel = [
             'name' => $courierModel?->name,
             'logo' => $courierModel?->logo,
@@ -396,7 +396,7 @@ class OrderController extends Controller
 
         $shipment   = $order->shipment;
         $payload    = is_array($shipment->biteship_payload) ? $shipment->biteship_payload : [];
-        $courierObj = Courier::where('code', $shipment->courier)->first();
+        $courierObj = $this->courierForShipment($shipment);
 
         // Label options from modal form
         $opts = [
@@ -534,6 +534,52 @@ class OrderController extends Controller
             ?: Arr::get($payload, 'data.waybill_label_url')
             ?: Arr::get($payload, 'data.courier.label_url')
             ?: Arr::get($payload, 'data.courier.waybill_label_url');
+    }
+
+    private function courierForShipment(?Shipment $shipment): ?Courier
+    {
+        if (!$shipment) {
+            return null;
+        }
+
+        $payload = is_array($shipment->biteship_payload) ? $shipment->biteship_payload : [];
+        $needles = array_values(array_filter([
+            $this->normalizeCourierKey($shipment->courier),
+            $this->normalizeCourierKey(Arr::get($payload, 'courier.company')),
+            $this->normalizeCourierKey(Arr::get($payload, 'courier.company_name')),
+            $this->normalizeCourierKey(Arr::get($payload, 'courier.name')),
+        ]));
+
+        if (!$needles) {
+            return null;
+        }
+
+        return Courier::query()
+            ->get(['id', 'code', 'name', 'logo'])
+            ->first(function (Courier $courier) use ($needles) {
+                $keys = array_values(array_filter([
+                    $this->normalizeCourierKey($courier->code),
+                    $this->normalizeCourierKey($courier->name),
+                ]));
+
+                foreach ($needles as $needle) {
+                    foreach ($keys as $key) {
+                        if ($needle === $key || str_contains($needle, $key) || str_contains($key, $needle)) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            });
+    }
+
+    private function normalizeCourierKey(?string $value): string
+    {
+        $value = strtolower(trim((string) $value));
+        $value = str_replace(['j&t', 'j and t', 'j t', 'jt express', 'jtexpress'], 'jnt', $value);
+
+        return preg_replace('/[^a-z0-9]+/', '', $value) ?: '';
     }
 
     private function maskName(string $name): string
