@@ -562,26 +562,34 @@
         <script type="text/javascript">
             let pollingInterval = null;
 
+            async function refreshPaymentStatus() {
+                const res = await fetch('/order/{{ $order->order_number }}/payment-status');
+                return await res.json();
+            }
+
+            function showPaymentSuccess() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Pembayaran Berhasil!',
+                    text: 'Pesanan kamu sedang diproses.',
+                    timer: 2000,
+                    timerProgressBar: true,
+                    showConfirmButton: false,
+                }).then(() => {
+                    window.location.reload();
+                });
+            }
+
             function startPolling() {
                 if (pollingInterval) return;
                 pollingInterval = setInterval(async () => {
                     try {
-                        const res = await fetch('/order/{{ $order->order_number }}/payment-status');
-                        const data = await res.json();
+                        const data = await refreshPaymentStatus();
 
                         if (data.status === 'success') {
                             stopPolling();
                             window.snap.hide();
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Pembayaran Berhasil!',
-                                text: 'Pesanan kamu sedang diproses.',
-                                timer: 2000,
-                                timerProgressBar: true,
-                                showConfirmButton: false,
-                            }).then(() => {
-                                window.location.reload();
-                            });
+                            showPaymentSuccess();
                         }
                     } catch (e) {
                         console.error('Polling error:', e);
@@ -599,18 +607,19 @@
             function openSnapPayment() {
                 startPolling();
                 window.snap.pay('{{ $payment->snap_token }}', {
-                    onSuccess: function (result) {
-                        stopPolling();
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Pembayaran Berhasil!',
-                            text: 'Pesanan kamu sedang diproses.',
-                            timer: 2000,
-                            timerProgressBar: true,
-                            showConfirmButton: false,
-                        }).then(() => {
-                            window.location.reload();
-                        });
+                    onSuccess: async function (result) {
+                        try {
+                            const data = await refreshPaymentStatus();
+                            if (data.status === 'success') {
+                                stopPolling();
+                                showPaymentSuccess();
+                                return;
+                            }
+                        } catch (e) {
+                            console.error('Payment sync error:', e);
+                        }
+
+                        startPolling();
                     },
                     onPending: function (result) {
                         startPolling();

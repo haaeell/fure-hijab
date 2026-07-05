@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Setting;
+use App\Services\MidtransPaymentSyncService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class MidtransController extends Controller
 {
-    public function callback(Request $request)
+    public function callback(Request $request, MidtransPaymentSyncService $paymentSync)
     {
         $orderId = (string) $request->input('order_id', '');
 
@@ -63,51 +63,7 @@ class MidtransController extends Controller
             return response()->json(['message' => 'Payment not found'], 404);
         }
 
-        $transactionStatus = $request->transaction_status;
-        $fraudStatus = $request->fraud_status;
-
-        if (
-            $transactionStatus == 'settlement' ||
-            ($transactionStatus == 'capture' && $fraudStatus == 'accept')
-        ) {
-            DB::transaction(function () use ($order, $payment, $request) {
-                // Stok sudah dikurangi saat checkout — cukup update status
-                if ($order->status !== 'processing') {
-                    $order->update(['status' => 'processing']);
-                }
-                $payment->update([
-                    'status'         => 'success',
-                    'paid_at'        => now(),
-                    'payment_method' => $request->payment_type,
-                    'midtrans_transaction_id' => $request->transaction_id,
-                    'payload'        => $request->all(),
-                ]);
-            });
-        } elseif (in_array($transactionStatus, ['cancel', 'expire', 'deny'])) {
-            if ($order->status === 'pending') {
-                $order->restoreStock();
-            }
-            $order->update([
-                'status' => 'cancelled',
-                'cancellation_reason' => $transactionStatus === 'expire'
-                    ? 'Batas waktu pembayaran habis.'
-                    : 'Pembayaran dibatalkan atau ditolak.',
-                'cancelled_at' => now(),
-                'cancelled_by' => 'system',
-            ]);
-            $payment->update([
-                'status' => $transactionStatus === 'expire' ? 'expired' : 'failed',
-                'payment_method' => $request->payment_type,
-                'midtrans_transaction_id' => $request->transaction_id,
-                'payload' => $request->all(),
-            ]);
-        } else {
-            $payment->update([
-                'payment_method' => $request->payment_type,
-                'midtrans_transaction_id' => $request->transaction_id,
-                'payload' => $request->all(),
-            ]);
-        }
+        $paymentSync->applyStatus($order, $payment, $request->all());
 
         return response()->json(['message' => 'Success']);
     }
@@ -122,10 +78,15 @@ class MidtransController extends Controller
         return (string) Setting::getValue('midtrans_server_key', config('services.midtrans.server_key'));
     }
 
-    public function finish(Request $request)
+    public function finish(Request $request, MidtransPaymentSyncService $paymentSync)
     {
         $orderNumber = $request->query('order_id');
         if ($orderNumber) {
+            $order = Order::where('order_number', $orderNumber)->first();
+            if ($order) {
+                $paymentSync->sync($order);
+            }
+
             return redirect()->route('order.history.show', $orderNumber);
         }
         return redirect()->route('order.history');

@@ -9,9 +9,11 @@ use App\Models\Order;
 use App\Models\OrderAddress;
 use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\Setting;
 use App\Models\Shipment;
 use App\Models\UserAddress;
 use App\Services\BiteshipService;
+use App\Services\MidtransPaymentSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -169,7 +171,7 @@ class CheckoutController extends Controller
             'couriers' => 'required|array|min:1',
         ]);
 
-        $originAreaId = \App\Models\Setting::getValue('biteship_origin_area_id', config('services.biteship.origin_area_id'));
+        $originAreaId = Setting::getValue('biteship_origin_area_id', config('services.biteship.origin_area_id'));
         if (blank($originAreaId)) {
             return response()->json(['error' => 'Konfigurasi asal pengiriman (Origin Area ID) belum diatur. Hubungi admin.'], 503);
         }
@@ -245,10 +247,11 @@ class CheckoutController extends Controller
     }
     protected function initMidtrans()
     {
-        Config::$serverKey = config('services.midtrans.server_key');
-        Config::$isProduction = config('services.midtrans.is_production');
-        Config::$isSanitized = config('services.midtrans.is_sanitized');
-        Config::$is3ds = config('services.midtrans.is_3ds');
+        Config::$serverKey = (string) Setting::getValue('midtrans_server_key', config('services.midtrans.server_key'));
+        Config::$clientKey = (string) Setting::getValue('midtrans_client_key', config('services.midtrans.client_key'));
+        Config::$isProduction = filter_var(Setting::getValue('midtrans_is_production', config('services.midtrans.is_production')), FILTER_VALIDATE_BOOLEAN);
+        Config::$isSanitized = filter_var(Setting::getValue('midtrans_is_sanitized', config('services.midtrans.is_sanitized')), FILTER_VALIDATE_BOOLEAN);
+        Config::$is3ds = filter_var(Setting::getValue('midtrans_is_3ds', config('services.midtrans.is_3ds')), FILTER_VALIDATE_BOOLEAN);
     }
 
     public function store(Request $request)
@@ -514,7 +517,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function checkPaymentStatus(Order $order)
+    public function checkPaymentStatus(Order $order, MidtransPaymentSyncService $paymentSync)
     {
         abort_if($order->user_id !== Auth::id(), 403);
 
@@ -522,6 +525,11 @@ class CheckoutController extends Controller
         session()->save();
 
         $payment = Payment::where('order_id', $order->id)->first();
+        if ($payment && $payment->status === 'pending') {
+            $payment = $paymentSync->sync($order);
+            $order = $order->fresh();
+        }
+
         return response()->json([
             'status' => $payment?->status,
             'order_status' => $order->status,
