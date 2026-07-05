@@ -557,73 +557,31 @@
     @endif
 
     @if($order->status == 'pending' && $payment && $payment->snap_token && $remainingPaymentSeconds > 0)
-        <script src="{{ config('services.midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}"
-            data-client-key="{{ config('services.midtrans.client_key') }}"></script>
+        <script src="{{ $midtransSnapUrl }}"
+            data-client-key="{{ $midtransClientKey }}"></script>
         <script type="text/javascript">
             let pollingInterval = null;
-            let paymentCompleted = false;
-
-            function reloadOrderPage() {
-                window.location.reload();
-            }
-
-            async function refreshPaymentStatus() {
-                const res = await fetch('/order/{{ $order->order_number }}/payment-status');
-                if (!res.ok) {
-                    throw new Error('Payment status request failed: ' + res.status);
-                }
-
-                return await res.json();
-            }
-
-            function isPaymentSuccess(data) {
-                return data && (
-                    data.status === 'success' ||
-                    data.order_status === 'processing' ||
-                    data.order_status === 'shipped' ||
-                    data.order_status === 'delivered'
-                );
-            }
-
-            function safeHideSnap() {
-                try {
-                    if (window.snap && typeof window.snap.hide === 'function') {
-                        window.snap.hide();
-                    }
-                } catch (e) {
-                    console.warn('Snap hide skipped:', e);
-                }
-            }
-
-            function showPaymentSuccess() {
-                if (paymentCompleted) return;
-                paymentCompleted = true;
-                stopPolling();
-                safeHideSnap();
-
-                const reloadTimer = setTimeout(reloadOrderPage, 2600);
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Pembayaran Berhasil!',
-                    text: 'Pesanan kamu sedang diproses.',
-                    timer: 2000,
-                    timerProgressBar: true,
-                    showConfirmButton: false,
-                }).then(() => {
-                    clearTimeout(reloadTimer);
-                    reloadOrderPage();
-                });
-            }
 
             function startPolling() {
                 if (pollingInterval) return;
                 pollingInterval = setInterval(async () => {
                     try {
-                        const data = await refreshPaymentStatus();
+                        const res = await fetch('/order/{{ $order->order_number }}/payment-status');
+                        const data = await res.json();
 
-                        if (isPaymentSuccess(data)) {
-                            showPaymentSuccess();
+                        if (data.status === 'success') {
+                            stopPolling();
+                            window.snap.hide();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Pembayaran Berhasil!',
+                                text: 'Pesanan kamu sedang diproses.',
+                                timer: 2000,
+                                timerProgressBar: true,
+                                showConfirmButton: false,
+                            }).then(() => {
+                                window.location.reload();
+                            });
                         }
                     } catch (e) {
                         console.error('Polling error:', e);
@@ -641,18 +599,18 @@
             function openSnapPayment() {
                 startPolling();
                 window.snap.pay('{{ $payment->snap_token }}', {
-                    onSuccess: async function (result) {
-                        try {
-                            const data = await refreshPaymentStatus();
-                            if (isPaymentSuccess(data)) {
-                                showPaymentSuccess();
-                                return;
-                            }
-                        } catch (e) {
-                            console.error('Payment sync error:', e);
-                        }
-
-                        startPolling();
+                    onSuccess: function (result) {
+                        stopPolling();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pembayaran Berhasil!',
+                            text: 'Pesanan kamu sedang diproses.',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            showConfirmButton: false,
+                        }).then(() => {
+                            window.location.reload();
+                        });
                     },
                     onPending: function (result) {
                         startPolling();

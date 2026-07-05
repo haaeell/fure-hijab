@@ -13,7 +13,6 @@ use App\Models\Setting;
 use App\Models\Shipment;
 use App\Models\UserAddress;
 use App\Services\BiteshipService;
-use App\Services\MidtransPaymentSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -517,7 +516,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function checkPaymentStatus(Order $order, MidtransPaymentSyncService $paymentSync)
+    public function checkPaymentStatus(Order $order)
     {
         abort_if($order->user_id !== Auth::id(), 403);
 
@@ -525,11 +524,6 @@ class CheckoutController extends Controller
         session()->save();
 
         $payment = Payment::where('order_id', $order->id)->first();
-        if ($payment && $payment->status === 'pending') {
-            $payment = $paymentSync->sync($order);
-            $order = $order->fresh();
-        }
-
         return response()->json([
             'status' => $payment?->status,
             'order_status' => $order->status,

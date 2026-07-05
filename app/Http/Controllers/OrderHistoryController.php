@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Review;
+use App\Models\Setting;
 use App\Services\ShipmentTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,8 +45,22 @@ class OrderHistoryController extends Controller
             ->firstOrFail();
 
         $tracking = $order->shipment?->tracking_history;
+        $midtransIsProduction = filter_var(
+            Setting::getValue('midtrans_is_production', false),
+            FILTER_VALIDATE_BOOLEAN
+        );
+        $midtransClientKey = Setting::getValue('midtrans_client_key', '');
+        $midtransSnapUrl = $midtransIsProduction
+            ? 'https://app.midtrans.com/snap/snap.js'
+            : 'https://app.sandbox.midtrans.com/snap/snap.js';
 
-        return view('user.order.show', compact('order', 'tracking'));
+        return view('user.order.show', compact(
+            'order',
+            'tracking',
+            'midtransIsProduction',
+            'midtransClientKey',
+            'midtransSnapUrl'
+        ));
     }
 
     public function trackShipment(string $orderNumber, ShipmentTrackingService $trackingService)
