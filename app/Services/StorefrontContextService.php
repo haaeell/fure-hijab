@@ -25,6 +25,11 @@ class StorefrontContextService
             'storeInstagram' => $store['instagram'],
             'storeTiktok' => $store['tiktok'],
             'storeWhatsapp' => $store['whatsapp'],
+            'storeBankName' => $store['bank_name'],
+            'storeBankAccountName' => $store['bank_account_name'],
+            'storeBankAccountNumber' => $store['bank_account_number'],
+            'storeBankBranch' => $store['bank_branch'],
+            'paymentMode' => $store['payment_mode'],
             'navCollections' => Collection::where('is_active', true)
                 ->where('show_in_nav', true)
                 ->orderBy('sort_order')
@@ -54,6 +59,11 @@ class StorefrontContextService
             'instagram' => Setting::getValue('store_instagram'),
             'tiktok' => Setting::getValue('store_tiktok'),
             'whatsapp' => Setting::getValue('store_whatsapp'),
+            'bank_name' => Setting::getValue('bank_name'),
+            'bank_account_name' => Setting::getValue('bank_account_name'),
+            'bank_account_number' => Setting::getValue('bank_account_number'),
+            'bank_branch' => Setting::getValue('bank_branch'),
+            'payment_mode' => Setting::getValue('payment_mode', 'midtrans'),
             'origin_phone' => Setting::getValue('biteship_origin_contact_phone', config('services.biteship.origin_contact_phone', '081297536686')),
         ];
     }

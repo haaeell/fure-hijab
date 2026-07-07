@@ -26,6 +26,56 @@
 
             <div class="bg-white rounded-[32px] shadow-sm border border-gray-50 p-8">
                 <div class="flex items-center gap-4 mb-8">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-brand-dark">Mode Pembayaran</h3>
+                        <p class="text-xs text-gray-400 font-medium">Pilih apakah checkout memakai Midtrans otomatis atau transfer manual.</p>
+                    </div>
+                </div>
+
+                @php
+                    $paymentMode = old('payment_mode', $settings['payment_mode'] ?? 'midtrans');
+                @endphp
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="payment_mode" value="midtrans" class="sr-only peer" {{ $paymentMode === 'midtrans' ? 'checked' : '' }}>
+                        <div class="rounded-[24px] border-2 border-gray-100 p-5 transition-all peer-checked:border-brand-primary peer-checked:bg-brand-primary/5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-credit-card"></i>
+                                </div>
+                                <div>
+                                    <p class="font-extrabold text-brand-dark">Midtrans</p>
+                                    <p class="text-xs text-gray-400">Pembayaran otomatis via Snap.</p>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 leading-relaxed">Customer langsung bayar lewat gateway Midtrans dan status akan update otomatis dari callback.</p>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer">
+                        <input type="radio" name="payment_mode" value="manual" class="sr-only peer" {{ $paymentMode === 'manual' ? 'checked' : '' }}>
+                        <div class="rounded-[24px] border-2 border-gray-100 p-5 transition-all peer-checked:border-brand-primary peer-checked:bg-brand-primary/5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-building-columns"></i>
+                                </div>
+                                <div>
+                                    <p class="font-extrabold text-brand-dark">Transfer Manual</p>
+                                    <p class="text-xs text-gray-400">Customer upload bukti transfer.</p>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 leading-relaxed">Rekening toko diambil dari tab Profil Toko. Admin akan cek bukti transfer lalu menyetujui pesanan.</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[32px] shadow-sm border border-gray-50 p-8">
+                <div class="flex items-center gap-4 mb-8">
                     <div class="w-10 h-10 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center">
                         <i class="fa-solid fa-store"></i>
                     </div>

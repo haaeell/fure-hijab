@@ -78,6 +78,7 @@ class MidtransController extends Controller
                 $payment->update([
                     'status' => 'success',
                     'paid_at' => now(),
+                    'payment_channel' => 'midtrans',
                     'payment_method' => $request->payment_type,
                     'midtrans_transaction_id' => $request->transaction_id,
                     'payload' => $request->all(),
@@ -97,12 +98,14 @@ class MidtransController extends Controller
             ]);
             $payment->update([
                 'status' => $transactionStatus === 'expire' ? 'expired' : 'failed',
+                'payment_channel' => 'midtrans',
                 'payment_method' => $request->payment_type,
                 'midtrans_transaction_id' => $request->transaction_id,
                 'payload' => $request->all(),
             ]);
         } else {
             $payment->update([
+                'payment_channel' => 'midtrans',
                 'payment_method' => $request->payment_type,
                 'midtrans_transaction_id' => $request->transaction_id,
                 'payload' => $request->all(),

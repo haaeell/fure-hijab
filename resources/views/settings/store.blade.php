@@ -202,6 +202,46 @@
             </div>
         </div>
 
+        {{-- ── Rekening Transfer ───────────────────────────────────────── --}}
+        <div class="bg-white rounded-[32px] shadow-sm border border-gray-50 p-8">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-building-columns text-base"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-brand-dark">Rekening Transfer</h3>
+                    <p class="text-xs text-gray-400 font-medium mt-0.5">Dipakai saat pembayaran manual dan ditampilkan ke customer.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Bank</label>
+                    <input type="text" name="bank_name" value="{{ old('bank_name', $settings['bank_name']) }}"
+                        placeholder="BCA / Mandiri / BRI"
+                        class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Pemilik Rekening</label>
+                    <input type="text" name="bank_account_name" value="{{ old('bank_account_name', $settings['bank_account_name']) }}"
+                        placeholder="Nama sesuai rekening"
+                        class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nomor Rekening</label>
+                    <input type="text" name="bank_account_number" value="{{ old('bank_account_number', $settings['bank_account_number']) }}"
+                        placeholder="1234567890"
+                        class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cabang / Catatan</label>
+                    <input type="text" name="bank_branch" value="{{ old('bank_branch', $settings['bank_branch']) }}"
+                        placeholder="Opsional"
+                        class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                </div>
+            </div>
+        </div>
+
         {{-- ── Tombol Simpan ────────────────────────────────────────────── --}}
         <div class="flex items-center justify-between rounded-[24px] bg-white p-5 shadow-sm border border-gray-50">
             <p class="text-xs text-gray-400 font-medium">Perubahan langsung diterapkan ke seluruh halaman toko.</p>

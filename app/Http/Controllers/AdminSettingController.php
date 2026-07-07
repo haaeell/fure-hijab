@@ -34,6 +34,10 @@ class AdminSettingController extends Controller
                 'store_instagram' => Setting::getValue('store_instagram'),
                 'store_tiktok'    => Setting::getValue('store_tiktok'),
                 'store_logo'      => Setting::getValue('store_logo'),
+                'bank_name'       => Setting::getValue('bank_name'),
+                'bank_account_name' => Setting::getValue('bank_account_name'),
+                'bank_account_number' => Setting::getValue('bank_account_number'),
+                'bank_branch'     => Setting::getValue('bank_branch'),
             ],
         ]);
     }
@@ -49,6 +53,10 @@ class AdminSettingController extends Controller
             'store_instagram' => ['nullable', 'string', 'max:255'],
             'store_tiktok'    => ['nullable', 'string', 'max:255'],
             'store_logo'      => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:2048'],
+            'bank_name'       => ['nullable', 'string', 'max:120'],
+            'bank_account_name' => ['nullable', 'string', 'max:120'],
+            'bank_account_number' => ['nullable', 'string', 'max:50'],
+            'bank_branch'     => ['nullable', 'string', 'max:120'],
         ]);
 
         if ($request->hasFile('store_logo')) {
@@ -94,6 +102,7 @@ class AdminSettingController extends Controller
             'midtrans_is_production' => ['nullable', 'boolean'],
             'midtrans_is_sanitized' => ['nullable', 'boolean'],
             'midtrans_is_3ds' => ['nullable', 'boolean'],
+            'payment_mode' => ['required', 'in:midtrans,manual'],
             'mail_mailer' => ['required', 'in:smtp,log,array'],
             'mail_scheme' => ['required_if:mail_mailer,smtp', 'nullable', 'in:smtp,smtps'],
             'mail_host' => ['required_if:mail_mailer,smtp', 'nullable', 'string', 'max:255'],
@@ -175,6 +184,7 @@ class AdminSettingController extends Controller
             'store_instagram' => Setting::getValue('store_instagram'),
             'store_tiktok' => Setting::getValue('store_tiktok'),
             'store_logo' => Setting::getValue('store_logo'),
+            'payment_mode' => Setting::getValue('payment_mode', 'midtrans'),
             'biteship_webhook_secret' => Setting::getValue('biteship_webhook_secret', config('services.biteship.webhook_secret')),
             'biteship_origin_area_id' => Setting::getValue('biteship_origin_area_id', config('services.biteship.origin_area_id')),
             'biteship_origin_area_label' => Setting::getValue('biteship_origin_area_label'),

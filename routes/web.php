@@ -216,6 +216,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/notifications/poll', 'pollNotifications')->name('orders.notifications.poll');
             Route::patch('/{id}/status', 'updateStatus')->name('orders.status');
             Route::patch('/{id}/resi', 'updateResi')->name('orders.resi');
+            Route::post('/{id}/payment-review', 'reviewPayment')->name('orders.payment-review');
             Route::post('/{id}/biteship-waybill', 'generateBiteshipWaybill')->name('orders.biteship-waybill');
         });
 
@@ -306,6 +307,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', 'index')->name('order.history');
             Route::get('/{orderNumber}', 'show')->name('order.history.show');
             Route::post('/{orderNumber}/track', 'trackShipment')->name('order.history.track');
+            Route::post('/{orderNumber}/payment-proof', 'uploadPaymentProof')->name('order.history.payment-proof');
             Route::patch('/{orderNumber}/complete', 'markAsCompleted')->name('order.history.complete');
             Route::patch('/{orderNumber}/cancel', 'cancel')->name('order.history.cancel');
         });

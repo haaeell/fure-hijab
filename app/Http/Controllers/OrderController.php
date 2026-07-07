@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 
 class OrderController extends Controller
@@ -127,6 +128,55 @@ class OrderController extends Controller
         ])->findOrFail($id);
 
         return view('orders.show', compact('order'));
+    }
+
+    public function reviewPayment(Request $request, $id)
+    {
+        $order = Order::with('payment')->findOrFail($id);
+        $request->validate([
+            'action' => ['required', 'in:approve,reject'],
+            'note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $payment = $order->payment;
+
+        if (!$payment || $payment->payment_channel !== 'manual') {
+            return back()->with('error', 'Pesanan ini bukan pembayaran manual.');
+        }
+
+        if ($request->action === 'approve') {
+            DB::transaction(function () use ($order, $payment, $request) {
+                $payment->update([
+                    'status' => 'success',
+                    'payment_method' => 'transfer_manual',
+                    'paid_at' => now(),
+                    'reviewed_at' => now(),
+                    'reviewed_by' => auth()->id(),
+                    'review_note' => $request->note,
+                ]);
+
+                if ($order->status === 'pending') {
+                    $order->update(['status' => 'processing']);
+                }
+            });
+
+            return back()->with('success', 'Pembayaran manual berhasil disetujui.');
+        }
+
+        if ($payment->proof_image) {
+            Storage::disk('public')->delete($payment->proof_image);
+        }
+
+        $payment->update([
+            'status' => 'pending',
+            'proof_image' => null,
+            'proof_uploaded_at' => null,
+            'reviewed_at' => now(),
+            'reviewed_by' => auth()->id(),
+            'review_note' => $request->note,
+        ]);
+
+        return back()->with('success', 'Bukti transfer ditolak dan status pembayaran diperbarui.');
     }
 
     // ─── Update Status ────────────────────────────────────────────────────────
@@ -645,16 +695,23 @@ class OrderController extends Controller
         $class = match ($payment->status) {
             'success' => 'bg-green-50 text-green-600',
             'pending' => 'bg-amber-50 text-amber-600',
+            'under_review' => 'bg-sky-50 text-sky-600',
             'failed' => 'bg-red-50 text-red-600',
             'expired' => 'bg-gray-100 text-gray-500',
             default => 'bg-purple-50 text-purple-600',
         };
 
+        $label = $payment->status === 'under_review' ? 'Menunggu Review' : ucfirst($payment->status);
+
         $html = '<span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider ' . $class . '">'
-            . e(ucfirst($payment->status)) . '</span>';
+            . e($label) . '</span>';
 
         if ($payment->payment_method) {
             $html .= '<div class="text-[10px] text-gray-400 mt-1">' . e(strtoupper($payment->payment_method)) . '</div>';
+        }
+
+        if ($payment->payment_channel) {
+            $html .= '<div class="text-[10px] text-gray-300 mt-0.5 uppercase tracking-wider">' . e($payment->payment_channel) . '</div>';
         }
 
         return $html;

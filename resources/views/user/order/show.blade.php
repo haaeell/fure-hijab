@@ -3,6 +3,21 @@
 @section('title', 'Detail Pesanan #' . $order->order_number)
 
 @section('content')
+    @push('styles')
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+            .order-address-map {
+                height: 220px;
+            }
+
+            @media (max-width: 640px) {
+                .order-address-map {
+                    height: 200px;
+                }
+            }
+        </style>
+    @endpush
+
     <section class="mobile-action-safe-space px-4 py-6 bg-[#f8f3ee] min-h-screen sm:px-6 sm:py-12 lg:px-8">
         <div class="max-w-6xl mx-auto">
             @php
@@ -19,6 +34,7 @@
                 $payment = $order->payment;
                 $paymentExpiresAt = $payment?->expired_at ?: $order->created_at->copy()->addDay();
                 $remainingPaymentSeconds = $order->status === 'pending' ? max(0, now()->diffInSeconds($paymentExpiresAt, false)) : 0;
+                $isManualPayment = $payment?->payment_channel === 'manual';
             @endphp
 
             <div class="mb-6 flex flex-col gap-4 md:mb-10 md:flex-row md:items-center md:justify-between">
@@ -47,6 +63,201 @@
                     </div>
                 </div>
             </div>
+
+            @if($order->status === 'pending' && $isManualPayment)
+                <div id="manual-payment-banner" class="mb-8 overflow-hidden rounded-[32px] border border-sky-200 bg-white shadow-sm">
+                    <div class="h-2 bg-gradient-to-r from-sky-500 via-cyan-400 to-brand-primary"></div>
+
+                    <div class="p-5 sm:p-6 lg:p-7">
+                        <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                            <div class="flex min-w-0 items-start gap-4">
+                                <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-3xl bg-sky-600 text-white shadow-lg shadow-sky-200">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" class="h-7 w-7 fill-current">
+                                        <path d="M12 3 2.5 8v2h19v-2L12 3Zm-7 9v8H3v2h18v-2h-2v-8h-2v8h-3v-8h-2v8h-2v-8H9v8H6v-8H5Z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <h2 class="mt-1 text-xl font-black tracking-tight text-brand-dark sm:text-2xl">Transfer sesuai nominal, lalu upload bukti</h2>
+                                    <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+                                        Setelah transfer selesai, unggah bukti pembayaran. Admin akan memeriksa nominal dan status pesananmu akan diperbarui setelah verifikasi.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2">
+                                <span class="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-sky-700">
+                                    <i class="fa-solid fa-circle-check text-[9px]"></i>
+                                    Wajib upload bukti
+                                </span>
+                                <span class="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-amber-700">
+                                    <i class="fa-solid fa-receipt text-[9px]"></i>
+                                    Transfer sesuai total
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1.12fr_0.88fr]">
+                            <div class="space-y-4">
+                                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div>
+                                            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">Total Transfer</p>
+                                            <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                                <p class="text-3xl font-black tracking-tight text-brand-dark" id="bank-transfer-amount">
+                                                    Rp{{ number_format($order->total, 0, ',', '.') }}
+                                                </p>
+                                                <button type="button" id="copy-transfer-amount"
+                                                    data-copy-value="{{ (int) $order->total }}"
+                                                    class="inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-amber-700 transition hover:bg-amber-100">
+                                                    <i class="fa-solid fa-copy"></i>
+                                                    Copy Nominal
+                                                </button>
+                                            </div>
+                                            <p class="mt-2 text-xs font-medium text-slate-500">
+                                                Mohon transfer dengan nominal yang sama persis agar verifikasi lebih cepat.
+                                            </p>
+                                        </div>
+                                        <div class="rounded-2xl bg-white px-4 py-3 text-right shadow-sm border border-slate-100">
+                                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</p>
+                                            <p class="mt-1 text-sm font-black text-sky-600">Menunggu bukti</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="rounded-3xl border border-sky-100 bg-white p-4 sm:p-5 shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true" class="h-6 w-6 fill-current">
+                                                <path d="M4 10h16v2H4v-2Zm1-3 7-4 7 4v2H5V7Zm0 10h14v2H5v-2Zm2-6h2v6H7v-6Zm4 0h2v6h-2v-6Zm4 0h2v6h-2v-6Z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">Rekening Transfer</p>
+                                            <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                <p class="text-sm font-bold text-brand-dark">
+                                                    {{ $bankInfo['name'] ?: '-' }}
+                                                </p>
+                                                <span class="text-slate-300">•</span>
+                                                <p class="text-sm font-bold text-brand-dark">
+                                                    {{ $bankInfo['account_name'] ?: '-' }}
+                                                </p>
+                                            </div>
+                                            <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                                <p class="text-lg font-black tracking-wide text-sky-600" id="bank-account-number">
+                                                    {{ $bankInfo['account_number'] ?: '-' }}
+                                                </p>
+                                                <button type="button" id="copy-bank-account"
+                                                    class="inline-flex items-center justify-center gap-2 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-sky-700 transition hover:bg-sky-100">
+                                                    <i class="fa-solid fa-copy"></i>
+                                                    Copy Rekening
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p id="copy-bank-feedback" class="mt-3 hidden text-[11px] font-semibold text-emerald-600">
+                                        Nomor rekening berhasil disalin.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="rounded-3xl border border-sky-100 bg-white p-4 sm:p-5 shadow-sm">
+                                @if($payment?->proof_image)
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p class="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">Bukti Transfer</p>
+                                                <p class="mt-1 text-sm font-bold text-slate-700">
+                                                    {{ $payment->status === 'under_review' ? 'Sedang diperiksa admin' : ucfirst($payment->status) }}
+                                                </p>
+                                            </div>
+                                            <span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-600">Terkirim</span>
+                                        </div>
+                                        <div class="overflow-hidden rounded-3xl border border-slate-100 bg-slate-50">
+                                            <img src="{{ asset('storage/' . $payment->proof_image) }}" alt="Bukti transfer"
+                                                class="h-56 w-full object-cover">
+                                        </div>
+                                        @if($payment->proof_uploaded_at)
+                                            <p class="text-[11px] text-slate-500">
+                                                Diupload {{ $payment->proof_uploaded_at->format('d M Y, H:i') }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                @else
+                                    <form action="{{ route('order.history.payment-proof', $order->order_number) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                                        @csrf
+                                        @php
+                                            $isRejectedReview = $payment->reviewed_at && $payment->status === 'pending' && !$payment->proof_image;
+                                        @endphp
+
+                                        @if($isRejectedReview)
+                                            <div
+                                                class="rounded-[28px] p-4 text-white shadow-lg"
+                                                style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); border: 1px solid #fecaca; box-shadow: 0 18px 40px rgba(239, 68, 68, 0.28);">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl text-white"
+                                                        style="background: rgba(255,255,255,0.16);">
+                                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <p class="text-[10px] font-black uppercase tracking-[0.22em]" style="color: #fff1f2;">Bukti Ditolak</p>
+                                                        <p class="mt-1 text-sm font-bold text-white">
+                                                            Bukti transfer sebelumnya ditolak admin. Silakan upload ulang setelah memperbaiki data transfer.
+                                                        </p>
+                                                        @if($payment->review_note)
+                                                            <div class="mt-3 rounded-2xl px-3 py-2 text-xs leading-relaxed text-white"
+                                                                style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);">
+                                                                {{ $payment->review_note }}
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        <div>
+                                            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">Upload Bukti Transfer</p>
+                                            <p class="mt-1 text-sm text-slate-600">
+                                                Format JPG, PNG, atau WEBP. Pastikan nominal dan tanggal transfer terlihat jelas.
+                                            </p>
+                                        </div>
+
+                                        <input type="file" name="proof_image" id="proof_image_input" accept="image/jpeg,image/png,image/jpg,image/webp" class="hidden">
+
+                                        <div id="proof-dropzone" class="group rounded-3xl border-2 border-dashed border-sky-200 bg-sky-50/40 p-4 transition-all duration-200 hover:border-sky-400 hover:bg-sky-50 cursor-pointer">
+                                            <div class="flex items-start gap-4">
+                                                <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white text-sky-600 shadow-sm border border-sky-100">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true" class="h-6 w-6 fill-current">
+                                                        <path d="M5 20h14a3 3 0 0 0 3-3v-5h-2v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5H2v5a3 3 0 0 0 3 3Zm6-4h2V8.83l2.59 2.58L17 10l-5-5-5 5 1.41 1.41L11 8.83V16Z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <p class="text-sm font-black text-brand-dark">Seret file ke sini</p>
+                                                    <p class="mt-1 text-xs leading-relaxed text-slate-500">
+                                                        Atau klik tombol di bawah untuk memilih file dari perangkatmu.
+                                                    </p>
+                                                    <p id="proof-file-name" class="mt-3 hidden text-xs font-semibold text-sky-700"></p>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4 flex flex-wrap items-center gap-3">
+                                               <button type="button" id="proof-pick-button"
+                                                    class="inline-flex items-center gap-2 rounded-2xl !bg-blue-600 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest !text-white shadow-sm transition hover:!bg-blue-700">
+                                                    <i class="fa-solid fa-file-arrow-up"></i>
+                                                    Pilih File
+                                                </button>
+                                                <span class="text-[11px] font-medium text-slate-500">Maks. 4 MB</span>
+                                            </div>
+                                        </div>
+                                        <button type="submit"
+                                            class="w-full rounded-2xl bg-brand-primary px-4 py-3 text-sm font-black text-white shadow-lg shadow-brand-primary/15 transition hover:bg-brand-dark">
+                                            Upload Bukti Transfer
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 space-y-8">
@@ -364,7 +575,7 @@
                                     </p>
                                 </div>
 
-                                @if($remainingPaymentSeconds > 0)
+                                @if($remainingPaymentSeconds > 0 && $payment && $payment->snap_token)
                                     <button id="pay-button"
                                         class="desktop-only-action w-full py-4 bg-brand-primary text-white font-bold rounded-2xl shadow-lg hover:shadow-brand-primary/30 transition-all mt-4 flex items-center justify-center gap-2">
                                         BAYAR SEKARANG
@@ -416,6 +627,10 @@
                             <i class="fa-solid fa-location-dot text-brand-primary"></i> Alamat Pengiriman
                         </h4>
                         @if($order->address)
+                        @php
+                            $customerLat = $order->address->latitude ?? null;
+                            $customerLng = $order->address->longitude ?? null;
+                        @endphp
                         <div class="text-sm space-y-1">
                             <p class="font-black text-brand-dark">{{ $order->address->receiver_name }}</p>
                             <p class="text-gray-500">{{ $order->address->phone }}</p>
@@ -424,6 +639,33 @@
                                 <p>{{ collect([$order->address->subdistrict, $order->address->district, $order->address->city])->filter()->implode(', ') }}</p>
                                 <p>{{ $order->address->province }}{{ $order->address->postal_code ? ' ' . $order->address->postal_code : '' }}</p>
                             </div>
+                        </div>
+                        <div class="mt-4 border-t border-gray-100 pt-4">
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 tracking-widest">MAP LOKASI</p>
+                                    <p class="mt-1 text-xs text-gray-500">Akan tampil kalau koordinat alamat tersimpan.</p>
+                                </div>
+                                @if($customerLat && $customerLng)
+                                    <a href="https://www.google.com/maps?q={{ $customerLat }},{{ $customerLng }}" target="_blank" rel="noopener noreferrer"
+                                        class="text-[10px] font-black uppercase tracking-widest text-brand-primary hover:underline">
+                                        Buka Maps
+                                    </a>
+                                @endif
+                            </div>
+                            @if($customerLat && $customerLng)
+                                <div id="customer-address-map"
+                                    class="order-address-map overflow-hidden rounded-2xl border border-gray-100 bg-gray-50"
+                                    data-lat="{{ $customerLat }}"
+                                    data-lng="{{ $customerLng }}"
+                                    data-label="{{ $order->address->receiver_name }}"
+                                    data-address="{{ $order->address->address }}">
+                                </div>
+                            @else
+                                <div class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5 text-xs text-gray-400">
+                                    Koordinat alamat belum tersedia, jadi map belum bisa ditampilkan.
+                                </div>
+                            @endif
                         </div>
                         @else
                         <p class="text-xs text-gray-400">Alamat tidak tersedia.</p>
@@ -452,7 +694,14 @@
         </div>
     </section>
 
-    @if($order->status == 'pending' && $remainingPaymentSeconds > 0)
+    @if($order->status == 'pending' && $payment?->payment_channel === 'manual')
+        <x-user.components.mobile-bottom-action-bar>
+            <a href="#manual-payment-banner"
+                class="flex min-h-[54px] w-full items-center justify-center gap-3 rounded-2xl bg-brand-primary px-5 text-sm font-black uppercase text-white shadow-lg shadow-brand-primary/20 transition active:scale-95">
+                Upload Bukti Transfer
+            </a>
+        </x-user.components.mobile-bottom-action-bar>
+    @elseif($order->status == 'pending' && $remainingPaymentSeconds > 0)
         <x-user.components.mobile-bottom-action-bar>
             <div class="flex items-center justify-between gap-4">
                 <div class="min-w-0">
@@ -553,6 +802,171 @@
                 $('#cancelOrderModal').addClass('hidden').removeClass('flex');
                 $('body').removeClass('overflow-hidden');
             }
+        </script>
+    @endif
+
+    @if($order->status === 'pending' && $payment?->payment_channel === 'manual')
+        <script>
+            (function () {
+                const input = document.getElementById('proof_image_input');
+                const dropzone = document.getElementById('proof-dropzone');
+                const pickButton = document.getElementById('proof-pick-button');
+                const fileName = document.getElementById('proof-file-name');
+                const copyAmountButton = document.getElementById('copy-transfer-amount');
+                const amountDisplay = document.getElementById('bank-transfer-amount');
+                const copyButton = document.getElementById('copy-bank-account');
+                const bankAccount = document.getElementById('bank-account-number');
+                const copyFeedback = document.getElementById('copy-bank-feedback');
+                const copyAmountFeedbackId = 'copy-transfer-feedback';
+
+                if (input && dropzone && pickButton && fileName) {
+                    const setFileName = (file) => {
+                        if (!file) {
+                            fileName.classList.add('hidden');
+                            fileName.textContent = '';
+                            return;
+                        }
+
+                        fileName.textContent = file.name;
+                        fileName.classList.remove('hidden');
+                    };
+
+                    const highlight = (active) => {
+                        dropzone.classList.toggle('border-sky-400', active);
+                        dropzone.classList.toggle('bg-sky-50', active);
+                        dropzone.classList.toggle('bg-sky-50/40', !active);
+                    };
+
+                    pickButton.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        input.click();
+                    });
+
+                    dropzone.addEventListener('click', function (event) {
+                        if (event.target.closest('button')) return;
+                        input.click();
+                    });
+
+                    ['dragenter', 'dragover'].forEach((eventName) => {
+                        dropzone.addEventListener(eventName, function (event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            highlight(true);
+                        });
+                    });
+
+                    ['dragleave', 'drop'].forEach((eventName) => {
+                        dropzone.addEventListener(eventName, function (event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            highlight(false);
+                        });
+                    });
+
+                    dropzone.addEventListener('drop', function (event) {
+                        const droppedFile = event.dataTransfer?.files?.[0];
+                        if (droppedFile) {
+                            input.files = event.dataTransfer.files;
+                            setFileName(droppedFile);
+                        }
+                    });
+
+                    input.addEventListener('change', function () {
+                        setFileName(this.files?.[0] || null);
+                    });
+                }
+
+                if (copyAmountButton && amountDisplay) {
+                    const amountFeedback = document.createElement('p');
+                    amountFeedback.id = copyAmountFeedbackId;
+                    amountFeedback.className = 'mt-2 hidden text-[11px] font-semibold text-emerald-600';
+                    amountFeedback.textContent = 'Nominal transfer berhasil disalin.';
+                    amountDisplay.parentElement?.parentElement?.insertBefore(amountFeedback, amountDisplay.parentElement?.nextSibling || null);
+
+                    copyAmountButton.addEventListener('click', async function () {
+                        const value = String(copyAmountButton.dataset.copyValue || '').trim();
+                        if (!value) return;
+
+                        try {
+                            await navigator.clipboard.writeText(value);
+                            amountFeedback.classList.remove('hidden');
+                            clearTimeout(window.__copyAmountTimer);
+                            window.__copyAmountTimer = setTimeout(() => {
+                                amountFeedback.classList.add('hidden');
+                            }, 1800);
+                        } catch (error) {
+                            console.error('Copy nominal gagal:', error);
+                        }
+                    });
+                }
+
+                if (copyButton && bankAccount) {
+                    copyButton.addEventListener('click', async function () {
+                        const value = (bankAccount.textContent || '').trim();
+                        if (!value || value === '-') return;
+
+                        try {
+                            await navigator.clipboard.writeText(value);
+                            if (copyFeedback) {
+                                copyFeedback.classList.remove('hidden');
+                                clearTimeout(window.__copyBankTimer);
+                                window.__copyBankTimer = setTimeout(() => {
+                                    copyFeedback.classList.add('hidden');
+                                }, 1800);
+                            }
+                        } catch (error) {
+                            console.error('Copy rekening gagal:', error);
+                        }
+                    });
+                }
+            })();
+        </script>
+    @endif
+
+    @if($order->address && $order->address->latitude && $order->address->longitude)
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script>
+            (function () {
+                const mapEl = document.getElementById('customer-address-map');
+                if (!mapEl || typeof L === 'undefined') return;
+
+                const escapeHtml = (value) => String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+
+                const lat = parseFloat(mapEl.dataset.lat);
+                const lng = parseFloat(mapEl.dataset.lng);
+                if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+                const label = mapEl.dataset.label || 'Alamat Customer';
+                const address = mapEl.dataset.address || '';
+
+                const map = L.map('customer-address-map', {
+                    zoomControl: true,
+                    scrollWheelZoom: false,
+                }).setView([lat, lng], 15);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors',
+                }).addTo(map);
+
+                const popupHtml = `
+                    <div style="min-width:180px">
+                        <div style="font-weight:700;margin-bottom:4px;">${escapeHtml(label)}</div>
+                        <div style="font-size:12px;line-height:1.4;color:#475569;">${escapeHtml(address)}</div>
+                    </div>
+                `;
+
+                L.marker([lat, lng]).addTo(map).bindPopup(popupHtml).openPopup();
+
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 250);
+            })();
         </script>
     @endif
 

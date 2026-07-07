@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Services\ShipmentTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class OrderHistoryController extends Controller
 {
@@ -53,14 +54,60 @@ class OrderHistoryController extends Controller
         $midtransSnapUrl = $midtransIsProduction
             ? 'https://app.midtrans.com/snap/snap.js'
             : 'https://app.sandbox.midtrans.com/snap/snap.js';
+        $paymentMode = Setting::getValue('payment_mode', 'midtrans');
+        $bankInfo = [
+            'name' => Setting::getValue('bank_name'),
+            'account_name' => Setting::getValue('bank_account_name'),
+            'account_number' => Setting::getValue('bank_account_number'),
+            'branch' => Setting::getValue('bank_branch'),
+        ];
 
         return view('user.order.show', compact(
             'order',
             'tracking',
             'midtransIsProduction',
             'midtransClientKey',
-            'midtransSnapUrl'
+            'midtransSnapUrl',
+            'paymentMode',
+            'bankInfo'
         ));
+    }
+
+    public function uploadPaymentProof(Request $request, string $orderNumber)
+    {
+        $request->validate([
+            'proof_image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+        ]);
+
+        $order = Order::with('payment')
+            ->where('user_id', Auth::id())
+            ->where('order_number', $orderNumber)
+            ->firstOrFail();
+
+        $payment = $order->payment;
+
+        if (!$payment || $payment->payment_channel !== 'manual') {
+            return back()->with('error', 'Upload bukti transfer hanya tersedia untuk pembayaran manual.');
+        }
+
+        if (in_array($payment->status, ['success', 'expired'], true)) {
+            return back()->with('error', 'Pembayaran ini sudah tidak bisa diubah lagi.');
+        }
+
+        if ($payment->proof_image) {
+            Storage::disk('public')->delete($payment->proof_image);
+        }
+
+        $path = $request->file('proof_image')->store('payment-proofs', 'public');
+
+        $payment->update([
+            'proof_image' => $path,
+            'proof_uploaded_at' => now(),
+            'status' => 'under_review',
+            'review_note' => null,
+        ]);
+
+        return back()->with('success', 'Bukti transfer berhasil diupload. Menunggu konfirmasi admin.');
     }
 
     public function trackShipment(string $orderNumber, ShipmentTrackingService $trackingService)
@@ -180,6 +227,11 @@ class OrderHistoryController extends Controller
             ->get()
             ->each(function (Order $order) {
                 $expiresAt = $order->payment?->expired_at ?: $order->created_at->copy()->addDay();
+                $payment = $order->payment;
+
+                if ($payment?->payment_channel === 'manual' && in_array($payment->status, ['under_review', 'success'], true)) {
+                    return;
+                }
 
                 if ($expiresAt->isFuture()) {
                     return;
@@ -192,7 +244,7 @@ class OrderHistoryController extends Controller
                     'cancelled_by' => 'system',
                 ]);
 
-                $order->payment?->update(['status' => 'expired']);
+                $payment?->update(['status' => 'expired']);
             });
     }
 }

@@ -13,6 +13,11 @@ trait ExpiresUnpaidOrders
             ->get()
             ->each(function (Order $order) {
                 $payment   = $order->payment;
+
+                if ($payment?->payment_channel === 'manual' && in_array($payment->status, ['under_review', 'success'], true)) {
+                    return;
+                }
+
                 $expiresAt = $payment?->expired_at ?? $order->created_at->addDay();
 
                 if ($expiresAt->isFuture()) {

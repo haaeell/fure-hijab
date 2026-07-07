@@ -94,6 +94,13 @@ class CheckoutController extends Controller
         }
 
         $couriers = $this->activeCouriers();
+        $paymentMode = Setting::getValue('payment_mode', 'midtrans');
+        $bankInfo = [
+            'name' => Setting::getValue('bank_name'),
+            'account_name' => Setting::getValue('bank_account_name'),
+            'account_number' => Setting::getValue('bank_account_number'),
+            'branch' => Setting::getValue('bank_branch'),
+        ];
 
         return view('user.checkout.index', compact(
             'carts',
@@ -104,6 +111,8 @@ class CheckoutController extends Controller
             'couriers',
             'appliedCoupon',   // ← tambah
             'discountAmount',  // ← tambah
+            'paymentMode',
+            'bankInfo',
         ));
     }
 
@@ -322,9 +331,10 @@ class CheckoutController extends Controller
 
         $grandTotal = $subtotal - $discountAmount + $request->shipping_cost;
         $orderNumber = Order::generateOrderNumber();
+        $paymentMode = Setting::getValue('payment_mode', 'midtrans');
 
         try {
-        $order = DB::transaction(function () use ($request, $user, $cart, $checkoutItems, $subtotal, $grandTotal, $discountAmount, $couponId, $coupon, $orderNumber, $totalWeight) {
+        $order = DB::transaction(function () use ($request, $user, $cart, $checkoutItems, $subtotal, $grandTotal, $discountAmount, $couponId, $coupon, $orderNumber, $totalWeight, $paymentMode) {
 
             // Validasi + reservasi stok (pessimistic lock) — cegah overselling
             foreach ($checkoutItems as $item) {
@@ -407,47 +417,52 @@ class CheckoutController extends Controller
                 'estimated_days'    => $request->shipping_etd,
             ]);
 
-            $this->initMidtrans();
-
-            $params = [
-                'transaction_details' => [
-                    'order_id' => $orderNumber,
-                    'gross_amount' => (int) $grandTotal,
-                ],
-                'customer_details' => [
-                    'first_name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $request->phone ?? $user->phone,
-                ],
-                'item_details' => $checkoutItems->map(function ($item) {
-                    return [
-                        'id' => $item->product_id,
-                        'price' => (int) $item->price,
-                        'quantity' => $item->qty,
-                        'name' => substr($item->product->name, 0, 50)
-                    ];
-                })->toArray()
-            ];
-
-            if ($request->shipping_cost > 0) {
-                $params['item_details'][] = [
-                    'id' => 'SHIPPING',
-                    'price' => (int) $request->shipping_cost,
-                    'quantity' => 1,
-                    'name' => 'Ongkos Kirim'
-                ];
-            }
-
-            $snapToken = Snap::getSnapToken($params);
-
-            Payment::create([
+            $paymentData = [
                 'order_id' => $order->id,
                 'midtrans_order_id' => $orderNumber,
                 'amount' => $grandTotal,
                 'status' => 'pending',
-                'snap_token' => $snapToken,
+                'payment_channel' => $paymentMode,
+                'payment_method' => $paymentMode === 'manual' ? 'manual_transfer' : null,
                 'expired_at' => now()->addMinutes(self::PAYMENT_WINDOW_MINUTES),
-            ]);
+            ];
+
+            if ($paymentMode === 'midtrans') {
+                $this->initMidtrans();
+
+                $params = [
+                    'transaction_details' => [
+                        'order_id' => $orderNumber,
+                        'gross_amount' => (int) $grandTotal,
+                    ],
+                    'customer_details' => [
+                        'first_name' => $user->name,
+                        'email' => $user->email,
+                        'phone' => $request->phone ?? $user->phone,
+                    ],
+                    'item_details' => $checkoutItems->map(function ($item) {
+                        return [
+                            'id' => $item->product_id,
+                            'price' => (int) $item->price,
+                            'quantity' => $item->qty,
+                            'name' => substr($item->product->name, 0, 50)
+                        ];
+                    })->toArray()
+                ];
+
+                if ($request->shipping_cost > 0) {
+                    $params['item_details'][] = [
+                        'id' => 'SHIPPING',
+                        'price' => (int) $request->shipping_cost,
+                        'quantity' => 1,
+                        'name' => 'Ongkos Kirim'
+                    ];
+                }
+
+                $paymentData['snap_token'] = Snap::getSnapToken($params);
+            }
+
+            Payment::create($paymentData);
 
             // Increment kuota terpakai kupon
             if ($coupon) {
@@ -527,6 +542,7 @@ class CheckoutController extends Controller
         return response()->json([
             'status' => $payment?->status,
             'order_status' => $order->status,
+            'payment_channel' => $payment?->payment_channel,
             'expired_at' => $payment?->expired_at?->toIso8601String(),
         ]);
     }
@@ -570,7 +586,17 @@ class CheckoutController extends Controller
             ->get();
 
         foreach ($orders as $order) {
-            $expiresAt = $this->paymentExpiresAt($order);
+            $payment = $order->payment;
+
+            if ($payment?->payment_channel === 'manual' && in_array($payment->status, ['under_review', 'success'], true)) {
+                return $order;
+            }
+
+            if ($payment?->payment_channel === 'manual' && $payment?->status === 'pending' && blank($payment?->proof_image)) {
+                $expiresAt = $this->paymentExpiresAt($order);
+            } else {
+                $expiresAt = $this->paymentExpiresAt($order);
+            }
 
             if ($expiresAt->isPast()) {
                 $order->update([
@@ -579,7 +605,7 @@ class CheckoutController extends Controller
                     'cancelled_at' => now(),
                     'cancelled_by' => 'system',
                 ]);
-                $order->payment?->update(['status' => 'expired']);
+                $payment?->update(['status' => 'expired']);
                 continue;
             }
 

@@ -17,10 +17,25 @@
         $paymentLabels = [
             'success' => 'Lunas',
             'pending' => 'Menunggu Pembayaran',
-            'failed' => 'Gagal',
-            'expired' => 'Kedaluwarsa',
+        'failed' => 'Gagal',
+        'expired' => 'Kedaluwarsa',
         ];
     @endphp
+
+    @push('styles')
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+            .order-address-map {
+                height: 240px;
+            }
+
+            @media (max-width: 640px) {
+                .order-address-map {
+                    height: 210px;
+                }
+            }
+        </style>
+    @endpush
 
     <style>
         .print-order-document {
@@ -282,11 +297,6 @@
                     <i class="fa-solid fa-print text-brand-primary"></i>
                     <span class="hidden sm:inline">Print</span>
                 </button>
-                <button onclick="openStatusModal()" title="Ubah status pesanan"
-                    class="px-5 py-3 bg-brand-primary text-white rounded-2xl font-bold shadow-lg shadow-brand-primary/20 hover:bg-brand-dark transition-all flex items-center gap-2 text-sm">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                    <span class="hidden sm:inline">Ubah Status</span>
-                </button>
             </div>
         </div>
 
@@ -452,9 +462,10 @@
                                     class="ml-auto px-3 py-1 rounded-full text-[10px] font-black tracking-wider
                                                                                     {{ $p->status === 'success' ? 'bg-green-50 text-green-600' :
                     ($p->status === 'pending' ? 'bg-amber-50 text-amber-600' :
-                        ($p->status === 'failed' ? 'bg-red-50 text-red-600' :
-                            ($p->status === 'expired' ? 'bg-gray-100 text-gray-500' : 'bg-purple-50 text-purple-600'))) }}">
-                                    {{ ucfirst($p->status) }}
+                        ($p->status === 'under_review' ? 'bg-sky-50 text-sky-600' :
+                            ($p->status === 'failed' ? 'bg-red-50 text-red-600' :
+                                ($p->status === 'expired' ? 'bg-gray-100 text-gray-500' : 'bg-purple-50 text-purple-600')))) }}">
+                                    {{ $p->status === 'under_review' ? 'Menunggu Review' : ucfirst($p->status) }}
                                 </span>
                             </div>
                             <div class="px-6 py-5 grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -490,7 +501,62 @@
                                         </p>
                                     </div>
                                 @endif
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 tracking-widest">CHANNEL</p>
+                                    <p class="font-bold text-brand-dark mt-1">{{ strtoupper($p->payment_channel ?? '-') }}</p>
+                                </div>
                             </div>
+
+                            @if($p->payment_channel === 'manual')
+                                <div class="px-6 pb-6">
+                                    <div class="rounded-3xl border border-gray-100 bg-gray-50/70 p-5">
+                                        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                            <div class="space-y-3">
+                                                <div>
+                                                    <p class="text-[10px] font-black text-gray-400 tracking-widest">BUKTI TRANSFER</p>
+                                                    <p class="text-sm text-brand-dark font-semibold mt-1">Pembayaran manual menunggu verifikasi admin.</p>
+                                                </div>
+                                                @if($p->proof_image)
+                                                    <div class="space-y-3">
+                                                        <img src="{{ asset('storage/' . $p->proof_image) }}" alt="Bukti transfer"
+                                                            class="h-44 w-full max-w-sm rounded-2xl object-cover border border-gray-100">
+                                                        <a href="{{ asset('storage/' . $p->proof_image) }}" target="_blank" rel="noopener noreferrer"
+                                                            class="inline-flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-2 text-xs font-black text-sky-700 transition hover:bg-sky-100">
+                                                            <i class="fa-regular fa-eye"></i>
+                                                            Lihat Bukti
+                                                        </a>
+                                                    </div>
+                                                @else
+                                                    <div class="rounded-2xl border border-dashed border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-400">
+                                                        Bukti transfer belum diupload customer.
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            @if($p->status === 'under_review')
+                                                <form action="{{ route('orders.payment-review', $order->id) }}" method="POST" class="w-full max-w-md space-y-3 bg-white rounded-3xl border border-gray-100 p-5 shadow-sm">
+                                                    @csrf
+                                                    <div>
+                                                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Catatan Admin</label>
+                                                        <textarea name="note" rows="3" placeholder="Opsional, misalnya nominal kurang atau bukti tidak jelas"
+                                                            class="mt-2 w-full rounded-2xl border border-gray-200 bg-gray-50/60 px-4 py-3 text-sm outline-none focus:border-brand-primary resize-none"></textarea>
+                                                    </div>
+                                                    <div class="flex flex-col gap-3 sm:flex-row">
+                                                        <button type="submit" name="action" value="reject"
+                                                            class="flex-1 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-black text-red-600 hover:bg-red-100 transition-all">
+                                                            Tolak
+                                                        </button>
+                                                        <button type="submit" name="action" value="approve"
+                                                            class="flex-1 rounded-2xl bg-brand-primary px-4 py-3 text-sm font-black text-white hover:bg-brand-dark transition-all">
+                                                            Approve
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                 @endif
 
@@ -879,11 +945,11 @@
 
                 {{-- ── Shipping Address ── --}}
                 @if($shippingAddr)
-                    <div class="bg-white rounded-3xl border border-gray-50 shadow-sm overflow-hidden">
-                        <div class="px-5 py-4 border-b border-gray-50 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 text-sm">
-                                <i class="fa-solid fa-location-dot"></i>
-                            </div>
+                <div class="bg-white rounded-3xl border border-gray-50 shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-gray-50 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 text-sm">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
                             <h3 class="font-extrabold text-brand-dark">Alamat Pengiriman</h3>
                         </div>
                         <div class="px-5 py-4 space-y-1.5 text-sm">
@@ -899,6 +965,37 @@
                                 {{ $shippingAddr->city }}
                             </p>
                             <p class="text-gray-500">{{ $shippingAddr->province }} {{ $shippingAddr->postal_code }}</p>
+                        </div>
+                        @php
+                            $customerLat = $shippingAddr->latitude ?? null;
+                            $customerLng = $shippingAddr->longitude ?? null;
+                        @endphp
+                        <div class="border-t border-gray-50 px-5 py-4">
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 tracking-widest">MAP LOKASI</p>
+                                    <p class="text-xs text-gray-500 mt-1">Visualisasi alamat customer bila koordinat tersedia.</p>
+                                </div>
+                                @if($customerLat && $customerLng)
+                                    <a href="https://www.google.com/maps?q={{ $customerLat }},{{ $customerLng }}" target="_blank" rel="noopener noreferrer"
+                                        class="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:underline">
+                                        Buka Maps
+                                    </a>
+                                @endif
+                            </div>
+                            @if($customerLat && $customerLng)
+                                <div id="customer-address-map-admin"
+                                    class="order-address-map overflow-hidden rounded-2xl border border-gray-100 bg-gray-50"
+                                    data-lat="{{ $customerLat }}"
+                                    data-lng="{{ $customerLng }}"
+                                    data-label="{{ $shippingAddr->receiver_name }}"
+                                    data-address="{{ $shippingAddr->address }}">
+                                </div>
+                            @else
+                                <div class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5 text-xs text-gray-400">
+                                    Koordinat alamat belum tersedia, jadi map tidak bisa ditampilkan.
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endif
@@ -1282,6 +1379,42 @@
                 });
             }
 
+            @if($shippingAddr && $shippingAddr->latitude && $shippingAddr->longitude)
+            (function () {
+                const mapEl = document.getElementById('customer-address-map-admin');
+                if (!mapEl || typeof L === 'undefined') return;
+
+                const lat = parseFloat(mapEl.dataset.lat);
+                const lng = parseFloat(mapEl.dataset.lng);
+                if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+                const label = mapEl.dataset.label || 'Alamat Customer';
+                const address = mapEl.dataset.address || '';
+
+                const map = L.map('customer-address-map-admin', {
+                    zoomControl: true,
+                    scrollWheelZoom: false,
+                }).setView([lat, lng], 15);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors',
+                }).addTo(map);
+
+                const popupHtml = `
+                    <div style="min-width:180px">
+                        <div style="font-weight:700;margin-bottom:4px;">${escHtml(label)}</div>
+                        <div style="font-size:12px;line-height:1.4;color:#475569;">${escHtml(address)}</div>
+                    </div>
+                `;
+
+                L.marker([lat, lng]).addTo(map).bindPopup(popupHtml).openPopup();
+
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 250);
+            })();
+            @endif
         </script>
     @endpush
 @endsection

@@ -175,6 +175,11 @@ class CartController extends Controller
 
         foreach ($orders as $order) {
             $payment = $order->payment;
+
+            if ($payment?->payment_channel === 'manual' && in_array($payment->status, ['under_review', 'success'], true)) {
+                return $order;
+            }
+
             $expiresAt = $payment?->expired_at ?: $order->created_at->copy()->addDay();
 
             if ($expiresAt->isPast()) {
@@ -184,7 +189,7 @@ class CartController extends Controller
                     'cancelled_at' => now(),
                     'cancelled_by' => 'system',
                 ]);
-                $payment->update(['status' => 'expired']);
+                $payment?->update(['status' => 'expired']);
                 continue;
             }
 

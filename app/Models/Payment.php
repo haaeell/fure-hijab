@@ -11,9 +11,15 @@ class Payment extends Model
 
     protected $fillable = [
         'order_id',
+        'payment_channel',
         'midtrans_order_id',
         'midtrans_transaction_id',
         'snap_token',
+        'proof_image',
+        'proof_uploaded_at',
+        'reviewed_at',
+        'reviewed_by',
+        'review_note',
         'payment_method',
         'status',
         'amount',
@@ -25,6 +31,8 @@ class Payment extends Model
     protected $casts = [
         'payload' => 'array',
         'paid_at' => 'datetime',
+        'proof_uploaded_at' => 'datetime',
+        'reviewed_at' => 'datetime',
         'expired_at' => 'datetime'
     ];
 

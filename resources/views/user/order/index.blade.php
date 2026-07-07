@@ -66,6 +66,8 @@
                     @php
                         $currentStatus = $statusMap[$order->status] ?? ['bg' => 'bg-gray-50', 'text' => 'text-gray-600', 'label' => $order->status, 'icon' => 'fa-circle-info'];
                         $paymentExpiresAt = $order->payment?->expired_at ?: $order->created_at->copy()->addDay();
+                        $paymentChannel = $order->payment?->payment_channel;
+                        $paymentStatus = $order->payment?->status;
                         $firstItem = $order->items->first();
                         $primaryImage = $firstItem?->product?->images?->where('is_primary', true)->first()
                             ?? $firstItem?->product?->images?->first();
@@ -98,9 +100,15 @@
                                         {{ $order->items->count() }} produk · {{ $order->items->sum('qty') }} pcs
                                     </p>
                                     @if($order->status === 'pending')
-                                        <p class="text-[11px] text-amber-600 font-bold mt-2 leading-snug">
-                                            Bayar sebelum {{ $paymentExpiresAt->format('d M Y H:i') }}
-                                        </p>
+                                        @if($paymentChannel === 'manual')
+                                            <p class="text-[11px] text-sky-600 font-bold mt-2 leading-snug">
+                                                {{ $paymentStatus === 'under_review' ? 'Menunggu review admin' : 'Upload bukti transfer' }}
+                                            </p>
+                                        @else
+                                            <p class="text-[11px] text-amber-600 font-bold mt-2 leading-snug">
+                                                Bayar sebelum {{ $paymentExpiresAt->format('d M Y H:i') }}
+                                            </p>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -181,6 +189,8 @@
                             @php
                                 $currentStatus = $statusMap[$order->status] ?? ['bg' => 'bg-gray-50', 'text' => 'text-gray-600', 'label' => $order->status];
                                 $paymentExpiresAt = $order->payment?->expired_at ?: $order->created_at->copy()->addDay();
+                                $paymentChannel = $order->payment?->payment_channel;
+                                $paymentStatus = $order->payment?->status;
                                 $item = $order->items->first();
                                 $primaryImage = $item?->product?->images?->where('is_primary', true)->first()
                                     ?? $item?->product?->images?->first();
@@ -216,9 +226,15 @@
                                         {{ $currentStatus['label'] }}
                                     </span>
                                     @if($order->status === 'pending')
-                                        <p class="text-[10px] text-amber-600 font-semibold mt-2">
-                                            Bayar sebelum {{ $paymentExpiresAt->format('d M Y H:i') }}
-                                        </p>
+                                        @if($paymentChannel === 'manual')
+                                            <p class="text-[10px] text-sky-600 font-semibold mt-2">
+                                                {{ $paymentStatus === 'under_review' ? 'Menunggu review admin' : 'Upload bukti transfer' }}
+                                            </p>
+                                        @else
+                                            <p class="text-[10px] text-amber-600 font-semibold mt-2">
+                                                Bayar sebelum {{ $paymentExpiresAt->format('d M Y H:i') }}
+                                            </p>
+                                        @endif
                                     @endif
                                 </td>
                                 <td class="py-6">
