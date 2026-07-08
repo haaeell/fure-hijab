@@ -35,6 +35,24 @@
                 $paymentExpiresAt = $payment?->expired_at ?: $order->created_at->copy()->addDay();
                 $remainingPaymentSeconds = $order->status === 'pending' ? max(0, now()->diffInSeconds($paymentExpiresAt, false)) : 0;
                 $isManualPayment = $payment?->payment_channel === 'manual';
+                $shipmentPayload = is_array($order->shipment?->biteship_payload) ? $order->shipment->biteship_payload : [];
+                $shipmentCourierPayload = is_array($shipmentPayload['courier'] ?? null) ? $shipmentPayload['courier'] : [];
+                $biteshipTrackingId = $shipmentPayload['courier_tracking_id']
+                    ?? $shipmentPayload['tracking_id']
+                    ?? ($shipmentPayload['courier']['tracking_id'] ?? null)
+                    ?? $shipmentPayload['data']['courier_tracking_id']
+                    ?? $shipmentPayload['data']['tracking_id']
+                    ?? ($shipmentPayload['data']['courier']['tracking_id'] ?? null)
+                    ?? null;
+                $biteshipTrackingId = $biteshipTrackingId
+                    ?? (($shipmentPayload['object'] ?? null) === 'tracking' ? ($shipmentPayload['id'] ?? null) : null)
+                    ?? (($shipmentPayload['data']['object'] ?? null) === 'tracking' ? ($shipmentPayload['data']['id'] ?? null) : null);
+                $biteshipTrackingLink = $shipmentPayload['courier_link']
+                    ?? $shipmentPayload['link']
+                    ?? $shipmentPayload['tracking_link']
+                    ?? ($tracking['summary']['link'] ?? null)
+                    ?? $shipmentCourierPayload['link']
+                    ?? ($biteshipTrackingId ? 'https://track.biteship.com/' . $biteshipTrackingId : null);
             @endphp
 
             <div class="mb-6 flex flex-col gap-4 md:mb-10 md:flex-row md:items-center md:justify-between">
@@ -457,6 +475,12 @@
                                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Berat Paket</p>
                                     <p class="font-black text-brand-dark mt-1">{{ number_format($order->shipment->total_weight ?? 10, 0, ',', '.') }} gram</p>
                                 </div>
+                                @if ($biteshipTrackingLink)
+                                    <a href="{{ $biteshipTrackingLink }}" target="_blank" rel="noopener noreferrer"
+                                        class="w-full sm:w-auto min-h-[58px] px-5 inline-flex items-center justify-center rounded-2xl border border-brand-primary/25 bg-white text-brand-primary font-black text-xs uppercase tracking-widest hover:bg-brand-primary/5 transition-all">
+                                        <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i>Tracking
+                                    </a>
+                                @endif
                                 <form action="{{ route('order.history.track', $order->order_number) }}" method="POST" class="sm:w-auto">
                                     @csrf
                                     <button type="submit"
@@ -466,27 +490,19 @@
                                 </form>
                             </div>
 
-                            @if ($tracking && isset($tracking['manifest']))
+                            @php
+                                $trackingHistory = $tracking['history'] ?? $tracking['manifest'] ?? [];
+                            @endphp
+
+                            @if ($tracking && count($trackingHistory) > 0)
                                 <div
                                     class="relative pl-8 space-y-8 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
-                                    @foreach (array_reverse($tracking['manifest']) as $log)
+                                    @foreach (array_reverse($trackingHistory) as $log)
                                         @php
-                                            $statusLabel = match(strtolower($log['status'] ?? '')) {
-                                                'confirmed'                                       => 'Pesanan dikonfirmasi, kurir akan dijadwalkan.',
-                                                'allocated'                                       => 'Kurir sudah dialokasikan dan siap menjemput.',
-                                                'picking_up'                                      => 'Kurir sedang menuju lokasi pengambilan.',
-                                                'picked', 'picked_up', 'pickup'                   => 'Barang sudah diambil oleh kurir.',
-                                                'dropping_off', 'in_transit', 'on_delivery', 'on_the_way' => 'Kurir sedang menuju lokasi tujuan.',
-                                                'delivered'                                       => 'Pesanan berhasil diterima oleh penerima.',
-                                                'cancelled', 'canceled'                           => 'Pengiriman dibatalkan.',
-                                                'on_hold'                                         => 'Pengiriman ditahan sementara karena kendala.',
-                                                'return_in_transit'                               => 'Paket sedang dalam proses retur ke pengirim.',
-                                                'returned'                                        => 'Paket berhasil diretur ke pengirim.',
-                                                'disposed'                                        => 'Paket dimusnahkan.',
-                                                'failed'                                          => 'Pengiriman gagal.',
-                                                default                                           => null,
-                                            };
-                                            $description = $log['manifest_description'] ?? $log['description'] ?? $log['note'] ?? $statusLabel ?? '-';
+                                            $description = $log['note'] ?? $log['description'] ?? $log['manifest_description'] ?? '-';
+                                            $timestamp = $log['updated_at'] ?? trim(($log['manifest_date'] ?? $log['date'] ?? '') . ' ' . ($log['manifest_time'] ?? $log['time'] ?? ''));
+                                            $displayDate = filled($timestamp) ? \Carbon\Carbon::parse($timestamp)->format('d M Y') : '';
+                                            $displayTime = filled($timestamp) ? \Carbon\Carbon::parse($timestamp)->format('H:i:s') : '';
                                         @endphp
                                         <div class="relative">
                                             <div
@@ -503,10 +519,10 @@
                                                 </div>
                                                 <div class="flex flex-row md:flex-col items-center md:items-end gap-2 md:gap-0">
                                                     <p class="text-[10px] font-bold text-brand-primary uppercase">
-                                                        {{ \Carbon\Carbon::parse($log['manifest_date'])->format('d M Y') }}
+                                                        {{ $displayDate }}
                                                     </p>
                                                     <p class="text-[10px] text-gray-400 font-medium">
-                                                        {{ $log['manifest_time'] }}
+                                                        {{ $displayTime }}
                                                     </p>
                                                 </div>
                                             </div>

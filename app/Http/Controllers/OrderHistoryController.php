@@ -122,7 +122,7 @@ class OrderHistoryController extends Controller
         }
 
         try {
-            $tracking = $trackingService->trackShipment($order->shipment);
+            $tracking = $trackingService->trackCustomerShipment($order->shipment);
         } catch (\Throwable $e) {
             return back()->with('error', 'Tracking Biteship gagal: ' . $e->getMessage());
         }

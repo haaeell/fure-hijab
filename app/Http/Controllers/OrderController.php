@@ -266,15 +266,15 @@ class OrderController extends Controller
     {
         $order = Order::with('shipment')->findOrFail($id);
 
-        if (!$order->shipment || blank($order->shipment->resi)) {
+        if (!$order->shipment) {
             if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Nomor resi belum tersedia.'], 422);
+                return response()->json(['success' => false, 'message' => 'Data pengiriman belum tersedia.'], 422);
             }
-            return redirect()->back()->with('error', 'Nomor resi belum tersedia.');
+            return redirect()->back()->with('error', 'Data pengiriman belum tersedia.');
         }
 
         try {
-            $tracking = $trackingService->trackShipment($order->shipment);
+            $tracking = $trackingService->trackAdminShipment($order->shipment);
         } catch (\Throwable $e) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Tracking gagal: ' . $e->getMessage()], 422);

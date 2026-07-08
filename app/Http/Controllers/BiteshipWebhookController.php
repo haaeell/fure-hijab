@@ -292,27 +292,17 @@ class BiteshipWebhookController extends Controller
             return null;
         }
 
+        $note = $this->firstFilled($data, ['note', 'description', 'message']) ?: $status;
+        $updatedAt = $this->firstFilled($data, ['updated_at', 'created_at']) ?: now()->toIso8601String();
+
         return [[
             'source' => 'biteship_webhook',
             'status' => $status,
-            'description' => $this->firstFilled($data, ['description', 'note', 'message']) ?: $this->trackingStatusLabel($status),
-            'created_at' => $this->firstFilled($data, ['updated_at', 'created_at']) ?: now()->toIso8601String(),
+            'note' => $note,
+            'description' => $note,
+            'updated_at' => $updatedAt,
+            'created_at' => $updatedAt,
         ]];
-    }
-
-    private function trackingStatusLabel(string $status): string
-    {
-        return match (strtolower(trim($status))) {
-            'confirmed' => 'Pesanan pengiriman sudah dikonfirmasi.',
-            'allocated' => 'Kurir sudah dialokasikan untuk pesanan ini.',
-            'picking_up', 'pickup', 'picked_up' => 'Paket sedang dijemput oleh kurir.',
-            'dropping_off', 'in_transit', 'on_delivery' => 'Paket sedang dalam perjalanan.',
-            'delivered' => 'Paket sudah diterima oleh penerima.',
-            'cancelled', 'canceled' => 'Pengiriman dibatalkan.',
-            'returned' => 'Paket dikembalikan.',
-            'failed' => 'Pengiriman gagal.',
-            default => ucfirst(str_replace('_', ' ', $status)),
-        };
     }
 
     private function firstFilled(array $data, array $keys): mixed

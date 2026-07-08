@@ -585,8 +585,11 @@
                                     ?? $ship->resi;
                                 $biteshipTrackingId = $biteshipPayload['courier_tracking_id']
                                     ?? $biteshipPayload['tracking_id']
-                                    ?? $biteshipPayload['id']
+                                    ?? ($biteshipCourier['tracking_id'] ?? null)
                                     ?? null;
+                                $biteshipTrackingId = $biteshipTrackingId
+                                    ?? (($biteshipPayload['object'] ?? null) === 'tracking' ? ($biteshipPayload['id'] ?? null) : null)
+                                    ?? (($biteshipPayload['data']['object'] ?? null) === 'tracking' ? ($biteshipPayload['data']['id'] ?? null) : null);
                                 $biteshipTrackingLink = $biteshipPayload['courier_link']
                                     ?? $biteshipPayload['link']
                                     ?? ($biteshipTrackingId ? 'https://track.biteship.com/' . $biteshipTrackingId : null);
@@ -793,7 +796,7 @@
                             @if($ship->tracking_history)
                                 @php
                                     $trackingPayload = is_string($ship->tracking_history) ? json_decode($ship->tracking_history, true) : $ship->tracking_history;
-                                    $history = array_reverse($trackingPayload['manifest'] ?? $trackingPayload ?? []);
+                                    $history = array_reverse($trackingPayload['history'] ?? $trackingPayload['manifest'] ?? $trackingPayload ?? []);
                                 @endphp
                                 @if(count($history) > 0)
                                     <div class="mt-4">
@@ -801,30 +804,16 @@
                                         <div class="relative space-y-3 before:absolute before:left-4 before:top-0 before:bottom-0 before:w-px before:bg-gray-100">
                                             @foreach($history as $i => $track)
                                                 @php
-                                                    $statusLabel = match(strtolower($track['status'] ?? '')) {
-                                                        'confirmed'                          => 'Pesanan dikonfirmasi, kurir akan dijadwalkan.',
-                                                        'allocated'                          => 'Kurir sudah dialokasikan dan siap menjemput.',
-                                                        'picking_up'                         => 'Kurir sedang menuju lokasi pengambilan.',
-                                                        'picked', 'picked_up', 'pickup'      => 'Barang sudah diambil oleh kurir.',
-                                                        'dropping_off', 'in_transit', 'on_delivery', 'on_the_way' => 'Kurir sedang menuju lokasi tujuan.',
-                                                        'delivered'                          => 'Pesanan berhasil diterima oleh penerima.',
-                                                        'cancelled', 'canceled'              => 'Pengiriman dibatalkan.',
-                                                        'on_hold'                            => 'Pengiriman ditahan sementara karena kendala.',
-                                                        'return_in_transit'                  => 'Paket sedang dalam proses retur ke pengirim.',
-                                                        'returned'                           => 'Paket berhasil diretur ke pengirim.',
-                                                        'disposed'                           => 'Paket dimusnahkan.',
-                                                        'failed'                             => 'Pengiriman gagal.',
-                                                        default                              => null,
-                                                    };
-                                                    $description = $track['manifest_description'] ?? $track['description'] ?? $track['note'] ?? $statusLabel ?? '-';
+                                                    $description = $track['note'] ?? $track['description'] ?? $track['manifest_description'] ?? '-';
+                                                    $timestamp = $track['updated_at'] ?? trim(($track['manifest_date'] ?? $track['date'] ?? '') . ' ' . ($track['manifest_time'] ?? $track['time'] ?? ''));
+                                                    $displayDateTime = filled($timestamp) ? \Carbon\Carbon::parse($timestamp)->format('d M Y H:i:s') : '';
                                                 @endphp
                                                 <div class="flex items-start gap-4 pl-10 relative">
                                                     <div class="absolute left-2.5 top-1 w-3 h-3 rounded-full {{ $i === 0 ? 'bg-brand-primary' : 'bg-gray-300' }} border-2 border-white shadow-sm"></div>
                                                     <div class="flex-1">
                                                         <p class="font-bold text-sm {{ $i === 0 ? 'text-brand-dark' : 'text-gray-600' }}">{{ $description }}</p>
                                                         <p class="text-[10px] text-gray-400 mt-0.5">
-                                                            {{ $track['manifest_date'] ?? $track['date'] ?? '' }}
-                                                            {{ $track['manifest_time'] ?? $track['time'] ?? '' }}
+                                                            {{ $displayDateTime }}
                                                             @if(!empty($track['city_name'] ?? $track['location'] ?? '')) — {{ $track['city_name'] ?? $track['location'] }} @endif
                                                         </p>
                                                     </div>
@@ -1191,29 +1180,22 @@
     @push('scripts')
         <script>
         // ── Lacak Resi (AJAX + shimmer) ───────────────────────────────────────
-        const TRACKING_STATUS_LABELS = {
-            confirmed: 'Pesanan dikonfirmasi, kurir akan dijadwalkan.',
-            allocated: 'Kurir sudah dialokasikan dan siap menjemput.',
-            picking_up: 'Kurir sedang menuju lokasi pengambilan.',
-            picked: 'Barang sudah diambil oleh kurir.',
-            picked_up: 'Barang sudah diambil oleh kurir.',
-            pickup: 'Barang sudah diambil oleh kurir.',
-            dropping_off: 'Kurir sedang menuju lokasi tujuan.',
-            in_transit: 'Kurir sedang menuju lokasi tujuan.',
-            on_delivery: 'Kurir sedang menuju lokasi tujuan.',
-            on_the_way: 'Kurir sedang menuju lokasi tujuan.',
-            delivered: 'Pesanan berhasil diterima oleh penerima.',
-            cancelled: 'Pengiriman dibatalkan.',
-            canceled: 'Pengiriman dibatalkan.',
-            on_hold: 'Pengiriman ditahan sementara karena kendala.',
-            return_in_transit: 'Paket sedang dalam proses retur ke pengirim.',
-            returned: 'Paket berhasil diretur ke pengirim.',
-            disposed: 'Paket dimusnahkan.',
-            failed: 'Pengiriman gagal.',
-        };
-
         function escHtml(str) {
             return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function formatTrackingTimestamp(value, fallbackDate = '', fallbackTime = '') {
+            if (!value) {
+                return `${fallbackDate} ${fallbackTime}`.trim();
+            }
+
+            const date = new Date(value);
+
+            if (Number.isNaN(date.getTime())) {
+                return String(value);
+            }
+
+            return `${date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} ${date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`;
         }
 
         function shimmerTracking() {
@@ -1237,12 +1219,10 @@
             if (!manifest || manifest.length === 0) {
                 return '';
             }
-            const items = manifest.map((track, i) => {
-                const status      = (track.status || '').toLowerCase();
-                const fallback    = TRACKING_STATUS_LABELS[status] || null;
-                const description = track.manifest_description || track.description || track.note || fallback || '-';
-                const date        = track.manifest_date || track.date || '';
-                const time        = track.manifest_time || track.time || '';
+            const timeline = [...manifest].reverse();
+            const items = timeline.map((track, i) => {
+                const description = track.note || track.description || track.manifest_description || '-';
+                const timestamp   = formatTrackingTimestamp(track.updated_at, track.manifest_date || track.date || '', track.manifest_time || track.time || '');
                 const city        = track.city_name || track.location || '';
                 const dotCls      = i === 0 ? 'bg-brand-primary' : 'bg-gray-300';
                 const textCls     = i === 0 ? 'text-brand-dark font-bold' : 'text-gray-600 font-semibold';
@@ -1250,7 +1230,7 @@
                     <div class="absolute left-2.5 top-1 w-3 h-3 rounded-full ${dotCls} border-2 border-white shadow-sm"></div>
                     <div class="flex-1">
                         <p class="text-sm ${textCls}">${escHtml(description)}</p>
-                        <p class="text-[10px] text-gray-400 mt-0.5">${escHtml(date)} ${escHtml(time)}${city ? ' &mdash; ' + escHtml(city) : ''}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">${escHtml(timestamp)}${city ? ' &mdash; ' + escHtml(city) : ''}</p>
                     </div>
                 </div>`;
             }).join('');

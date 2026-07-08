@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
-use Throwable;
 
 class BiteshipService
 {
@@ -153,40 +152,29 @@ class BiteshipService
 
     public function track(string $waybill, string $courier): ?array
     {
-        $attempts = [
-            fn () => $this->client()->get(self::BASE_URL . '/trackings/' . urlencode($waybill)),
-            fn () => $this->client()->get(self::BASE_URL . '/trackings/' . urlencode($waybill) . '/couriers/' . urlencode($courier)),
-            fn () => $this->client()->get(self::BASE_URL . '/trackings', [
-                'waybill_id' => $waybill,
-                'courier_code' => $courier,
-            ]),
-            fn () => $this->client()->post(self::BASE_URL . '/trackings', [
-                'waybill_id' => $waybill,
-                'courier_code' => $courier,
-            ]),
-        ];
+        return $this->trackPublic($waybill, $courier);
+    }
 
-        $lastError = null;
+    public function trackPublic(string $waybill, string $courier): ?array
+    {
+        $response = $this->client()->get(self::BASE_URL . '/trackings/' . urlencode($waybill) . '/couriers/' . urlencode($courier));
 
-        foreach ($attempts as $request) {
-            try {
-                $response = $request();
-
-                if ($response->successful()) {
-                    return $this->normalizeTracking($response->json(), $waybill, $courier);
-                }
-
-                $error = $response->json('error')
-                    ?: $response->json('message')
-                    ?: $response->body();
-
-                $lastError = $this->preferredTrackingError($lastError, $error);
-            } catch (Throwable $e) {
-                $lastError = $this->preferredTrackingError($lastError, $e->getMessage());
-            }
+        if ($response->failed()) {
+            throw new \RuntimeException($this->trackingError($response->json(), $response->body()));
         }
 
-        throw new \RuntimeException($lastError ?: 'Tracking Biteship gagal diproses.');
+        return $this->normalizeTracking($response->json(), $waybill, $courier, 'public');
+    }
+
+    public function trackById(string $trackingId): ?array
+    {
+        $response = $this->client()->get(self::BASE_URL . '/trackings/' . urlencode($trackingId));
+
+        if ($response->failed()) {
+            throw new \RuntimeException($this->trackingError($response->json(), $response->body()));
+        }
+
+        return $this->normalizeTracking($response->json(), null, null, 'admin');
     }
 
     public function normalizeRates(array $pricing): array
@@ -222,122 +210,73 @@ class BiteshipService
         return collect($parts)->filter(fn ($part) => filled($part))->unique()->implode(', ');
     }
 
-    private function normalizeTracking(array $payload, string $waybill, string $courier): array
+    private function normalizeTracking(array $payload, ?string $waybill, ?string $courier, string $source): array
     {
         $data = $payload['data'] ?? $payload;
         $summary = $data['summary'] ?? [];
-        $history = $data['manifest']
-            ?? $data['history']
+        $courierData = is_array($data['courier'] ?? null) ? $data['courier'] : [];
+        $summaryStatus = $summary['status'] ?? $data['status'] ?? $data['tracking_status'] ?? null;
+        $history = $data['history']
+            ?? $data['manifest']
             ?? $data['histories']
             ?? $data['tracking_history']
             ?? $data['courier']['history']
             ?? [];
 
-        if (isset($history['status']) || isset($history['description'])) {
+        if (isset($history['status']) || isset($history['description']) || isset($history['note']) || isset($history['updated_at'])) {
             $history = [$history];
         }
 
+        $history = collect($history)->map(function ($item) {
+            if (!is_array($item)) {
+                return null;
+            }
+
+            $dateTime = $item['updated_at'] ?? $item['datetime'] ?? $item['created_at'] ?? null;
+            $note = $item['note'] ?? $item['manifest_description'] ?? $item['description'] ?? $item['message'] ?? '-';
+
+            return [
+                'note' => $note,
+                'updated_at' => $item['updated_at'] ?? $dateTime,
+                'status' => $item['status'] ?? null,
+                'service_type' => $item['service_type'] ?? null,
+                'description' => $note,
+                'manifest_description' => $note,
+                'city_name' => $item['city_name'] ?? $item['location'] ?? $item['area_name'] ?? '',
+                'manifest_date' => $item['manifest_date'] ?? $item['date'] ?? ($dateTime ? substr((string) $dateTime, 0, 10) : ''),
+                'manifest_time' => $item['manifest_time'] ?? $item['time'] ?? ($dateTime ? substr((string) $dateTime, 11, 8) : ''),
+            ];
+        })->filter()->values()->all();
+
         return [
+            'source' => $source,
+            'id' => $data['id'] ?? null,
+            'waybill_id' => $data['waybill_id'] ?? $summary['waybill_id'] ?? $summary['waybill'] ?? $data['waybill_number'] ?? $waybill,
+            'courier' => $courierData,
+            'origin' => $data['origin'] ?? null,
+            'destination' => $data['destination'] ?? null,
+            'link' => $data['link'] ?? $summary['link'] ?? null,
+            'order_id' => $data['order_id'] ?? null,
+            'status' => $summaryStatus,
+            'history' => $history,
             'summary' => [
                 'waybill' => $summary['waybill'] ?? $summary['waybill_id'] ?? $data['waybill_id'] ?? $data['waybill_number'] ?? $waybill,
-                'courier' => $summary['courier'] ?? $summary['courier_code'] ?? $data['courier_code'] ?? $courier,
-                'status' => $this->translateTrackingStatus($summary['status'] ?? $data['status'] ?? $data['tracking_status'] ?? null),
+                'courier' => $summary['courier'] ?? $summary['courier_code'] ?? $data['courier_code'] ?? ($courierData['company'] ?? $courier),
+                'status' => $summaryStatus,
+                'link' => $data['link'] ?? $summary['link'] ?? null,
             ],
-            'manifest' => collect($history)->map(function ($item) {
-                if (!is_array($item)) {
-                    return null;
-                }
-
-                $dateTime = $item['datetime'] ?? $item['created_at'] ?? $item['updated_at'] ?? null;
-                $description = $item['manifest_description'] ?? $item['description'] ?? $item['note'] ?? $item['message'] ?? $item['status'] ?? '-';
-
-                return [
-                    'manifest_description' => $this->translateTrackingDescription($description, $item['status'] ?? null),
-                    'city_name' => $item['city_name'] ?? $item['location'] ?? $item['area_name'] ?? '',
-                    'manifest_date' => $item['manifest_date'] ?? $item['date'] ?? ($dateTime ? substr((string) $dateTime, 0, 10) : ''),
-                    'manifest_time' => $item['manifest_time'] ?? $item['time'] ?? ($dateTime ? substr((string) $dateTime, 11, 8) : ''),
-                ];
-            })->filter()->values()->all(),
+            'manifest' => $history,
             'raw' => $payload,
         ];
     }
 
-    private function preferredTrackingError(?string $current, ?string $next): ?string
+    private function trackingError(?array $json, string $body): string
     {
-        if (!$current) {
-            return $next;
-        }
-
-        if ($next && !str_contains(strtolower($next), 'route not found')) {
-            return $next;
-        }
-
-        return $current;
-    }
-
-    private function translateTrackingStatus(?string $status): ?string
-    {
-        if (blank($status)) {
-            return $status;
-        }
-
-        return match (strtolower(trim((string) $status))) {
-            'confirmed' => 'Dikonfirmasi',
-            'allocated' => 'Kurir dialokasikan',
-            'picking_up', 'pickup', 'picked_up' => 'Sedang dijemput',
-            'dropping_off', 'in_transit', 'on_delivery' => 'Dalam perjalanan',
-            'delivered' => 'Terkirim',
-            'cancelled', 'canceled' => 'Dibatalkan',
-            'returned' => 'Dikembalikan',
-            'failed' => 'Gagal dikirim',
-            default => ucfirst(str_replace('_', ' ', (string) $status)),
-        };
-    }
-
-    private function translateTrackingDescription(string $description, ?string $status = null): string
-    {
-        $lower = strtolower($description);
-        $statusLabel = $this->translateTrackingStatus($status);
-
-        if (str_contains($lower, 'courier order is confirmed')) {
-            return 'Pesanan pengiriman sudah dikonfirmasi. Kurir telah diberitahu untuk melakukan penjemputan.'
-                . $this->pickupNumberSuffix($description);
-        }
-
-        if (str_contains($lower, 'has been notified to pick up')) {
-            return 'Kurir telah diberitahu untuk menjemput paket.' . $this->pickupNumberSuffix($description);
-        }
-
-        if (str_contains($lower, 'allocated')) {
-            return 'Kurir sudah dialokasikan untuk pesanan ini.';
-        }
-
-        if (str_contains($lower, 'picked up') || str_contains($lower, 'pickup')) {
-            return 'Paket sudah dijemput oleh kurir.';
-        }
-
-        if (str_contains($lower, 'delivered')) {
-            return 'Paket sudah diterima oleh penerima.';
-        }
-
-        if (str_contains($lower, 'cancel')) {
-            return 'Pengiriman dibatalkan.';
-        }
-
-        if ($statusLabel && $description === (string) $status) {
-            return $statusLabel;
-        }
-
-        return $description;
-    }
-
-    private function pickupNumberSuffix(string $description): string
-    {
-        if (preg_match('/Pickup Number:\s*([A-Za-z0-9-]+)/i', $description, $matches)) {
-            return ' Nomor pickup: ' . $matches[1] . '.';
-        }
-
-        return '';
+        return $json['error']
+            ?? $json['message']
+            ?? $json['messsage']
+            ?? $body
+            ?: 'Tracking Biteship gagal diproses.';
     }
 
     private function setting(string $key, mixed $default = null): mixed
