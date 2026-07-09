@@ -286,8 +286,8 @@ class CheckoutController extends Controller
         $user = Auth::user();
         $cart = Cart::with([
                 'items:id,cart_id,product_id,variant_id,qty,price',
-                'items.product:id,name,weight',
-                'items.variant:id,product_id,name,weight',
+                'items.product:id,name,weight,modal_price',
+                'items.variant:id,product_id,name,weight,purchase_price',
             ])
             ->where('user_id', $user->id)
             ->firstOrFail();
