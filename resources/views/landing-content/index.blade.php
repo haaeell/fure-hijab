@@ -120,7 +120,7 @@
                                 <p class="mt-1 line-clamp-2 text-xs text-gray-400">{{ $banner->subtitle }}</p>
                                 <div class="mt-3 flex gap-2">
                                     <button type="button"
-                                        data-banner="{{ htmlspecialchars(json_encode($banner), ENT_QUOTES, 'UTF-8') }}"
+                                        data-banner="{!! htmlspecialchars(json_encode($banner), ENT_QUOTES, 'UTF-8') !!}"
                                         onclick="editBanner(this)"
                                         class="rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-600">Edit</button>
                                     <form action="{{ route('landing-content.banners.destroy', $banner) }}" method="POST" onsubmit="return confirm('Hapus banner ini?')">
@@ -138,7 +138,6 @@
             </div>
         </div>
     </div>
-
 
     {{-- Edit Banner Modal --}}
     <div id="editModal" style="display:none" class="fixed inset-0 z-[100] items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
@@ -206,81 +205,6 @@
         </div>
     </div>
 
-    {{-- Edit Section Modal --}}
-    <div id="editSectionModal" style="display:none" class="fixed inset-0 z-[100] items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-        <div class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[32px] bg-white p-6 shadow-2xl md:p-8">
-            <div class="mb-6 flex items-center justify-between">
-                <h2 class="text-lg font-extrabold text-brand-dark">Edit Promo Section</h2>
-                <button type="button" onclick="closeEditSectionModal()" class="text-gray-400 hover:text-red-500">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-
-            <form id="editSectionForm" method="POST" enctype="multipart/form-data" class="grid gap-4 md:grid-cols-2">
-                @csrf
-                @method('PUT')
-
-                <div class="space-y-1.5">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Label kecil</label>
-                    <input name="eyebrow" id="esEyebrow" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Urutan</label>
-                    <input type="number" min="0" name="sort_order" id="esSort" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
-                </div>
-                <div class="space-y-1.5 md:col-span-2">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Judul <span class="text-red-400">*</span></label>
-                    <input name="title" id="esTitle" required class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
-                </div>
-                <div class="space-y-1.5 md:col-span-2">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Deskripsi</label>
-                    <textarea name="subtitle" id="esSubtitle" rows="2" class="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary"></textarea>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Teks Tombol</label>
-                    <input name="button_text" id="esBtnText" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Link Tombol</label>
-                    <input name="button_url" id="esBtnUrl" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Background Color <span class="text-red-400">*</span></label>
-                    <div class="flex gap-2">
-                        <input type="color" id="esBgColor" name="background_color"
-                            class="h-12 w-14 cursor-pointer rounded-xl border border-gray-200 bg-gray-50/50 p-1">
-                        <input type="text" id="esBgText" placeholder="#A78B6F"
-                            class="flex-1 rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
-                    </div>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Text Color <span class="text-red-400">*</span></label>
-                    <div class="flex gap-2">
-                        <input type="color" id="esTxtColor" name="text_color"
-                            class="h-12 w-14 cursor-pointer rounded-xl border border-gray-200 bg-gray-50/50 p-1">
-                        <input type="text" id="esTxtText" placeholder="#FFFFFF"
-                            class="flex-1 rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
-                    </div>
-                </div>
-                <div class="space-y-1.5">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Icon (Font Awesome)</label>
-                    <input name="icon" id="esIcon" placeholder="fa-solid fa-bag-shopping" class="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm font-semibold outline-none focus:border-brand-primary">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="ml-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Ganti Foto</label>
-                    <input type="file" name="image" accept="image/*" class="block w-full cursor-pointer rounded-2xl border border-gray-200 bg-gray-50/50 p-1 text-xs text-gray-400 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-primary file:px-5 file:py-2.5 file:text-[10px] file:font-black file:uppercase file:text-white hover:file:bg-brand-dark">
-                </div>
-                <label class="flex items-center gap-3 px-1">
-                    <input type="checkbox" name="is_active" id="esActive" value="1" class="h-4 w-4 rounded border-gray-300 text-brand-primary">
-                    <span class="text-sm font-bold text-gray-600">Aktif</span>
-                </label>
-                <div class="md:col-span-2 flex justify-end gap-3 pt-4">
-                    <button type="button" onclick="closeEditSectionModal()" class="rounded-2xl px-6 py-3 text-xs font-black uppercase tracking-widest text-gray-400 hover:bg-gray-100">Batal</button>
-                    <button class="rounded-2xl bg-brand-dark px-8 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-brand-primary">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
 @endsection
 
 @push('scripts')
@@ -313,48 +237,6 @@
 
         editModal.addEventListener('click', function (e) {
             if (e.target === editModal) closeEditModal();
-        });
-
-        /* ── Section Edit ── */
-        const editSectionModal = document.getElementById('editSectionModal');
-        const editSectionForm  = document.getElementById('editSectionForm');
-
-        function closeEditSectionModal() {
-            editSectionModal.style.display = 'none';
-        }
-
-        function editSection(btn) {
-            const data = JSON.parse(btn.getAttribute('data-section'));
-
-            editSectionForm.action = '/landing-content/sections/' + data.id;
-
-            document.getElementById('esBgColor').value    = data.background_color || '#A78B6F';
-            document.getElementById('esBgText').value     = data.background_color || '#A78B6F';
-            document.getElementById('esTxtColor').value   = data.text_color || '#FFFFFF';
-            document.getElementById('esTxtText').value    = data.text_color || '#FFFFFF';
-            document.getElementById('esEyebrow').value    = data.eyebrow || '';
-            document.getElementById('esSort').value       = data.sort_order || 0;
-            document.getElementById('esTitle').value      = data.title || '';
-            document.getElementById('esSubtitle').value   = data.subtitle || '';
-            document.getElementById('esBtnText').value    = data.button_text || '';
-            document.getElementById('esBtnUrl').value     = data.button_url || '';
-            document.getElementById('esIcon').value       = data.icon || '';
-            document.getElementById('esActive').checked   = Boolean(data.is_active);
-
-            editSectionModal.style.display = 'flex';
-        }
-
-        editSectionModal.addEventListener('click', function (e) {
-            if (e.target === editSectionModal) closeEditSectionModal();
-        });
-
-        /* ── Color picker sync ── */
-        document.querySelectorAll('input[type="color"]').forEach(function (picker) {
-            var textInput = picker.nextElementSibling;
-            picker.addEventListener('input', function () { textInput.value = picker.value; });
-            textInput.addEventListener('input', function () {
-                if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) picker.value = textInput.value;
-            });
         });
     </script>
 @endpush

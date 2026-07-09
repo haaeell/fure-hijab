@@ -252,6 +252,87 @@
             </button>
         </div>
     </form>
+
+    {{-- ── Akun Admin ───────────────────────────────────────────────── --}}
+    <div class="bg-white rounded-[32px] shadow-sm border border-gray-50 p-8 mt-6">
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-user-shield text-base"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-extrabold text-brand-dark">Akun Admin</h3>
+                <p class="text-xs text-gray-400 font-medium mt-0.5">Email login dan nama akun admin yang sedang aktif.</p>
+            </div>
+        </div>
+
+        <form action="{{ route('profile.update') }}" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Admin <span class="text-red-400">*</span></label>
+                    <input type="text" name="name" required
+                        value="{{ old('name', auth()->user()->name) }}"
+                        class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Email Login <span class="text-red-400">*</span></label>
+                    <input type="email" name="email" required
+                        value="{{ old('email', auth()->user()->email) }}"
+                        class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="submit"
+                    class="inline-flex items-center gap-2 px-8 py-3 bg-brand-dark text-white rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-brand-primary transition-all active:scale-95">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Simpan Akun
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {{-- ── Ubah Password Admin ──────────────────────────────────────── --}}
+    <div class="bg-white rounded-[32px] shadow-sm border border-gray-50 p-8 mt-6">
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-lock text-base"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-extrabold text-brand-dark">Ubah Password</h3>
+                <p class="text-xs text-gray-400 font-medium mt-0.5">Masukkan password lama untuk konfirmasi sebelum mengganti.</p>
+            </div>
+        </div>
+
+        <form action="{{ route('profile.password') }}" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-1.5 md:col-span-2">
+                    <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Password Saat Ini <span class="text-red-400">*</span></label>
+                    <input type="password" name="current_password" required
+                        class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Password Baru <span class="text-red-400">*</span></label>
+                    <input type="password" name="password" required
+                        class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="ml-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Konfirmasi Password Baru <span class="text-red-400">*</span></label>
+                    <input type="password" name="password_confirmation" required
+                        class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-brand-primary outline-none transition-all text-sm font-semibold">
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="submit"
+                    class="inline-flex items-center gap-2 px-8 py-3 bg-red-500 text-white rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-red-600 transition-all active:scale-95">
+                    <i class="fa-solid fa-key"></i>
+                    Ubah Password
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection
 

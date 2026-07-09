@@ -782,13 +782,10 @@
 
                             {{-- Generate resi via Biteship --}}
                             @if(!$ship->resi && $order->status === 'processing')
-                                <form action="{{ route('orders.biteship-waybill', $order->id) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" title="Generate nomor resi otomatis via Biteship"
-                                        class="px-5 py-3 bg-cyan-500 text-white rounded-2xl text-xs font-black tracking-widest hover:bg-brand-dark transition-all">
-                                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Generate Resi Biteship
-                                    </button>
-                                </form>
+                                <button type="button" onclick="generateBiteshipResi({{ $order->id }})" title="Generate nomor resi otomatis via Biteship"
+                                    class="px-5 py-3 bg-cyan-500 text-white rounded-2xl text-xs font-black tracking-widest hover:bg-brand-dark transition-all">
+                                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Generate Resi Biteship
+                                </button>
                             @endif
 
                             {{-- Tracking History --}}
@@ -1342,6 +1339,26 @@
                             .append($('<input>', { type: 'hidden', name: '_token', value: '{{ csrf_token() }}' }))
                             .append($('<input>', { type: 'hidden', name: '_method', value: 'PATCH' }))
                             .append($('<input>', { type: 'hidden', name: 'status', value: 'cancelled' }))
+                            .appendTo('body').submit();
+                    }
+                });
+            }
+
+            window.generateBiteshipResi = function (id) {
+                Swal.fire({
+                    title: 'Generate Resi Biteship?',
+                    html: `Nomor resi akan dibuat otomatis via Biteship untuk kurir <b>{{ strtoupper($ship->courier ?? '-') }} - {{ $ship->service ?? '-' }}</b>.<br>` +
+                          `Setelah resi terbit, status pesanan akan berubah menjadi <b>"Dikirim"</b> dan proses ini tidak bisa dibatalkan.`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#06b6d4',
+                    cancelButtonColor: '#9ca3af',
+                    confirmButtonText: 'Ya, Generate!',
+                    cancelButtonText: 'Batal',
+                }).then(r => {
+                    if (r.isConfirmed) {
+                        $('<form>', { method: 'POST', action: `/orders/${id}/biteship-waybill` })
+                            .append($('<input>', { type: 'hidden', name: '_token', value: '{{ csrf_token() }}' }))
                             .appendTo('body').submit();
                     }
                 });
