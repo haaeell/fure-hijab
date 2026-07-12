@@ -520,6 +520,7 @@ class OrderController extends Controller
         // Paper sizes (in points: 1cm = 28.35pt)
         $paperSizes = [
             'a4'       => [0, 0, 595, 842],  // 21 × 29.7 cm
+            'a6'       => [0, 0, 298, 420],  // 10.5 × 14.8 cm
             'thermal1' => [0, 0, 227, 284],  // 8 × 10 cm
             'thermal2' => [0, 0, 284, 426],  // 10 × 15 cm
         ];

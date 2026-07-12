@@ -8,7 +8,7 @@
     $showSenderAddr  = $opts['sender_address']   ?? true;
     $showRcvPhone    = $opts['receiver_phone']   ?? true;
     $paperSize       = $opts['paper_size']       ?? 'thermal2';
-    $isA4Paper       = $paperSize === 'a4';
+    $isA4Paper       = in_array($paperSize, ['a4', 'a6'], true);
 
     $waybill  = $label['waybill'] ?? null;
     $qty      = $order->items->sum('qty');

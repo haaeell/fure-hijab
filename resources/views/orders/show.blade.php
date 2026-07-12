@@ -1102,6 +1102,7 @@
                     <select name="paper_size"
                         class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-bold text-gray-600 bg-white focus:outline-none focus:border-brand-primary appearance-none cursor-pointer">
                         <option value="a4">Default (A4 — 21 × 29.7 cm)</option>
+                        <option value="a6">A6 (10.5 × 14.8 cm)</option>
                         <option value="thermal1">Thermal 1 (8 × 10 cm)</option>
                         <option value="thermal2">Thermal 2 (10 × 15 cm)</option>
                     </select>
