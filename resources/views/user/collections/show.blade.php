@@ -57,7 +57,7 @@
             </nav>
 
             <div class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-                <div class="space-y-4">
+                <div class="min-w-0 space-y-4">
                     <div class="overflow-hidden bg-white">
                         <div class="group relative aspect-[4/5] bg-[#eee5dc] {{ $isOutOfStock ? 'opacity-60' : '' }}">
                             <div id="mainImageTrack" class="no-scrollbar flex h-full w-full cursor-grab snap-x snap-mandatory overflow-x-auto scroll-smooth select-none">
