@@ -59,11 +59,38 @@
             <div class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
                 <div class="space-y-4">
                     <div class="overflow-hidden bg-white">
-                        <div class="relative aspect-[4/5] bg-[#eee5dc] {{ $isOutOfStock ? 'opacity-60' : '' }}">
-                            <img id="mainImage"
-                                src="{{ $primaryImage ? asset('storage/' . $primaryImage->image_url) : 'https://via.placeholder.com/900x1125?text=' . urlencode($globalStoreName) }}"
-                                class="h-full w-full object-cover transition-opacity duration-300" alt="{{ $product->name }}"
-                                fetchpriority="high">
+                        <div class="group relative aspect-[4/5] bg-[#eee5dc] {{ $isOutOfStock ? 'opacity-60' : '' }}">
+                            <div id="mainImageTrack" class="no-scrollbar flex h-full w-full cursor-grab snap-x snap-mandatory overflow-x-auto scroll-smooth select-none">
+                                @forelse($galleryImages as $index => $img)
+                                    <div class="h-full w-full flex-none snap-center" data-slide-index="{{ $index }}">
+                                        <img src="{{ asset('storage/' . $img->image_url) }}"
+                                            class="h-full w-full object-cover" alt="{{ $product->name }}"
+                                            @if($index === 0) fetchpriority="high" @else loading="lazy" @endif>
+                                    </div>
+                                @empty
+                                    <div class="h-full w-full flex-none snap-center">
+                                        <img id="mainImage" src="https://via.placeholder.com/900x1125?text={{ urlencode($globalStoreName) }}"
+                                            class="h-full w-full object-cover" alt="{{ $product->name }}" fetchpriority="high">
+                                    </div>
+                                @endforelse
+                            </div>
+
+                            @if($galleryImages->count() > 1)
+                                <button type="button" id="mainImagePrev" aria-label="Sebelumnya"
+                                    class="absolute left-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-brand-dark opacity-0 shadow transition hover:bg-white group-hover:opacity-100 sm:flex">
+                                    <i class="fa-solid fa-chevron-left text-sm"></i>
+                                </button>
+                                <button type="button" id="mainImageNext" aria-label="Berikutnya"
+                                    class="absolute right-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-brand-dark opacity-0 shadow transition hover:bg-white group-hover:opacity-100 sm:flex">
+                                    <i class="fa-solid fa-chevron-right text-sm"></i>
+                                </button>
+
+                                <div id="mainImageDots" class="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5 sm:hidden">
+                                    @foreach($galleryImages as $index => $img)
+                                        <span data-dot-index="{{ $index }}" class="h-1.5 w-1.5 rounded-full transition-all {{ $index === 0 ? 'w-4 bg-white' : 'bg-white/50' }}"></span>
+                                    @endforeach
+                                </div>
+                            @endif
 
                             @if($isOutOfStock)
                                 <div class="absolute left-4 top-4 bg-gray-500 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
@@ -78,12 +105,12 @@
                     </div>
 
                     @if($galleryImages->count() > 1)
-                        <div class="no-scrollbar flex gap-3 overflow-x-auto pb-1" id="galleryThumbs">
+                        <div class="no-scrollbar flex cursor-grab gap-3 overflow-x-auto pb-1 select-none" id="galleryThumbs">
                             @foreach($galleryImages as $index => $img)
                                 <button type="button"
                                     data-src="{{ asset('storage/' . $img->image_url) }}"
                                     data-index="{{ $index }}"
-                                    onclick="changeImage('{{ asset('storage/' . $img->image_url) }}', this)"
+                                    onclick="goToSlide({{ $index }}, this)"
                                     class="gallery-thumb h-20 w-16 flex-none overflow-hidden border {{ $index === 0 ? 'border-brand-primary' : 'border-brand-secondary/60' }} bg-white transition-all duration-300 hover:border-brand-primary">
                                     <img src="{{ asset('storage/' . $img->image_url) }}" loading="lazy" class="h-full w-full object-cover" alt="{{ $product->name }}">
                                 </button>
@@ -507,18 +534,48 @@
             }
         }
 
-        function switchMainImage(src) {
-            const $img = $('#mainImage');
-            $img.css('opacity', 0);
-            setTimeout(function () {
-                $img.attr('src', src);
-                $img.css('opacity', 1);
-            }, 200);
+        function setActiveDot(index) {
+            $('#mainImageDots [data-dot-index]').each(function () {
+                const isActive = $(this).data('dot-index') === index;
+                $(this).toggleClass('w-4 bg-white', isActive).toggleClass('bg-white/50', !isActive);
+            });
         }
 
-        function changeImage(src, btn) {
-            switchMainImage(src);
-            setActiveThumbnail(btn || null);
+        function goToSlide(index, btn) {
+            const $track = $('#mainImageTrack');
+            const $slide = $track.find('[data-slide-index="' + index + '"]');
+            if ($slide.length) {
+                $track.animate({ scrollLeft: $slide[0].offsetLeft }, 250);
+            }
+            setActiveThumbnail(btn || $('.gallery-thumb[data-index="' + index + '"]')[0] || null);
+            setActiveDot(index);
+        }
+
+        // Sisipkan/ganti slide sementara di posisi 0 (dipakai untuk foto varian)
+        function showTemporarySlide(src) {
+            const $track = $('#mainImageTrack');
+            let $temp = $track.find('#variantSlide');
+            if (!$temp.length) {
+                $temp = $('<div>', { id: 'variantSlide', class: 'h-full w-full flex-none snap-center', 'data-slide-index': '0' })
+                    .append($('<img>', { class: 'h-full w-full object-cover', alt: 'Foto varian' }));
+                $track.prepend($temp);
+                $track.find('[data-slide-index]:not(#variantSlide)').each(function () {
+                    $(this).attr('data-slide-index', parseInt($(this).data('slide-index'), 10) + 1);
+                });
+            }
+            $temp.find('img').attr('src', src);
+            $track.scrollLeft(0);
+        }
+
+        function removeTemporarySlide() {
+            const $track = $('#mainImageTrack');
+            const $temp = $track.find('#variantSlide');
+            if ($temp.length) {
+                $temp.remove();
+                $track.find('[data-slide-index]').each(function (i) {
+                    $(this).attr('data-slide-index', i);
+                });
+            }
         }
 
         function adjustQty(val) {
@@ -592,33 +649,131 @@
 
             if (match.image) {
                 const variantImageUrl = '/storage/' + match.image;
-                switchMainImage(variantImageUrl);
+                showTemporarySlide(variantImageUrl);
+                setActiveThumbnail(null);
+                setActiveDot(0);
 
                 // Tambahkan thumbnail sementara untuk foto variant di galeri
                 if ($gallery.length) {
-                    setActiveThumbnail(null);
                     const $thumb = $('<button>', {
                         id: 'variantThumb',
                         type: 'button',
                         class: 'gallery-thumb h-20 w-16 flex-none overflow-hidden border border-brand-primary bg-white transition-all duration-300'
                     }).on('click', function () {
-                        switchMainImage(variantImageUrl);
+                        showTemporarySlide(variantImageUrl);
                         setActiveThumbnail(this);
+                        setActiveDot(0);
                     }).append(
                         $('<img>', { src: variantImageUrl, class: 'h-full w-full object-cover', alt: 'Foto varian' })
                     );
                     $gallery.prepend($thumb);
                 }
-            } else if (defaultProductImage) {
-                switchMainImage(defaultProductImage);
+            } else {
+                removeTemporarySlide();
                 // Kembalikan highlight ke thumbnail pertama
-                setActiveThumbnail($('.gallery-thumb[data-index="0"]')[0]);
+                goToSlide(0, $('.gallery-thumb[data-index="0"]')[0]);
             }
         }
 
         $(document).ready(function () {
             // Set thumbnail pertama aktif saat load
             setActiveThumbnail($('.gallery-thumb[data-index="0"]')[0] || null);
+
+            // Carousel: tombol panah
+            const $track = $('#mainImageTrack');
+            if ($track.length) {
+                const getSlides = () => $track.find('[data-slide-index]').toArray();
+
+                function currentIndex() {
+                    const slides = getSlides();
+                    const scrollLeft = $track.scrollLeft();
+                    let closest = 0;
+                    let closestDist = Infinity;
+                    slides.forEach((el, i) => {
+                        const dist = Math.abs(el.offsetLeft - scrollLeft);
+                        if (dist < closestDist) { closestDist = dist; closest = i; }
+                    });
+                    return closest;
+                }
+
+                $('#mainImagePrev').on('click', function () {
+                    const idx = Math.max(0, currentIndex() - 1);
+                    goToSlide(idx);
+                });
+                $('#mainImageNext').on('click', function () {
+                    const slides = getSlides();
+                    const idx = Math.min(slides.length - 1, currentIndex() + 1);
+                    goToSlide(idx);
+                });
+
+                // Sinkronkan thumbnail/dots aktif saat user swipe/scroll manual
+                let scrollTimeout;
+                $track.on('scroll', function () {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(function () {
+                        const idx = currentIndex();
+                        setActiveThumbnail($('.gallery-thumb[data-index="' + idx + '"]')[0] || null);
+                        setActiveDot(idx);
+                    }, 100);
+                });
+
+                // Drag-to-swipe pakai mouse di desktop (touch sudah native lewat overflow-x-auto)
+                let isDragging = false, dragStartX = 0, dragScrollLeft = 0;
+                $track.on('mousedown', function (e) {
+                    e.preventDefault();
+                    isDragging = true;
+                    $track.addClass('cursor-grabbing');
+                    dragStartX = e.pageX;
+                    dragScrollLeft = $track.scrollLeft();
+                });
+                $(document).on('mouseup mouseleave', function () {
+                    isDragging = false;
+                    $track.removeClass('cursor-grabbing');
+                });
+                $(document).on('mousemove', function (e) {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    const walk = e.pageX - dragStartX;
+                    $track.scrollLeft(dragScrollLeft - walk);
+                });
+            }
+
+            // Drag-to-scroll generik pakai mouse (dipakai untuk strip thumbnail)
+            function enableDragScroll($el) {
+                if (!$el.length) return;
+                const el = $el[0];
+                let isDown = false, startX = 0, startScroll = 0, moved = false;
+
+                $el.on('mousedown', function (e) {
+                    e.preventDefault(); // cegah native image-drag pada <img> thumbnail
+                    isDown = true;
+                    moved = false;
+                    $el.addClass('cursor-grabbing');
+                    startX = e.pageX;
+                    startScroll = el.scrollLeft;
+                });
+                $(document).on('mouseup mouseleave', function () {
+                    isDown = false;
+                    $el.removeClass('cursor-grabbing');
+                });
+                $(document).on('mousemove', function (e) {
+                    if (!isDown) return;
+                    const walk = e.pageX - startX;
+                    if (Math.abs(walk) > 5) moved = true;
+                    if (moved) e.preventDefault();
+                    el.scrollLeft = startScroll - walk;
+                });
+                // Cegah klik thumbnail ter-trigger tidak sengaja saat habis drag
+                el.addEventListener('click', function (e) {
+                    if (moved) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        moved = false;
+                    }
+                }, true);
+            }
+
+            enableDragScroll($('#galleryThumbs'));
 
             // Wishlist toggle
             $('#wishlistBtn').on('click', function () {
